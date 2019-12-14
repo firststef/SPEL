@@ -6,11 +6,12 @@ using namespace std;
 
 extern int yyparse();
 
+
 extern bool a;
 
-int main()
+int main(int argc, char** argv)
 {
-
+	FILE* yyin = fopen(argv[1], "r");
 	while (not a) {
 		yyparse();
 	}

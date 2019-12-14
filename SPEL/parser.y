@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+extern FILE* yyin;
 typedef struct expr_info {
 	int intvalue;
 	char* strvalue;
