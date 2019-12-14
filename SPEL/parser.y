@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+extern FILE* yyin;
 typedef struct expr_info {
 	int intvalue;
 	char* strvalue;
@@ -94,18 +94,6 @@ void free_expr(expr_info* expr)
 
 
 void print_expr(expr_info* expr)
-{
-	if (expr->type == 1)
-	{
-		printf("Int expr with value:%d", expr->intvalue);
-	}
-	else
-	{
-		printf("Str expr with value:%s", expr->strvalue);
-	}
-}
-
-void print_expr2(expr_info* expr)
 {
 	if (expr->type == 1)
 	{
