@@ -94,7 +94,9 @@ extern void yyerror(const char*);
 
 using namespace std;
 
-#line 98 "parser.cpp"
+bool a = false;
+
+#line 100 "parser.cpp"
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus
@@ -142,13 +144,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 32 "parser.y"
+#line 34 "parser.y"
 
 	int intval;
 	char* strval;
 	struct expr_info* expr_ptr;
 
-#line 152 "parser.cpp"
+#line 154 "parser.cpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -453,7 +455,7 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    46,    46,    47,    50,    51,    54,    55
+       0,    48,    48,    49,    52,    53,    56,    57
 };
 #endif
 
@@ -1232,43 +1234,43 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 46 "parser.y"
-    { print_expr((yyval.expr_ptr)); free_expr((yyval.expr_ptr)); }
-#line 1238 "parser.cpp"
+#line 48 "parser.y"
+    { print_expr((yyval.expr_ptr)); free_expr((yyval.expr_ptr));}
+#line 1240 "parser.cpp"
     break;
 
   case 3:
-#line 47 "parser.y"
+#line 49 "parser.y"
     { print_expr((yyval.expr_ptr)); free_expr((yyval.expr_ptr)); }
-#line 1244 "parser.cpp"
+#line 1246 "parser.cpp"
     break;
 
   case 4:
-#line 50 "parser.y"
-    {(yyval.expr_ptr) = create_int_expr((yyvsp[-2].expr_ptr)->intvalue + (yyvsp[0].expr_ptr)->intvalue); free_expr((yyvsp[-2].expr_ptr)); free_expr((yyvsp[0].expr_ptr));}
-#line 1250 "parser.cpp"
+#line 52 "parser.y"
+    {(yyval.expr_ptr) = create_int_expr((yyvsp[-2].expr_ptr)->intvalue + (yyvsp[0].expr_ptr)->intvalue); free_expr((yyvsp[-2].expr_ptr)); free_expr((yyvsp[0].expr_ptr)); if ((yyvsp[-2].expr_ptr)->intvalue==3) a = true;}
+#line 1252 "parser.cpp"
     break;
 
   case 5:
-#line 51 "parser.y"
+#line 53 "parser.y"
     { (yyval.expr_ptr) = create_int_expr((yyvsp[0].intval)); }
-#line 1256 "parser.cpp"
+#line 1258 "parser.cpp"
     break;
 
   case 6:
-#line 54 "parser.y"
+#line 56 "parser.y"
     {(yyval.expr_ptr) = create_str_expr((yyvsp[-2].expr_ptr)->strvalue, (yyvsp[0].expr_ptr)->strvalue); free_expr((yyvsp[-2].expr_ptr)); free_expr((yyvsp[0].expr_ptr)); }
-#line 1262 "parser.cpp"
+#line 1264 "parser.cpp"
     break;
 
   case 7:
-#line 55 "parser.y"
+#line 57 "parser.y"
     {(yyval.expr_ptr) = create_str_expr((yyvsp[0].strval), NULL); free((yyvsp[0].strval));}
-#line 1268 "parser.cpp"
+#line 1270 "parser.cpp"
     break;
 
 
-#line 1272 "parser.cpp"
+#line 1274 "parser.cpp"
 
       default: break;
     }
@@ -1500,7 +1502,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 58 "parser.y"
+#line 60 "parser.y"
 
 
 expr_info* create_int_expr(int value)

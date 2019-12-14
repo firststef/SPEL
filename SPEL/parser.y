@@ -26,6 +26,8 @@ extern int yylex(); // lexical analyzer
 extern void yyerror(const char*);
 
 using namespace std;
+
+bool a = false;
 %}
 
 
@@ -43,11 +45,11 @@ using namespace std;
 %start s
 %%
 
-s			: e { print_expr($$); free_expr($$); }
+s			: e { print_expr($$); free_expr($$);}
 			| str { print_expr($$); free_expr($$); }
 			;
 
-e			: e '+' e {$$ = create_int_expr($1->intvalue + $3->intvalue); free_expr($1); free_expr($3);}
+e			: e '+' e {$$ = create_int_expr($1->intvalue + $3->intvalue); free_expr($1); free_expr($3); if ($1->intvalue==3) a = true;}
 			| NR { $$ = create_int_expr($1); }
 			;
 
