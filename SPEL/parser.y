@@ -104,3 +104,15 @@ void print_expr(expr_info* expr)
 		printf("Str expr with value:%s", expr->strvalue);
 	}
 }
+
+void print_expr2(expr_info* expr)
+{
+	if (expr->type == 1)
+	{
+		printf("Int expr with value:%d", expr->intvalue);
+	}
+	else
+	{
+		printf("Str expr with value:%s", expr->strvalue);
+	}
+}
