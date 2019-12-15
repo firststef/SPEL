@@ -17,6 +17,22 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Tester - Debug|Win32">
+      <Configuration>Tester - Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Tester - Debug|x64">
+      <Configuration>Tester - Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Tester - Releases|Win32">
+      <Configuration>Tester - Releases</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Tester - Releases|x64">
+      <Configuration>Tester - Releases</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -31,7 +47,20 @@
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
@@ -44,7 +73,20 @@
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
@@ -59,18 +101,39 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
@@ -88,7 +151,31 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TESTER_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
@@ -118,49 +205,94 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;TESTER_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <CustomBuild Include="lexer.l">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lexer</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">Generating lexer</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">%(Filename).cpp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">parser.y</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">parser.y</AdditionalInputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lexer</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">Generating lexer</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">%(Filename).cpp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">parser.y</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">parser.y</AdditionalInputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating lexer</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">Generating lexer</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">%(Filename).cpp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">parser.y</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">parser.y</AdditionalInputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating lexer</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">Generating lexer</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">%(Filename).cpp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">parser.y</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">parser.y</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="parser.y">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating parser</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating parser</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_bison -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">win_bison -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating parser</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_bison -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">win_bison -o %(Filename).cpp %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating parser</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">%(Filename).cpp; %(Filename).h</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lexer.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="SpelParserExternals.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="parser.h" />
+    <ClInclude Include="SpelParserExternals.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="InputText.txt" />

@@ -1,8 +1,34 @@
+[TEST] Class test
+class Example {
+	public:
+		int a1 = 13;
+		float a2[10];
+	protected:
+		char proc(int a){return 1;};
+		float p1(){return a;};
+	private:
+		int abc(float b[12], char c);
+}
+
+Example::abc(float a, int b[10]) {return;};
+[END]
+
+jlkjkjklj[TEST] Declarare variable
+1+2
+[END]
+[TEST] Declarare variable2
+a+b
+[END]
+[TEST] prodicer
+1+!
+
 int a;
 float b;
 char v;
 string str;
 bool bolean;
+
+[TEST] Declarare functii
 int man(int a, int b) {return a+b*3;}
 begin class clasa1
 	int a, c;
@@ -52,3 +78,5 @@ b=3+obj1.b //eroare, obj1.b nu definit
 int man(int a, int b){return 4;}//eroare, definita cu aceeasi signatura
 man(b, 4);//eroare
 Eval(4.5); //eroare
+
+[END]

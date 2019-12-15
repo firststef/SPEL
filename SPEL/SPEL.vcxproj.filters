@@ -38,10 +38,16 @@
     <ClCompile Include="parser.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="SpelParserExternals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="parser.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpelParserExternals.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

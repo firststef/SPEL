@@ -4,103 +4,94 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string>
+
+#include "SpelParserExternals.h"
+
+//Lex vaiables
 extern FILE* yyin;
-typedef struct expr_info {
-	int intvalue;
-	char* strvalue;
-	int type;
-} expr_info;
 
-expr_info* create_int_expr(int value);
-expr_info* create_str_expr(char* value1, char* value2);
-void free_expr(expr_info* expr);
-void print_expr(expr_info* expr);
-
-#pragma warning (disable: 4005)
-
-// this function will be generated
-// by flex
-extern int yylex(); // lexical analyzer
-
-	// we have to code this function
+extern int yylex();
 extern void yyerror(const char*);
 
-using namespace std;
+//Define for avoiding duplicated token enum
+#define YYTOKENTYPE
 
-bool a = false;
 %}
 
+%locations
 
-%union {
-	int intval;
-	char* strval;
-	struct expr_info* expr_ptr;
-}
-%token <strval>STRING
-%token <intval>NR
-%type <expr_ptr>e
-%type <expr_ptr>str
-%type <expr_ptr>s
+%token PUBLIC PRIVATE PROTECTED INT FLOAT CHAR CLASS ID NR NRF DBLP RET
 
 %start s
 %%
 
-s			: e { print_expr($$); free_expr($$);}
-			| str { print_expr($$); free_expr($$); }
+s    : declarations{ printf("Syntax is valid\n"); }
+	 ;
+
+declarations: class_def declarations
+	| func_def declarations
+	| class_def
+	| func_def
+	;
+
+class_def: CLASS ID '{' pub_sec prot_sec priv_sec '}'
+	;
+
+pub_sec: PUBLIC ':' initializations
+	| ;
+						  ;
+
+prot_sec: PROTECTED ':' initializations
+| ;
+	;
+
+priv_sec: PRIVATE ':' initializations
+	| ;
 			;
 
-e			: e '+' e {$$ = create_int_expr($1->intvalue + $3->intvalue); free_expr($1); free_expr($3); if ($1->intvalue==3) a = true;}
-			| NR { $$ = create_int_expr($1); }
-			;
+initializations: type attrib_id_list ';'initializations
+	| type function_decl ';' initializations
+	| type function_decl function_body ';' initializations
+	| type attrib_id_list ';'
+	| type function_decl ';'
+	| type function_decl function_body ';'
+	;
 
-str			: str '+' str {$$ = create_str_expr($1->strvalue, $3->strvalue); free_expr($1); free_expr($3); }
-			| STRING {$$ = create_str_expr($1, NULL); free($1);}
-			;
+attrib_id_list: ID ',' attrib_id_list
+	| ID '=' NR ',' attrib_id_list
+	| ID '=' NRF ',' attrib_id_list
+	| ID '=' ID ',' attrib_id_list
+	| ID '[' NR ']' ',' attrib_id_list
+	| ID '[' NR ']'
+	| ID '=' ID
+	| ID '=' NR
+	| ID '=' NRF
+	| ID
+	;
+
+function_decl: ID '(' typed_param_list ')'
+	| ID '(' ')'
+	;
+
+type : INT
+	 | FLOAT
+	 | CHAR
+	 ;
+
+typed_param_list: type ID ',' typed_param_list
+	| type ID '[' NR ']' ',' typed_param_list
+	| type ID '[' NR ']'
+	| type ID
+	;
+
+function_body: '{' RET ';' '}'
+	| '{' RET ID ';' '}'
+	| '{' RET NR ';' '}'
+	| '{' RET NRF ';' '}'
+	;
+
+func_def: ID DBLP function_decl function_body ';'
+	;
 
 %%
-
-expr_info* create_int_expr(int value)
-{
-
-	expr_info* expr = (expr_info*)malloc(sizeof(expr_info));
-	expr->intvalue = value;
-	expr->type = 1;
-	return expr;
-}
-
-expr_info* create_str_expr(char* value1, char* value2)
-{
-	expr_info* expr = (expr_info*)malloc(sizeof(expr_info));
-	int len2 = value2 ? strlen(value2) : 0;
-	expr->strvalue = (char*)malloc(sizeof(char)*(strlen(value1) + len2 + 1));
-	strcpy(expr->strvalue, value1);
-	if (value2)
-	{
-		strcat(expr->strvalue, value2);
-	}
-	expr->type = 2;
-	return expr;
-
-}
-
-void free_expr(expr_info* expr)
-{
-	if (expr->type == 2)
-	{
-		free(expr->strvalue);
-	}
-	free(expr);
-}
-
-
-void print_expr(expr_info* expr)
-{
-	if (expr->type == 1)
-	{
-		printf("Int expr with value:%d", expr->intvalue);
-	}
-	else
-	{
-		printf("Str expr with value:%s", expr->strvalue);
-	}
-}
