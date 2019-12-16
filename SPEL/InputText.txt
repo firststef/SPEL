@@ -1,8 +1,9 @@
 [TEST] Comentarii
-// comentariu pana la final de linie
 /* comentariu cu text intern
 pe mai multe 
-linii*/ 
+linii*/
+
+//a
 [END]
 [TEST] Variable declarations
 int a;

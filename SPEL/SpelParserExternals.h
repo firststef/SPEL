@@ -10,6 +10,8 @@ int NO_TEST = 0;
 int TEST_STARTED = 1;
 int TEST_ENDED = 2;
 
+std::string syy_text;
+int scan_lines = 1;
 int scan_position = 0;
 int yycolumn = 0;
 bool ended_input = false;

@@ -26,7 +26,8 @@ extern void yyerror(const char*);
 %start s
 %%
 
-s    : declarations{ printf("Syntax is valid\n"); }
+s    : declarations { printf("Syntax is valid\n"); }
+     | ;
 	 ;
 
 declarations: class_def declarations

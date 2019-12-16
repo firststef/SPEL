@@ -1,9 +1,14 @@
 #include <iostream>
 
 #include "parser.h"
+#include <vector>
+#include <regex>
+#include <fstream>
 
 //INPUT VARIABLES
+#ifdef _WIN32
 extern FILE* yyin;
+#endif
 
 //Unit testing variables
 extern std::string test_description;
@@ -19,85 +24,120 @@ extern void set_console_color(int color);
 
 //Text control variables
 extern int yylineno;
+extern int scan_lines;
 extern bool ended_input;
 extern int scan_position;
 extern int yycolumn;
 
 //Text control functions
-extern int yyseek(long);
+extern void yyswitch(char* str, unsigned size);
 extern void yyerror(const char*);
 
 int main(int argc, char** argv)
 {
-	yyin = fopen(argv[1], "r");
-
 #ifndef TESTER_DEBUG //If not testing, run normally
-	auto x = yyparse();
+	yyin = fopen(argv[1], "r");
+	const auto parse_result = yyparse();
+	fclose(yyin);
 #else //If testing check for [TEST] + [END] structures
-	bool overall_test_result = true;
-	int last_state = NO_TEST;
-	while (not ended_input) {
-		auto parse_result = yyparse();
 
-		if (char(parse_result) == '\0')
-			parse_result = 0;
+	FILE *f = fopen(argv[1], "r");
+	fseek(f, 0, SEEK_END);
+	long fsize = ftell(f);
+	fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
 
-		if (test_state == TEST_STARTED)
+	std::vector<char> buff;
+	buff.resize(fsize);
+	char* data_ptr = &buff.front();
+
+	fread(data_ptr, 1, fsize, f);
+	
+	while (true) {		
+		fseek(f, scan_position, SEEK_SET);
+
+		bool found_t_e = false;
+		int t_pos = 0;
+		int e_pos = 0;
+
+		char buffer[200] = { 0 };
+		while (fgets(buffer, 200, f) != nullptr)
 		{
-			overall_test_result = true;
-		}
-		else if (test_state == TEST_ENDED) {
-			overall_test_result *= (not parse_result);
+			fpos_t p;
+			fgetpos(f, &p);
 			
-			if (parse_result) {
-#ifdef _WIN32
-				set_console_color(12);
-#endif
-				std::cout << "[FAIL]";
-#ifdef _WIN32
-				set_console_color(7);
-#endif
-				std::cout << test_description.c_str() + 6 << std::endl;
-			}
-			else
+			if (memcmp(buffer, "[TEST]", 6) == 0)
 			{
-#ifdef _WIN32
-				set_console_color(10);
-#endif
-				std::cout << "[PASS]";
-#ifdef _WIN32
-				set_console_color(7);
-#endif
-				std::cout << test_description.c_str() + 6 << std::endl;
-			}
-			
-		}
-		else if (last_state != NO_TEST && test_state == NO_TEST)
-		{
-			char check[6];
-			bool found = false;
-			while (fread(check, 1, 6, yyin) == 6)
-			{
-				if(memcmp(check, "[TEST]", 6) == 0)
+				found_t_e = true;
+				test_description = buffer + 6;
+				test_description[not test_description.empty() ? test_description.size() - 1 : 0] = '\0';
+
+				scan_lines++;
+				t_pos = p - 1;
+
+				char check[6];
+				bool found_e = false;
+				while (fread(check, 1, 5, f) == 5)
 				{
-					found = true;
-					break;
+					
+					if (memcmp(check, "[END]", 5) == 0)
+					{
+						found_e = true;
+						break;
+					}
+					fseek(f, -4, SEEK_CUR);
 				}
-				fseek(yyin, -5, SEEK_CUR);
-			}
-			if (found)
-			{
-				fpos_t p;
-				fgetpos(yyin, &p);
-				scan_position = p;
-				printf("%d", scan_position);
-				yyseek(scan_position);
-			}
-			else
+				if (found_e)
+				{
+					found_t_e = true;
+					fgetpos(f, &p);
+					e_pos = p - 9;
+					scan_position = p;
+				}
+				
 				break;
+			}
 		}
 
-		last_state = test_state;
+		if (found_t_e)
+		{
+			int buf_size = e_pos - t_pos;
+			scan_position = e_pos;
+
+			std::vector<char> scan_buff;
+			scan_buff.resize(buf_size + 10);
+			char* scan_ptr = &scan_buff.front();
+			memcpy(scan_ptr, data_ptr + t_pos, buf_size);
+			(scan_ptr)[buf_size] = 0;
+			(scan_ptr)[buf_size + 1] = 0;
+
+			yyswitch(scan_ptr, buf_size + 2);
+			auto parse_result = yyparse();
+				
+			if (parse_result) {
+	#ifdef _WIN32
+				set_console_color(12);
+	#endif
+				std::cout << "[FAIL]";
+	#ifdef _WIN32
+				set_console_color(7);
+	#endif
+				std::cout << test_description.c_str()<< std::endl;
+			}
+			else
+			{
+	#ifdef _WIN32
+				set_console_color(10);
+	#endif
+				std::cout << "[PASS]";
+	#ifdef _WIN32
+				set_console_color(7);
+	#endif
+				std::cout << test_description.c_str() << std::endl;
+			}
+
+		}
+		else
+			break;
 	}
 #endif
 	

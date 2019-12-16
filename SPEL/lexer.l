@@ -16,7 +16,8 @@ extern int TEST_STARTED;
 extern int TEST_ENDED;
 
 //Text control variables
-extern bool ended_input;
+extern std::string syy_text;
+extern int scan_lines;
 extern int scan_position;
 extern int yycolumn;
 extern char* yytext;
@@ -24,59 +25,32 @@ extern char* yytext;
 static void update_loc();
 static bool passed_here = false;
 
-#ifdef TESTER_DEBUG
-#define YY_USER_ACTION update_loc();
-#else 
-#define YY_USER_ACTION update_loc();
-#endif
+#define YY_USER_ACTION update_loc(); syy_text = yytext; scan_lines += std::count(syy_text.begin(), syy_text.end(), '\n'); ECHO;
 %}
 
-%x test
+%x comment
 
 %%
 
-
-<test>"/*"(.|\n)+"*/" ;
-<test>"public" {return PUBLIC; }
-<test>"private" {return PRIVATE; }
-<test>"protected" {return PROTECTED; }
-<test>"int" {return INT; }
-<test>"float" {return FLOAT; }
-<test>"char" {return CHAR; }
-<test>"class" {return CLASS; }
-<test>"return" {return RET; }
-<test>"::" {return DBLP; }
-<test>[A-Za-z][A-Za-z0-9]* { return ID; }
-<test>[1-9][0-9]*|0 {return NR; }
-<test>([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
-<test>[ \t\n] ;
-<test>. {return yytext[0]; }
-\[TEST\].*\n { //If found this token, test context starts
-	test_description = yytext;
-	test_description[test_description.size() ? test_description.size() - 1 : 0] = '\0';
-	test_state = TEST_STARTED;
-	BEGIN(test); 
-}
-<test>\[END\] { //If found this token we exit the lexer
-	test_state = TEST_ENDED;
+<<EOF>> { //If found this token we exit the lexer
 	BEGIN(INITIAL);
 	return 0;
 }
-(.|\n) ;
-
-<<EOF>> {
-	test_state = NO_TEST; 
-	ended_input = true;
-	return 0; 
-}
-
-.|\n {
-	if (not passed_here) {
-		passed_here = true;
-		yymore();
-		BEGIN(test);
-	}
-}
+"/*"(.|\n)+"*/" ;
+"public" {return PUBLIC; }
+"private" {return PRIVATE; }
+"protected" {return PROTECTED; }
+"int" {return INT; }
+"float" {return FLOAT; }
+"char" {return CHAR; }
+"class" {return CLASS; }
+"return" {return RET; }
+"::" {return DBLP; }
+[A-Za-z][A-Za-z0-9]* { return ID; }
+[1-9][0-9]*|0 {return NR; }
+([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
+[ \t\n] ;
+. {return yytext[0]; }
 
 %%
 
@@ -105,14 +79,14 @@ static void update_loc() {
 }
 
 //resets yylex context
-int yyseek(long offset)
+void yyswitch(char* str, unsigned size)
 {
-	yy_flush_buffer(YY_CURRENT_BUFFER);
-	return(fseek(yyin, offset, 0));
+	auto bs = yy_scan_buffer(str, size);
+	yy_switch_to_buffer(bs);
 }
 
 void yyerror(const char* msg)
 {
-	std::cout << "[Error]: " << msg << " line " << yylloc.last_line << " column " << yylloc.last_column << " : ";
+	std::cout << "[Error]: " << msg << " line " << scan_lines << " column " << yylloc.last_column << " : ";
 	std::cout << yytext << std::endl;
 }
