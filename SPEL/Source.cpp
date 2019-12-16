@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 	yyin = fopen(argv[1], "r");
 
 #ifndef TESTER_DEBUG //If not testing, run normally
-	yyparse();
+	auto x = yyparse();
 #else //If testing check for [TEST] + [END] structures
 	bool overall_test_result = true;
 	int last_state = NO_TEST;

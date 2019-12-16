@@ -22,24 +22,19 @@ extern int yycolumn;
 extern char* yytext;
 
 static void update_loc();
+static bool passed_here = false;
+
+#ifdef TESTER_DEBUG
 #define YY_USER_ACTION update_loc();
+#else 
+#define YY_USER_ACTION update_loc();
+#endif
 %}
 
 %x test
 
 %%
 
-[.\n] { //If we are not testing, enter code section automatically
-#ifndef TESTER_DEBUG
-	static bool passed_here = false;
-	if (not passed_here)
-	{
-		yyless(1);
-		passed_here = true;
-	}
-	BEGIN(test);
-#endif
-}
 
 <test>"/*"(.|\n)+"*/" ;
 <test>"public" {return PUBLIC; }
@@ -53,10 +48,9 @@ static void update_loc();
 <test>"::" {return DBLP; }
 <test>[A-Za-z][A-Za-z0-9]* { return ID; }
 <test>[1-9][0-9]*|0 {return NR; }
-<test>([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) { return NRF; }
+<test>([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
 <test>[ \t\n] ;
 <test>. {return yytext[0]; }
-
 \[TEST\].*\n { //If found this token, test context starts
 	test_description = yytext;
 	test_description[test_description.size() ? test_description.size() - 1 : 0] = '\0';
@@ -70,7 +64,19 @@ static void update_loc();
 }
 (.|\n) ;
 
-<<EOF>> {test_state = NO_TEST; ended_input = true; return 0; }
+<<EOF>> {
+	test_state = NO_TEST; 
+	ended_input = true;
+	return 0; 
+}
+
+.|\n {
+	if (not passed_here) {
+		passed_here = true;
+		yymore();
+		BEGIN(test);
+	}
+}
 
 %%
 

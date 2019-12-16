@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
+#ifdef _WIN32
 #include "Windows.h"
+#endif
 
 std::string test_description;
 int test_state = 0;
