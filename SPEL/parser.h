@@ -49,18 +49,30 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    PUBLIC = 258,
-    PRIVATE = 259,
-    PROTECTED = 260,
-    INT = 261,
-    FLOAT = 262,
-    CHAR = 263,
-    CLASS = 264,
-    ID = 265,
-    NR = 266,
-    NRF = 267,
-    DBLP = 268,
-    RET = 269
+    INT = 258,
+    FLOAT = 259,
+    CHAR = 260,
+    STRING = 261,
+    CHR = 262,
+    ID = 263,
+    NR = 264,
+    NRF = 265,
+    STR = 266,
+    TRUE = 267,
+    FALSE = 268,
+    BGNF = 269,
+    ENDF = 270,
+    RET = 271,
+    CLASS = 272,
+    CONST = 273,
+    BOOL = 274,
+    ELSE = 275,
+    IF = 276,
+    FOR = 277,
+    WHILE = 278,
+    ENDWHILE = 279,
+    ENDFOR = 280,
+    IFX = 281
   };
 #endif
 

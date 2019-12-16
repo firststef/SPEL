@@ -100,7 +100,24 @@ int main(int argc, char** argv)
 		last_state = test_state;
 	}
 #endif
-	
+	//pus comentariu pe o linie
+//modificat in comentariul multiline sa poti accepta ceva vid (/**/)
+//adaugat string, bool, octal, string, false, begin, end, begin, const
+
+
+//momentan nu am pus ca la un vector in parametrii definitiei unei functii sa fie ceva intre [], (int max(int a[5]), si nici nu cred ca ar 
+//trebuii pus
+
+//modificat ca sa poti sa ai in ID _
+//nu a fost facut un calculator de expresii
+
+//expr : //de luat din manualul de la yacc sau lex un calculator complet (este acolo)
+
+	//am facut o prostie la expresion. imi dadea recursie la infinit, si am modificat oleaca. dar nu e BINE de fel
+	//cred ca trebuie facut interior special pentru if, while, for
+	//if pare sa mearga, da while are niste probleme, pe care nici nu le inteleg
+	//mi se pare ca am facut o prostie
+	//daca e ceva ma apuc maine sa fac de la inceput toata gramatica. Am zapacit-o cu impartiri care nu erau bune si separatii naspa
 	system("pause");
 	return 1;
 }

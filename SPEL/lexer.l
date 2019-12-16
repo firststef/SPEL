@@ -35,48 +35,34 @@ static bool passed_here = false;
 
 %%
 
-
-<test>"/*"(.|\n)+"*/" ;
-<test>"public" {return PUBLIC; }
-<test>"private" {return PRIVATE; }
-<test>"protected" {return PROTECTED; }
-<test>"int" {return INT; }
-<test>"float" {return FLOAT; }
-<test>"char" {return CHAR; }
-<test>"class" {return CLASS; }
-<test>"return" {return RET; }
-<test>"::" {return DBLP; }
-<test>[A-Za-z][A-Za-z0-9]* { return ID; }
-<test>[1-9][0-9]*|0 {return NR; }
-<test>([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
-<test>[ \t\n] ;
-<test>. {return yytext[0]; }
-\[TEST\].*\n { //If found this token, test context starts
-	test_description = yytext;
-	test_description[test_description.size() ? test_description.size() - 1 : 0] = '\0';
-	test_state = TEST_STARTED;
-	BEGIN(test); 
-}
-<test>\[END\] { //If found this token we exit the lexer
-	test_state = TEST_ENDED;
-	BEGIN(INITIAL);
-	return 0;
-}
-(.|\n) ;
-
-<<EOF>> {
-	test_state = NO_TEST; 
-	ended_input = true;
-	return 0; 
-}
-
-.|\n {
-	if (not passed_here) {
-		passed_here = true;
-		yymore();
-		BEGIN(test);
-	}
-}
+"//"(.)*\n ;
+"/*"(.|\n)*"*/" ;
+"int" {return INT; }
+"float" {return FLOAT; }
+"char" {return CHAR; }
+"string" {return STRING; } 
+"bool" {return BOOL; }
+"'"(\\)?."'" {return CHR; }
+\".*\" {return STR; } 	
+"true" {return TRUE; }
+"false" {return FALSE; }
+"begin" {return BGNF; }	
+"end"	{return ENDF; }	
+"return" {return RET; }
+"class" {return CLASS; }
+"const" {return CONST; }
+"if" {return IF; }
+"else" {return ELSE; }
+"while" {return WHILE; }
+"endwhile" {return ENDWHILE; }
+"endfor" {return ENDFOR; };
+"for" {return FOR; }
+[_A-Za-z][_A-Za-z0-9]* { return ID; }	
+[1-9][0-9]*|0 {return NR; }
+([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
+[ \t] ;
+\n {yylineno++;}
+. {return yytext[0]; }
 
 %%
 
