@@ -32,20 +32,47 @@ static int curr_col = 1;
 	BEGIN(INITIAL);
 	return 0;
 }
-"/*"(.|\n)+"*/" ;
-"public" {return PUBLIC; }
-"private" {return PRIVATE; }
-"protected" {return PROTECTED; }
+"//"(.)*\n ;
+"/*"(.|\n)*"*/" ;
 "int" {return INT; }
 "float" {return FLOAT; }
 "char" {return CHAR; }
-"class" {return CLASS; }
+"of" {return OF; }
+"<=" {return LEQ; }
+">=" {return BEQ; }
+"==" {return EQ; }
+"!=" {return NEQ; }
+"string" {return STRING; } 
+"bool" {return BOOL; }
+"'"(\\)?."'" {return CHR; }
+\".*\" {return STR; } 	
+"true" {return TRUE; }
+"false" {return FALSE; }
+"begin" {return BGNF; }	
+"end"	{return ENDF; }	
 "return" {return RET; }
-"::" {return DBLP; }
-[A-Za-z][A-Za-z0-9]* { return ID; }
+"in" {return IN; }
+"&&" {return AND; }
+"||" {return OR; }
+"not" {return NOT; }
+"class" {return CLASS; }
+"const" {return CONST; }
+"if" {return IF; }
+"else" {return ELSE; }
+"while" {return WHILE; }
+"void" {return VOID; }
+"beginif" {return BEGINIF; }
+"endif" {return ENDIF; }
+"beginelse" {return BEGINELSE;}
+"endelse" {return ENDELSE; }
+"endwhile" {return ENDWHILE; }
+"endfor" {return ENDFOR; };
+"for" {return FOR; }
+[_A-Za-z][_A-Za-z0-9]* { return ID; }	
 [1-9][0-9]*|0 {return NR; }
 ([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
-[ \t\n] ;
+[ \t] ;
+\n {yylineno++;}
 . {return yytext[0]; }
 
 %%

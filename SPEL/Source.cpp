@@ -2,7 +2,6 @@
 
 #include "parser.h"
 #include <vector>
-#include <regex>
 
 //INPUT VARIABLES
 extern FILE* yyin;
@@ -125,7 +124,6 @@ int main(int argc, char** argv)
 	}
 	fclose(f);
 #endif
-	
 	system("pause");
 	return 1;
 }
