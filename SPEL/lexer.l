@@ -49,11 +49,20 @@ static bool passed_here = false;
 "begin" {return BGNF; }	
 "end"	{return ENDF; }	
 "return" {return RET; }
+"in" {return IN; }
+"&&" {return AND; }
+"||" {return OR; }
+"not" {return NOT; }
 "class" {return CLASS; }
 "const" {return CONST; }
 "if" {return IF; }
 "else" {return ELSE; }
 "while" {return WHILE; }
+"void" {return VOID; }
+"beginif" {return BEGINIF; }
+"endif" {return ENDIF; }
+"beginelse" {return BEGINELSE;}
+"endelse" {return ENDELSE; }
 "endwhile" {return ENDWHILE; }
 "endfor" {return ENDFOR; };
 "for" {return FOR; }

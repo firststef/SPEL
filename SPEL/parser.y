@@ -21,204 +21,296 @@ extern void yyerror(const char*);
 
 %locations
 
-%token INT, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, STR, TRUE, FALSE, BGNF, ENDF, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, ENDFOR
+%token INT, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN
 %nonassoc IFX
 %nonassoc ELSE
 %start s
 
 %%
 
-
-s : statements {printf("accepted\n");}
+s : class_def s
+  | function_def s
+  | statement s
+  | class_def
+  | function_def
+  | statement
   ;
 
 
-statements : statement statements
-		   | statement 
-		   ;
-
-
-statement : declarations
-		  | instructions
+class_def : BGNF CLASS ID class_body ENDF
 		  ;
 
-declarations : declaration declarations
-			 | declaration
-			 | func_declaration declarations
-			 | func_declaration
-			 | class_declaration declarations
-			 | class_declaration
-			 | instructions {printf("\nnu inteleg de ce nu merge daca las doar statement care sa treaca in ambele si trebuie sa le pun pe amandoua\n\n");}
-			 ;
 
 
-class_declaration : BGNF CLASS ID class_body ENDF
-				  ;
-
-class_body : declaration class_body
-		   | declaration
-		   | func_declaration class_body
-		   | func_declaration
+class_body : class_var
+		   | class_f
+		   | class_var class_body
+		   | class_f class_body
 		   ;
 
-declaration : type n_vars ';'
-			| CONST type const_n_vars ';' 
-			;
 
-const_n_vars : const_n_var '=' value
-			 | const_n_var '[' const_vector_size ']' '=' const_initialize_vec
-			 | const_n_var '=' value const_n_vars
-			 | const_n_var '[' const_vector_size ']' '=' const_initialize_vec const_n_vars
-			 ;
 
-n_vars : n_var
-	   | n_var '=' value 
-	   | n_var '[' vector_size ']' initialize_vec
-	   | n_var n_vars
-	   | n_var '=' value n_vars
-	   | n_var '[' vector_size ']' initialize_vec n_vars
-	   ;
-
-func_declaration : BGNF type ID '(' parameters ')' function_body ENDF
-				 ;
-
-parameters : 
-		   | parameter ',' parameters
-		   | parameter
-		   ;
-
-parameter : type ID
-		  | type ID '[' ']' 
+class_var : type class_ids ';'
+		  | CONST type const_class_ids ';'
 		  ;
 
-function_body : instructions function_body
-			  | instructions
-			  | declaration function_body
-			  | declaration
-			  | return function_body
-			  | return
-			  ;
 
-instructions : instruction instructions
-			 | instruction
-			 ;
 
-instruction : ID '(' call_parameters ')' ';'
-			| while_stmt
-			| if_stmt 
-			| ID '=' expresie ';'
-			;
-
-while_stmt : WHILE '(' boolean ')' instructions ENDWHILE
-		   ;
-
-if_stmt : IF '(' boolean ')' if_body %prec IFX
-		| IF '(' boolean ')' if_body ELSE if_body
-		;
-
-if_body : '{' instructions '}'
-		| instruction
-		;
-
-boolean : bvalues
-		;
-
-bvalues : bvalue
-		| bvalue '&''&' bvalues
-		| bvalue '|''|' bvalues
-		;
-
-bvalue : value
-	   | value '>' value
-	   | value '>' '=' value
-	   | value '<' value
-	   | value '<' '=' value
-	   | value '=' '=' value
-	   | value '!' '=' value
-	   ;
-
-return : RET value ';'
-	   | RET expresie {printf("aici trebuie construita o functie de evaluare a expresiilor\n");}
-	   ;
-
-vector_size : 
-			| NR
-			;
-
-const_vector_size : NR
-				  ;
-
-vector_size : 
-			| NR
-			;
-
-initialize_vec : 
-			   | '[' values ']'
-			   ;
-
-const_initialize_vec : '[' values ']'
-					 ;
-
-values : value ',' values
-	   | value
-	   ;
-
-type : INT
+type : ID
+	 | INT
 	 | FLOAT
 	 | CHAR
 	 | STRING
 	 | BOOL
-	 | ID
 	 ;
 
-const_n_var : ID
-			;
-
-n_var : ID
-	  ;
 
 
-value : NR
-	  | NRF
-	  | CHR
-	  | STR
-	  | TRUE
-	  | FALSE
-	  | ID
-	  | ID '[' NR ']'
-	  | ID '[' ID ']'
-	  | ID '(' call_parameters ')'
-	  | ID '.' ID
-	  | expresie
-	  ;
+class_ids : class_id
+		  | class_id ',' class_ids
+		  ;
 
-value2 : NR
-	  | NRF
-	  | CHR
-	  | STR
-	  | TRUE
-	  | FALSE
-	  | ID
-	  | ID '[' NR ']'
-	  | ID '[' ID ']'
-	  | ID '.' ID
-	  | ID '(' call_parameters ')'
-	  ;
 
-expresie : value2 {printf("\nexpresie trebuie modificat\n");}
-		 | expresie '+' value2
-		 | expresie '-' value2
-		 | expresie '*' value2
-		 | expresie '/' value2
-		 | expresie '%' value2
-		 | value2 '=' expresie
+
+class_id : ID
+		 | ID '=' class_id_initialization
+		 | ID '[' vector_size ']'
+		 | ID '[' vector_size ']' '=' vector_initialization
 		 ;
 
-call_parameters : call_parameter ',' call_parameters
-				| call_parameter
+
+
+class_id_initialization : ID
+						| NR
+						| NRF
+						| CHR
+						| STR
+						| TRUE
+						| FALSE
+						| ID '(' call_parameters ')'
+						| ID '[' vector_position ']'
+						;
+
+
+
+vector_size : 
+			| NR
+			;
+
+
+
+vector_initialization : '[' vector_body ']'
+					  ;
+
+
+
+vector_body : class_id_initialization
+			| class_id_initialization ',' vector_body
+			;
+
+
+
+call_parameters : 
+				| f_parameters
 				;
 
-call_parameter : 
-			   | value
+
+
+vector_position : ID
+				| NR
+				| ID '(' call_parameters ')'
+				| ID '[' vector_position ']'
+				;
+
+
+
+const_class_ids : const_class_id
+				| const_class_id ',' const_class_ids
+				;
+
+
+
+const_class_id : ID '=' class_id_initialization
+			   | ID '[' const_vector_size ']' '=' vector_initialization
 			   ;
+
+
+
+const_vector_size : NR
+				  ;
+
+
+
+f_parameters : f_parameter
+			 | f_parameter ',' f_parameters
+			 ;
+
+
+
+f_parameter : class_id_initialization {/*nu stiu daca aici este corect, dar eu presupun ca da*/}
+			;
+
+
+
+class_f : BGNF type ID '(' f_declaration_parameters ')' function_body ENDF
+		| BGNF VOID ID '(' f_declaration_parameters ')' no_return_function_body ENDF
+		;
+
+
+
+f_declaration_parameters : 
+						 | declaration_parameters
+						 ;
+
+
+
+declaration_parameters : declaration_parameter
+					   | declaration_parameter ',' declaration_parameters
+					   ;
+
+
+
+declaration_parameter : type ID
+					  | type ID '[' ']'
+					  | CONST type ID
+					  | CONST type ID '[' ']'
+					  ;
+
+
+
+function_body : class_var function_body 
+			  | RET class_id_initialization ';' function_body
+			  | RET eval_expr ';' function_body
+			  | function_instruction function_body
+			  | class_var  
+			  | RET class_id_initialization ';'
+			  | RET eval_expr ';'
+			  | function_instruction
+			  ;
+
+
+
+function_instruction : ID '=' eval_expr ';'
+					 | ID '[' vector_position ']' '=' eval_expr ';'
+					 | ID '(' call_parameters ')' ';'
+					 | while_instr
+					 | if_instr
+					 | for_instr
+					 ;
+
+
+
+while_instr : WHILE '(' while_condition ')' while_body ENDWHILE
+			;
+
+
+
+while_condition : boolean
+				;
+
+
+
+boolean : check
+		| check AND boolean
+		| check OR boolean
+		;
+
+
+
+check : NOT eval_expr
+	  | eval_expr
+	  ;
+
+
+
+while_body : no_return_function_body {/*de asemenea nu stiu daca este ok ce fac aicea*/}
+		   ;
+
+
+
+if_instr : IF '(' if_condition ')' if_body %prec IFX
+		 | IF '(' if_condition ')' if_body ELSE elif_body
+		 ;
+
+
+
+if_condition : boolean
+			 ;
+
+
+
+if_body : BEGINIF no_return_function_body ENDIF
+		;
+
+
+
+elif_body : BEGINELSE no_return_function_body ENDELSE
+		  ;
+
+
+
+for_instr : FOR for_sintax ENDFOR
+		  ;
+
+
+
+for_sintax : '(' ID IN for_iterator ')' for_body
+		   ;
+
+
+
+for_iterator : ID
+			| for_1 ':' for_1
+			;
+
+
+
+for_1 : ID
+	  | NR
+	  | NRF
+	  | CHR
+	  | ID '(' call_parameters ')'
+	  | ID '[' vector_position ']'
+	  ;
+
+
+
+for_body : no_return_function_body 
+		 ;
+
+
+
+eval_expr : {/*evaluatorul de expresie este vid*/}
+		  ;
+
+
+
+no_return_function_body : class_var no_return_function_body 
+						| function_instruction no_return_function_body
+						| class_var  
+						| function_instruction
+						;
+
+
+
+function_def : class_f 
+			 ;
+
+
+
+statement : declaration
+		  | if_instr
+		  | while_instr
+		  | for_instr
+		  | ID '=' eval_expr ';'
+		  | ID '(' call_parameters ')' ';'
+		  ;
+
+
+
+declaration : class_var
+			;
+
+
+
 %%
