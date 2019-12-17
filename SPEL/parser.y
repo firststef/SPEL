@@ -21,15 +21,19 @@ extern void yyerror(const char*);
 
 %locations
 
-%token LEQ,  BEQ, EQ, NEQ, INT, OF, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN
+%token LEQ, BEQ, EQ, NEQ, INT, OF, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN
 %nonassoc IFX
 %nonassoc ELSE
-%start s
+%start sp
 %left LEQ BEQ EQ NEQ '<' '>'
 %left  '+'  '-'
 %left  '*'  '/'  '%'
 %left  UMINUS      /*  supplies  precedence  for  unary  minus  */
 %%
+
+sp : s
+   |
+   ;
 
 s : class_def s
   | function_def s
