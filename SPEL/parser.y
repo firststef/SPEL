@@ -21,11 +21,14 @@ extern void yyerror(const char*);
 
 %locations
 
-%token INT, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN
+%token LEQ,  BEQ, EQ, NEQ, INT, OF, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN
 %nonassoc IFX
 %nonassoc ELSE
 %start s
-
+%left LEQ BEQ EQ NEQ '<' '>'
+%left  '+'  '-'
+%left  '*'  '/'  '%'
+%left  UMINUS      /*  supplies  precedence  for  unary  minus  */
 %%
 
 s : class_def s
@@ -89,6 +92,11 @@ class_id_initialization : ID
 						| FALSE
 						| ID '(' call_parameters ')'
 						| ID '[' vector_position ']'
+						| ID OF ID
+						| ID '[' vector_position ']' OF ID
+						| ID OF ID '[' vector_position ']'
+						| ID '[' vector_position ']' OF ID '[' vector_position ']'
+						| eval_expr
 						;
 
 
@@ -280,10 +288,39 @@ for_body : no_return_function_body
 
 
 
-eval_expr : {/*evaluatorul de expresie este vid*/}
+eval_expr : expr
+		  | var '=' expr
 		  ;
 
+var : ID
+	| ID '[' vector_position ']'
+	| ID OF ID
+	| ID '[' vector_position ']' OF ID
+	| ID OF ID '[' vector_position ']'
+	| ID '[' vector_position ']' OF ID '[' vector_position ']'
+	;
 
+expr : '(' expr ')'
+	 | expr '+' expr
+	 | expr '-' expr
+	 | expr '*' expr
+	 | expr '/' expr
+	 | expr '%' expr
+	 | '-' expr %prec UMINUS
+	 | var
+	 | NR
+	 | NRF
+	 | CHR
+	 | STR
+	 | TRUE
+	 | FALSE
+	 | expr '>' expr
+	 | expr '<' expr
+	 | expr NEQ expr
+	 | expr EQ expr
+	 | expr BEQ expr
+	 | expr LEQ expr
+	 ;
 
 no_return_function_body : class_var no_return_function_body 
 						| function_instruction no_return_function_body

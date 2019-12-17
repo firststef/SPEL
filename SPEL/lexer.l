@@ -40,6 +40,11 @@ static bool passed_here = false;
 "int" {return INT; }
 "float" {return FLOAT; }
 "char" {return CHAR; }
+"of" {return OF; }
+"<=" {return LEQ; }
+">=" {return BEQ; }
+"==" {return EQ; }
+"!=" {return NEQ; }
 "string" {return STRING; } 
 "bool" {return BOOL; }
 "'"(\\)?."'" {return CHR; }
