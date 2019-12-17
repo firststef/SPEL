@@ -1,157 +1,93 @@
-//comentariu (programul vid da eroare)
-int x;
-functie(a);
-/**/
-//comentariul vid
-//
-/*comentariul
-pe mai
-multe linii
-*/
-int a=health of hero;
-//definitia clasei
-/* 
-//aceasta trebuie sa dea eroare daca este documentata
-begin class clasa1 
-end
-*/
-//clasa cu variabile
-begin class clasa2
-	int a;
-	float b[];
-	char c='\n';
-	string d="string";
-//	const int e;
-	const char f=4;
-//	const float vec[]=[1,4.5];
-	const float vec[5]=[1,4.5];
-	int a=health of hero;
-end
-//clasa cu functii
-begin class clasa2
-//	begin int functie_clasa2() end;
-//	functia vida da eroare
-	begin void functie2() 
-		char sir[]=['1', 'a', 2, '\4'];
-		int a=health of hero;
-	end
-	begin void functie_void_cu_return()
-//		return 4;
-		float c=1.1;
-	end
-	//in declaratii la functii const nu trebuie sa fie initializat
-	begin string functie_cu_return (string a, const char b[]) 
-		return b[3];
-//		const float vec[]=[1,4.5];
-		const float vec[5]=[1,4.5];
-	end
-end
-//clasa cu functii si variabile
-//clasa cu functii
-begin class clasa3
-	begin void functie2() 
-		char sir[]=['1', 'a', 2, '\4'];
-	end
-	int x;
-	begin void functie_void_cu_return()
-		float c=1.1;
-	end
-	bool variabila[]=[true, false];
-end
-const int _a=1;
-functie(a);
-/*
-//asta de mai jos nu are sa mearga pana nu primeste suport pentru . si este facut eval_expr
-functie(a+obj.a);
-*/
-//		Se pare ca daca avem un comentariu care nu are ENTER la final da eroare. Nu vad cum s-ar putea evita acest lucru
-
-
-
-//test3
+[TEST] Comentarii
+/* comentariu cu text intern
+pe mai multe 
+linii*/
+[END]
+[TEST] Variable declarations
+int a;
+float b;
+char v;
+string str;
+bool bolean;
+[END]
+[TEST] Variable init
 int a = 1;
 float b = c;
 float d = 1.0;
 char v = 'a';
 string str = "a";
 bool bolean[] = [true, false]; 
-//test4
+[END]
+[TEST] Functions declaration
 begin int man(int a, int b) 
 	return a+b*3;
 end
-//test5
+[END]
+[TEST] Class Declarations
 begin class clasa1
-	int a=health of hero;
 	int a, c;
 	float b;
 	char v;
 	string str;
 	bool bolean;
 	begin int max(int x1, int x2)
-	/*daca exista begin&end la functie nu prea are sens sa facem declaratia functiei fara nimic in ea.
 		return x1;
 	end
 end
-//test6
+[END]
+[TEST] Class instantiation
 clasa1 obj;
-//test7
-int a1[];
-/*modificat declaratiile de la vector, le-am facut la fel ca declaratia de mai sus, sa fie consistenta */
-float b1[];
-char v1[];
-string str1[];
-bool bol1[];
-clasa1 obj1[];
-
-//test8
+[END]
+[TEST] Vector declarations
+int[] a1;
+float[] b1;
+char[] v1;
+string[] str1;
+bool[] bol1;
+clasa1[] obj1;
+[END]
+[TEST] Const declarations
 const int kst1=1;
 const float kst2=1.1;
 const char kst3=5;
 const string kst4="kst4";
-const int vkst[3] =[1, 3, 1]; //declarare size la const? 
-begin float functie(int a) return 1; end
-
-
-
-//if-ul nu merge cu parametru in interior deoarece eval_expr este vida
-if (a) beginif
-	functie(1);
-endif
-else beginelse
-	functie(1);
-endelse
-
-
-
-//	Astea cu plus , minus, si alte semne nu merg
-functie(a+obj of a);
+const int[3] vkst ={1, 3, 1}; //declarare size la const? 
+[END]
+[TEST] Function calls
+float functie(int a){return 1;}
+functie(a+obj.a);
 functie(man(1+3));
 functie(45);
-//functie(3+4);
+functie(3+4);
 functie(kst1);
-
-while (c >= 0 && (b!=0))
-	int a=health of hero;
-	string str1[1]=[3];
-	functie(45);
-
+[END]
+[TEST] Conditionals
+if (a1[0]>b1[1])
+	b=3.1;
+else
+	v='a';
+endif
+[END] 
+[TEST] Loops
+while (b>1)
+	b=b-1;
+	str1[1]=str1[1]+"da";
+	str1=str1 & "banu";
 endwhile
-
-begin int functie ()
-	b=55*3/2;
-	str="string1"+"string2";
-end
-
-for (x in 1:30) //for (int x=1; x<=30; x++)
-	int b;
+[END]
+[TEST] For loops
+for (x in 1:30); //for (int x=1; x<=30; x++)
 endfor
-int x=functie(3);
-for (x in str1) //for (auto:x in str1) - 
-	int a=health[3] of hero;
-	int a=health of hero[4];
-	char f=4;
-	functie(4);
-	b=3/(health of hero[3]);
+for (x in str1); //for (auto:x in str1) - 
 //aici sintaxa va fi for x in variabila, nu trebuie facuta validare decat ca partea dreapta este fie variabila fie string
 //daca variabila va fi string validarea se va face la semantic
 endfor
+[END]
+//Testele de aici vor fi facute cand facem testing pentru semantic
+int a; //trebuie sa dea eroare
+a="4"; //eroare
+b=3+obj1.b //eroare, obj1.b nu definit
+
+int man(int a, int b){return 4;}//eroare, definita cu aceeasi signatura
+man(b, 4);//eroare
+Eval(4.5); //eroare
