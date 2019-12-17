@@ -31,8 +31,8 @@ extern void yyerror(const char*);
 %left  UMINUS      /*  supplies  precedence  for  unary  minus  */
 %%
 
-sp : s
-   |
+sp : s { printf("The input file has been sucessfully parsed.\n"); }
+   | { printf("The input file has been sucessfully parsed.\n"); }
    ;
 
 s : class_def s

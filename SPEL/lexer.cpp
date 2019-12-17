@@ -2092,6 +2092,10 @@ void yyswitch(char* str, unsigned size)
 	yy_switch_to_buffer(bs);
 }
 
+void scan_string(char* str) {
+	yy_scan_string(str);
+}
+
 void yyerror(const char* msg)
 {
 	std::cout << "[Error]: " << msg << " line " << entry_line + yylloc.first_line << " column " << yylloc.first_column << " : " << yytext << std::endl;

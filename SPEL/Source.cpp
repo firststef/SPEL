@@ -22,16 +22,45 @@ extern int scan_position;
 //Text control functions
 extern void yyswitch(char* str, unsigned size);
 extern void yyerror(const char*);
+extern void scan_string(char* str);
 
 int main(int argc, char** argv)
 {
+	if (argc < 2)
+	{
+		std::cout << "Arguments not provided" << std::endl;
+		return 0;
+	}
+
+	for (int i = 1; i < argc; ++i)
+	{
+		if (std::string(argv[i]) == "-s")
+		{
+			if (i == argc - 1)
+			{
+				std::cout << "String from input not found" << std::endl;
+				return -1;
+			}
+			
+			scan_string(argv[i + 1]);
+			yyparse();
+			return 0;
+		}
+	}
+
+	FILE *f = fopen(argv[1], "r");
+
+	if (f == nullptr)
+	{
+		std::cout << "File not found" << std::endl;
+		return -1;
+	}
+	
 #ifndef TESTER_DEBUG //If not testing, run normally
-	yyin = fopen(argv[1], "r");
+	yyin = f;
 	const auto parse_result = yyparse();
 	fclose(yyin);
 #else //If testing, check for [TEST] + [END] structures
-
-	FILE *f = fopen(argv[1], "r");
 	fseek(f, 0, SEEK_END);
 	long fsize = ftell(f);
 	fseek(f, 0, SEEK_SET);

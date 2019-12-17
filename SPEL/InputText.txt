@@ -2,6 +2,8 @@
 /* comentariu cu text intern
 pe mai multe 
 linii*/
+/**/
+//
 [END]
 [TEST] Variable declarations
 int a;
@@ -24,15 +26,21 @@ begin int man(int a, int b)
 end
 [END]
 [TEST] Class Declarations
-begin class clasa1
-	int a, c;
-	float b;
-	char v;
-	string str;
-	bool bolean;
-	begin int max(int x1, int x2)
-		return x1;
-	end
+//aceasta trebuie sa dea eroare daca este documentata
+begin class clasa1 
+end
+
+//clasa cu variabile
+begin class clasa2
+	int a;
+	float b[];
+	char c='\n';
+	string d="string";
+//	const int e;
+	const char f=4;
+//	const float vec[]=[1,4.5];
+	const float vec[5]=[1,4.5];
+	int a=health of hero;
 end
 [END]
 [TEST] Class instantiation

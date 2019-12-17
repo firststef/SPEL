@@ -1590,20 +1590,32 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
+  case 2:
+#line 34 "parser.y"
+    { printf("The input file has been sucessfully parsed.\n"); }
+#line 1597 "parser.cpp"
+    break;
+
+  case 3:
+#line 35 "parser.y"
+    { printf("The input file has been sucessfully parsed.\n"); }
+#line 1603 "parser.cpp"
+    break;
+
   case 61:
 #line 162 "parser.y"
     {/*nu stiu daca aici este corect, dar eu presupun ca da*/}
-#line 1597 "parser.cpp"
+#line 1609 "parser.cpp"
     break;
 
   case 93:
 #line 238 "parser.y"
     {/*de asemenea nu stiu daca este ok ce fac aicea*/}
-#line 1603 "parser.cpp"
+#line 1615 "parser.cpp"
     break;
 
 
-#line 1607 "parser.cpp"
+#line 1619 "parser.cpp"
 
       default: break;
     }
