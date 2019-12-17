@@ -10,22 +10,18 @@
 
 //Test variables
 extern std::string test_description;
-extern int test_state;
-extern int NO_TEST;
-extern int TEST_STARTED;
-extern int TEST_ENDED;
 
 //Text control variables
-extern std::string syy_text;
 extern int scan_lines;
-extern int scan_position;
-extern int yycolumn;
+extern int entry_line;
 extern char* yytext;
 
 static void update_loc();
-static bool passed_here = false;
 
-#define YY_USER_ACTION update_loc(); syy_text = yytext; scan_lines += std::count(syy_text.begin(), syy_text.end(), '\n'); ECHO;
+static int curr_line = 1;
+static int curr_col = 1;
+
+#define YY_USER_ACTION update_loc(); 
 %}
 
 %x comment
@@ -56,8 +52,6 @@ static bool passed_here = false;
 
 // Runs at every action - updates line & col
 static void update_loc() {
-	static int curr_line = 1;
-	static int curr_col = 1;
 
 	yylloc.first_line = curr_line;
 	yylloc.first_column = curr_col;
@@ -74,19 +68,18 @@ static void update_loc() {
 
 	yylloc.last_line = curr_line;
 	yylloc.last_column = curr_col - 1;
-
-	yycolumn = curr_col - 1;
 }
 
-//resets yylex context
+//Resets yylex context to buffer
 void yyswitch(char* str, unsigned size)
 {
+	curr_line = 1;
+	curr_col = 1;
 	auto bs = yy_scan_buffer(str, size);
 	yy_switch_to_buffer(bs);
 }
 
 void yyerror(const char* msg)
 {
-	std::cout << "[Error]: " << msg << " line " << scan_lines << " column " << yylloc.last_column << " : ";
-	std::cout << yytext << std::endl;
+	std::cout << "[Error]: " << msg << " line " << entry_line + yylloc.first_line << " column " << yylloc.first_column << " : " << yytext << std::endl;
 }

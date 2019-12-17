@@ -21,10 +21,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="lexer.l">
+    <CustomBuild Include="parser.y">
       <Filter>FlexBison Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="parser.y">
+    <CustomBuild Include="lexer.l">
       <Filter>FlexBison Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -43,11 +43,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="parser.h">
-      <Filter>Generated Files</Filter>
-    </ClInclude>
     <ClInclude Include="SpelParserExternals.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

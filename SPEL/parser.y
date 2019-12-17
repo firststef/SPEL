@@ -36,21 +36,21 @@ declarations: class_def declarations
 	| func_def
 	;
 
-class_def: CLASS ID '{' pub_sec prot_sec priv_sec '}' 
+class_def: CLASS ID '{' pub_sec prot_sec priv_sec '}'
 	     ;
 
 pub_sec: PUBLIC ':' initializations
-	   | 
+	   |
 	   ;
 
 prot_sec: PROTECTED ':' initializations
-        | 
+        |
 	    ;
 
 priv_sec: PRIVATE ':' initializations
-	| 
+	|
 	;
-	
+
 
 initializations: type attrib_id_list ';'initializations
 	| type function_decl ';' initializations

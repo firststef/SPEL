@@ -2,8 +2,6 @@
 /* comentariu cu text intern
 pe mai multe 
 linii*/
-
-//a
 [END]
 [TEST] Variable declarations
 int a;

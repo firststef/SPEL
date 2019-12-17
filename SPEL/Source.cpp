@@ -3,19 +3,12 @@
 #include "parser.h"
 #include <vector>
 #include <regex>
-#include <fstream>
 
 //INPUT VARIABLES
-#ifdef _WIN32
 extern FILE* yyin;
-#endif
 
 //Unit testing variables
 extern std::string test_description;
-extern int test_state;
-extern int NO_TEST;
-extern int TEST_STARTED;
-extern int TEST_ENDED;
 
 //Unit testing functions
 #ifdef _WIN32
@@ -23,11 +16,9 @@ extern void set_console_color(int color);
 #endif
 
 //Text control variables
-extern int yylineno;
 extern int scan_lines;
-extern bool ended_input;
+extern int entry_line;
 extern int scan_position;
-extern int yycolumn;
 
 //Text control functions
 extern void yyswitch(char* str, unsigned size);
@@ -39,12 +30,12 @@ int main(int argc, char** argv)
 	yyin = fopen(argv[1], "r");
 	const auto parse_result = yyparse();
 	fclose(yyin);
-#else //If testing check for [TEST] + [END] structures
+#else //If testing, check for [TEST] + [END] structures
 
 	FILE *f = fopen(argv[1], "r");
 	fseek(f, 0, SEEK_END);
 	long fsize = ftell(f);
-	fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+	fseek(f, 0, SEEK_SET);
 
 	std::vector<char> buff;
 	buff.resize(fsize);
@@ -55,90 +46,84 @@ int main(int argc, char** argv)
 	while (true) {		
 		fseek(f, scan_position, SEEK_SET);
 
-		bool found_t_e = false;
-		int t_pos = 0;
-		int e_pos = 0;
+		//We look for TEST entry
+		char* t_ptr = nullptr;
+		char* e_ptr = nullptr;
+		t_ptr = strstr(data_ptr + scan_position, "[TEST]");
+		if (not t_ptr)
+			break;
 
-		char buffer[200] = { 0 };
-		while (fgets(buffer, 200, f) != nullptr)
+		for (char* i_ptr = data_ptr + scan_position; i_ptr <= t_ptr; ++i_ptr)
 		{
-			fpos_t p;
-			fgetpos(f, &p);
-			
-			if (memcmp(buffer, "[TEST]", 6) == 0)
+			if (*i_ptr == '\n')
 			{
-				found_t_e = true;
-				test_description = buffer + 6;
-				test_description[not test_description.empty() ? test_description.size() - 1 : 0] = '\0';
-
 				scan_lines++;
-				t_pos = p - 1;
-
-				char check[6];
-				bool found_e = false;
-				while (fread(check, 1, 5, f) == 5)
-				{
-					
-					if (memcmp(check, "[END]", 5) == 0)
-					{
-						found_e = true;
-						break;
-					}
-					fseek(f, -4, SEEK_CUR);
-				}
-				if (found_e)
-				{
-					found_t_e = true;
-					fgetpos(f, &p);
-					e_pos = p - 9;
-					scan_position = p;
-				}
-				
-				break;
 			}
 		}
 
-		if (found_t_e)
+		//Skip after TEST name and save name
+		char buffer[200] = { 0 };
+		char* n_ptr = strstr(t_ptr, "\n");
+		if (not n_ptr)
+			break;
+		scan_lines++;
+		entry_line = scan_lines;
+		
+		memcpy(buffer, t_ptr, n_ptr - t_ptr + 1);
+		test_description = buffer + 6;
+		test_description[not test_description.empty() ? test_description.size() - 1 : 0] = '\0';
+
+		//Look for TEST END
+		e_ptr = strstr(n_ptr + 1, "[END]");
+		if (not e_ptr)
+			break;
+		for (char* i_ptr = n_ptr + 1; i_ptr <= e_ptr; ++i_ptr)
 		{
-			int buf_size = e_pos - t_pos;
-			scan_position = e_pos;
-
-			std::vector<char> scan_buff;
-			scan_buff.resize(buf_size + 10);
-			char* scan_ptr = &scan_buff.front();
-			memcpy(scan_ptr, data_ptr + t_pos, buf_size);
-			(scan_ptr)[buf_size] = 0;
-			(scan_ptr)[buf_size + 1] = 0;
-
-			yyswitch(scan_ptr, buf_size + 2);
-			auto parse_result = yyparse();
-				
-			if (parse_result) {
-	#ifdef _WIN32
-				set_console_color(12);
-	#endif
-				std::cout << "[FAIL]";
-	#ifdef _WIN32
-				set_console_color(7);
-	#endif
-				std::cout << test_description.c_str()<< std::endl;
-			}
-			else
+			if (*i_ptr == '\n')
 			{
-	#ifdef _WIN32
-				set_console_color(10);
-	#endif
-				std::cout << "[PASS]";
-	#ifdef _WIN32
-				set_console_color(7);
-	#endif
-				std::cout << test_description.c_str() << std::endl;
+				scan_lines++;
 			}
+		}
+		scan_position = e_ptr - data_ptr;
 
+		//Create buffer for lexer
+		const int buf_size = e_ptr - n_ptr - 1;
+
+		std::vector<char> scan_buff{'\0'};
+		scan_buff.resize(buf_size + 2);
+		char* scan_ptr = &scan_buff.front();
+		memcpy(scan_ptr, n_ptr + 1, buf_size);
+		scan_buff[buf_size] = 0;
+		scan_buff[buf_size + 1] = 0;
+
+		//Switch to buffer and parse
+		yyswitch(scan_ptr, buf_size + 2);
+		auto parse_result = yyparse();
+
+		//Output result
+		if (parse_result) {
+#ifdef _WIN32
+			set_console_color(12);
+#endif
+			std::cout << "[FAIL]";
+#ifdef _WIN32
+			set_console_color(7);
+#endif
+			std::cout << test_description.c_str()<< std::endl;
 		}
 		else
-			break;
+		{
+#ifdef _WIN32
+			set_console_color(10);
+#endif
+			std::cout << "[PASS]";
+#ifdef _WIN32
+			set_console_color(7);
+#endif
+			std::cout << test_description.c_str() << std::endl;
+		}
 	}
+	fclose(f);
 #endif
 	
 	system("pause");

@@ -495,25 +495,21 @@ char *yytext;
 
 //Test variables
 extern std::string test_description;
-extern int test_state;
-extern int NO_TEST;
-extern int TEST_STARTED;
-extern int TEST_ENDED;
 
 //Text control variables
-extern std::string syy_text;
 extern int scan_lines;
-extern int scan_position;
-extern int yycolumn;
+extern int entry_line;
 extern char* yytext;
 
 static void update_loc();
-static bool passed_here = false;
 
-#define YY_USER_ACTION update_loc(); syy_text = yytext; scan_lines += std::count(syy_text.begin(), syy_text.end(), '\n'); ECHO;
-#line 514 "lexer.cpp"
+static int curr_line = 1;
+static int curr_col = 1;
 
-#line 516 "lexer.cpp"
+#define YY_USER_ACTION update_loc(); 
+#line 510 "lexer.cpp"
+
+#line 512 "lexer.cpp"
 
 #define INITIAL 0
 #define comment 1
@@ -728,10 +724,10 @@ YY_DECL
 		}
 
 	{
-#line 33 "lexer.l"
+#line 29 "lexer.l"
 
 
-#line 734 "lexer.cpp"
+#line 730 "lexer.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -790,7 +786,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(comment):
-#line 35 "lexer.l"
+#line 31 "lexer.l"
 { //If found this token we exit the lexer
 	BEGIN(INITIAL);
 	return 0;
@@ -799,86 +795,86 @@ case YY_STATE_EOF(comment):
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 39 "lexer.l"
+#line 35 "lexer.l"
 ;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 40 "lexer.l"
+#line 36 "lexer.l"
 {return PUBLIC; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 41 "lexer.l"
+#line 37 "lexer.l"
 {return PRIVATE; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 42 "lexer.l"
+#line 38 "lexer.l"
 {return PROTECTED; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 43 "lexer.l"
+#line 39 "lexer.l"
 {return INT; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 44 "lexer.l"
+#line 40 "lexer.l"
 {return FLOAT; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 45 "lexer.l"
+#line 41 "lexer.l"
 {return CHAR; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 46 "lexer.l"
+#line 42 "lexer.l"
 {return CLASS; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 47 "lexer.l"
+#line 43 "lexer.l"
 {return RET; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 48 "lexer.l"
+#line 44 "lexer.l"
 {return DBLP; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 49 "lexer.l"
+#line 45 "lexer.l"
 { return ID; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 50 "lexer.l"
+#line 46 "lexer.l"
 {return NR; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 51 "lexer.l"
+#line 47 "lexer.l"
 {return NRF; }
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 52 "lexer.l"
+#line 48 "lexer.l"
 ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 53 "lexer.l"
+#line 49 "lexer.l"
 {return yytext[0]; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 55 "lexer.l"
+#line 51 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 881 "lexer.cpp"
+#line 877 "lexer.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1881,13 +1877,11 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 55 "lexer.l"
+#line 51 "lexer.l"
 
 
 // Runs at every action - updates line & col
 static void update_loc() {
-	static int curr_line = 1;
-	static int curr_col = 1;
 
 	yylloc.first_line = curr_line;
 	yylloc.first_column = curr_col;
@@ -1904,19 +1898,19 @@ static void update_loc() {
 
 	yylloc.last_line = curr_line;
 	yylloc.last_column = curr_col - 1;
-
-	yycolumn = curr_col - 1;
 }
 
-//resets yylex context
+//Resets yylex context to buffer
 void yyswitch(char* str, unsigned size)
 {
+	curr_line = 1;
+	curr_col = 1;
 	auto bs = yy_scan_buffer(str, size);
 	yy_switch_to_buffer(bs);
 }
 
 void yyerror(const char* msg)
 {
-	std::cout << "[Error]: " << msg << " line " << scan_lines << " column " << yylloc.last_column << " : ";
-	std::cout << yytext << std::endl;
+	std::cout << "[Error]: " << msg << " line " << entry_line + yylloc.first_line << " column " << yylloc.first_column << " : " << yytext << std::endl;
 }
+
