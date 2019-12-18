@@ -123,7 +123,21 @@ endfor
 string str="string1"+"string2","asas";
 [END] 
 [TEST] Eval function
-EVAL
+EVAL();
+EVAL(a);
+EVAL(3);
+[END]
+[TEST][SHOULD FAIL] Non-int eval function float
+EVAL(3.0);
+[END]
+[TEST][SHOULD FAIL] Non-int eval function string
+EVAL("str");
+[END]
+[TEST][SHOULD FAIL] Non-int eval function multiple param
+EVAL(1, 2);
+[END]
+[TEST][SHOULD FAIL] Non-int eval function expression
+EVAL(1 = 2);
 [END]
 //Testele de aici vor fi facute cand facem testing pentru semantic
 int a; //trebuie sa dea eroare

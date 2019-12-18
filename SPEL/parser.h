@@ -86,8 +86,9 @@ extern int yydebug;
     ENDFOR = 292,
     VOID = 293,
     IN = 294,
-    IFX = 295,
-    UMINUS = 296
+    EVAL = 295,
+    IFX = 296,
+    UMINUS = 297
   };
 #endif
 

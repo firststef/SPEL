@@ -30,7 +30,7 @@ void print_rule(int num, char* s);
 
 %locations
 
-%token LEQ, BEQ, EQ, NEQ, INT, OF, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN
+%token LEQ, BEQ, EQ, NEQ, INT, OF, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN, EVAL
 %nonassoc IFX
 %nonassoc ELSE
 %start sp
@@ -206,6 +206,9 @@ function_body : class_var function_body { PRINT_RULE }
 			  | RET class_id_initialization ';' { PRINT_RULE }
 			  | RET eval_expr ';' { PRINT_RULE }
 			  | function_instruction { PRINT_RULE }
+		      | EVAL '(' ')' ';' { PRINT_RULE }
+			  | EVAL '(' NR ')' ';' { PRINT_RULE }
+			  | EVAL '(' ID ')' ';' { PRINT_RULE }
 			  ;
 
 
@@ -353,6 +356,9 @@ statement : declaration { PRINT_RULE }
 		  | for_instr { PRINT_RULE }
 		  | ID '=' eval_expr ';' { PRINT_RULE }
 		  | ID '(' call_parameters ')' ';' { PRINT_RULE }
+		  | EVAL '(' ')' ';' { PRINT_RULE }
+	      | EVAL '(' NR ')' ';' { PRINT_RULE }
+		  | EVAL '(' ID ')' ';' { PRINT_RULE }
 		  ;
 
 

@@ -70,8 +70,9 @@ extern YYSTYPE yylval;
 "beginelse" {return BEGINELSE;}
 "endelse" {return ENDELSE; }
 "endwhile" {return ENDWHILE; }
-"endfor" {return ENDFOR; };
+"endfor" {return ENDFOR; }
 "for" {return FOR; }
+"eval" {return EVAL; }
 [_A-Za-z][_A-Za-z0-9]* { return ID; }	
 [1-9][0-9]*|0 {return NR; }
 ([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
