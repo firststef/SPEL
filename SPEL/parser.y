@@ -218,6 +218,7 @@ function_body : class_var function_body { PRINT_RULE }
 
 function_instruction : ENCH ID WITH eval_expr '.' { PRINT_RULE }
 					 | ENCH ID '[' vector_position ']' WITH eval_expr '.' { PRINT_RULE }
+					 | ENCH ID OF ID WITH eval_expr '.' { PRINT_RULE }
 					 | CHNT ID SACRF call_parameters ':' '.' { PRINT_RULE }
 					 | while_instr { PRINT_RULE }
 					 | if_instr { PRINT_RULE }
@@ -249,7 +250,7 @@ check : NOT eval_expr { PRINT_RULE }
 
 
 
-while_body : no_return_function_body {/*de asemenea nu stiu daca este ok ce fac aicea*/ PRINT_RULE }
+while_body : function_body {/*de asemenea nu stiu daca este ok ce fac aicea*/ PRINT_RULE }
 		   ;
 
 
@@ -265,12 +266,12 @@ if_condition : boolean { PRINT_RULE }
 
 
 
-if_body : BEGINIF no_return_function_body ENDIF { PRINT_RULE }
+if_body : BEGINIF function_body ENDIF { PRINT_RULE }
 		;
 
 
 
-elif_body : BEGINELSE no_return_function_body ENDELSE { PRINT_RULE }
+elif_body : BEGINELSE function_body ENDELSE { PRINT_RULE }
 		  ;
 
 
@@ -301,7 +302,7 @@ for_1 : ID { PRINT_RULE }
 
 
 
-for_body : no_return_function_body { PRINT_RULE }
+for_body : function_body { PRINT_RULE }
 		 ;
 
 
@@ -358,10 +359,13 @@ statement : declaration { PRINT_RULE }
 		  | while_instr { PRINT_RULE }
 		  | for_instr { PRINT_RULE }
 		  | ENCH ID WITH eval_expr '.' { PRINT_RULE }
+		  | ENCH ID '[' vector_position ']'WITH eval_expr '.' { PRINT_RULE }
+		  | ENCH ID OF ID WITH eval_expr '.' { PRINT_RULE }
 		  | CHNT ID SACRF call_parameters ':' '.' { PRINT_RULE }
 		  | EVAL '(' ')' '.' { PRINT_RULE }
 	      | EVAL '(' NR ')' '.' { PRINT_RULE }
 		  | EVAL '(' ID ')' '.' { PRINT_RULE }
+		  | RET eval_expr '.'  { PRINT_RULE }
 		  ;
 
 
