@@ -1,6 +1,6 @@
 # SPEL
 
-Spel is a programming language as an evaluation project for the Formal Language and Compilers course at the UAIC University.
+Spel is a programming language submitted as an evaluation project for the 2019-20 Formal Language and Compilers course at the UAIC University.
 
 Spel is a language designed to mimic a fantasy story, in a way you might no expect.
 
