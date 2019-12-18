@@ -36,18 +36,19 @@ extern YYSTYPE yylval;
 	BEGIN(INITIAL);
 	return 0;
 }
+"The tale begins\n" {return BGNP; }
 "//"(.)*\n ;
 "/*"(.|\n)*"*/" ;
-"int" {return INT; }
-"float" {return FLOAT;}
-"char" {return CHAR; }
+"points" {return INT; }
+"precise" {return FLOAT;}
+"rune" {return CHAR; }
+"tome" {return STRING; } 
+"absolute" {return BOOL; }
 "of" {return OF; }
 "<=" {return LEQ; }
 ">=" {return BEQ; }
 "==" {return EQ; }
 "!=" {return NEQ; }
-"string" {return STRING; } 
-"bool" {return BOOL; }
 "'"(\\)?."'" {return CHR; }
 \"[^\"\n]*\" {return STR; } 	
 "true" {return TRUE; }
@@ -59,8 +60,10 @@ extern YYSTYPE yylval;
 "&&" {return AND; }
 "||" {return OR; }
 "not" {return NOT; }
-"class" {return CLASS; }
-"const" {return CONST; }
+"I summon thy name" {return CLASS; }
+"and thy brethren." {return ENDCLASS;}
+"craft" {return CRAFT; }
+"artifact" {return CONST; }
 "if" {return IF; }
 "else" {return ELSE; }
 "while" {return WHILE; }

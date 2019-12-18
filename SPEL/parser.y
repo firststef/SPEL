@@ -30,7 +30,10 @@ void print_rule(int num, char* s);
 
 %locations
 
-%token LEQ, BEQ, EQ, NEQ, INT, OF, FLOAT, CHAR, STRING, CHR, ID, NR, NRF, NOT, STR, TRUE, FALSE, BGNF, ENDF, AND, OR, RET, CLASS, CONST, BOOL, ELSE, IF, FOR, WHILE, ENDWHILE, BEGINIF, BEGINELSE, ENDELSE, ENDIF, ENDFOR, VOID, IN, EVAL
+%token LEQ BEQ EQ NEQ INT OF FLOAT CHAR STRING CHR ID NR NRF NOT
+%token STR TRUE FALSE BGNF ENDF AND OR RET CLASS CONST BOOL ELSE IF
+%token FOR WHILE ENDWHILE BEGINIF BEGINELSE ENDELSE ENDIF ENDFOR VOID
+%token IN EVAL BG BGNP ENDCLASS CRAFT
 %nonassoc IFX
 %nonassoc ELSE
 %start sp
@@ -40,8 +43,8 @@ void print_rule(int num, char* s);
 %left  UMINUS      /*  supplies  precedence  for  unary  minus  */
 %%
 
-sp : s { printf("Reached start symbol.\n"); }
-   | { printf("Reached start symbol.\n"); }
+sp : BGNP s { printf("Reached start symbol.\n"); }
+   | BGNP { printf("Reached start symbol.\n"); }
    ;
 
 s : class_def s { PRINT_RULE }
@@ -52,7 +55,7 @@ s : class_def s { PRINT_RULE }
   | statement { PRINT_RULE }
   ;
 
-class_def : BGNF CLASS ID class_body ENDF { PRINT_RULE }
+class_def : CLASS ID class_body ENDCLASS { PRINT_RULE }
 		  ;
 
 
@@ -65,8 +68,8 @@ class_body : class_var { PRINT_RULE }
 
 
 
-class_var : type class_ids ';' { PRINT_RULE }
-		  | CONST type const_class_ids ';'{ PRINT_RULE }
+class_var : CRAFT type class_ids ';' { PRINT_RULE }
+		  | CRAFT CONST type const_class_ids ';'{ PRINT_RULE }
 		  ;
 
 
