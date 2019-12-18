@@ -72,20 +72,27 @@
 #include <string.h>
 #include <stdlib.h>
 #include <string>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <iostream>
 
 #include "SpelParserExternals.h"
 
-//Lex vaiables
-extern FILE* yyin;
+//Debug variables
+extern bool enable_grammar_debug;
+extern std::stringstream last_calls_stream;
+extern std::stringstream parents_stream;
 
 extern int yylex();
 extern void yyerror(const char*);
 
 //Define for avoiding duplicated token enum
 #define YYTOKENTYPE
+void print_rule(int num);
+#define PRINT_RULE print_rule(__LINE__);
 
-
-#line 89 "parser.cpp"
+#line 96 "parser.cpp"
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus
@@ -490,21 +497,21 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    34,    34,    35,    38,    39,    40,    41,    42,    43,
-      47,    52,    53,    54,    55,    60,    61,    66,    67,    68,
-      69,    70,    71,    76,    77,    82,    83,    84,    85,    90,
-      91,    92,    93,    94,    95,    96,    97,    98,    99,   100,
-     101,   102,   103,   108,   109,   114,   119,   120,   125,   126,
-     131,   132,   133,   134,   139,   140,   145,   146,   151,   156,
-     157,   162,   167,   168,   173,   174,   179,   180,   185,   186,
-     187,   188,   193,   194,   195,   196,   197,   198,   199,   200,
-     205,   206,   207,   208,   209,   210,   215,   220,   225,   226,
-     227,   232,   233,   238,   243,   244,   249,   254,   259,   264,
-     269,   274,   275,   280,   281,   282,   283,   284,   285,   290,
-     295,   296,   299,   300,   301,   302,   303,   304,   307,   308,
-     309,   310,   311,   312,   313,   314,   315,   316,   317,   318,
-     319,   320,   321,   322,   323,   324,   325,   326,   329,   330,
-     331,   332,   337,   342,   343,   344,   345,   346,   347,   352
+       0,    41,    41,    42,    45,    46,    47,    48,    49,    50,
+      53,    58,    59,    60,    61,    66,    67,    72,    73,    74,
+      75,    76,    77,    82,    83,    88,    89,    90,    91,    96,
+      97,    98,    99,   100,   101,   102,   103,   104,   105,   106,
+     107,   108,   109,   114,   115,   120,   125,   126,   131,   132,
+     137,   138,   139,   140,   145,   146,   151,   152,   157,   162,
+     163,   168,   173,   174,   179,   180,   185,   186,   191,   192,
+     193,   194,   199,   200,   201,   202,   203,   204,   205,   206,
+     211,   212,   213,   214,   215,   216,   221,   226,   231,   232,
+     233,   238,   239,   244,   249,   250,   255,   260,   265,   270,
+     275,   280,   281,   286,   287,   288,   289,   290,   291,   296,
+     301,   302,   305,   306,   307,   308,   309,   310,   313,   314,
+     315,   316,   317,   318,   319,   320,   321,   322,   323,   324,
+     325,   326,   327,   328,   329,   330,   331,   332,   335,   336,
+     337,   338,   343,   348,   349,   350,   351,   352,   353,   358
 };
 #endif
 
@@ -1591,31 +1598,895 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 34 "parser.y"
-    { printf("The input file has been sucessfully parsed.\n"); }
-#line 1597 "parser.cpp"
+#line 41 "parser.y"
+    { printf("Reached start symbol.\n"); }
+#line 1604 "parser.cpp"
     break;
 
   case 3:
-#line 35 "parser.y"
-    { printf("The input file has been sucessfully parsed.\n"); }
-#line 1603 "parser.cpp"
+#line 42 "parser.y"
+    { printf("Reached start symbol.\n"); }
+#line 1610 "parser.cpp"
+    break;
+
+  case 4:
+#line 45 "parser.y"
+    { PRINT_RULE }
+#line 1616 "parser.cpp"
+    break;
+
+  case 5:
+#line 46 "parser.y"
+    { PRINT_RULE }
+#line 1622 "parser.cpp"
+    break;
+
+  case 6:
+#line 47 "parser.y"
+    { PRINT_RULE }
+#line 1628 "parser.cpp"
+    break;
+
+  case 7:
+#line 48 "parser.y"
+    { PRINT_RULE }
+#line 1634 "parser.cpp"
+    break;
+
+  case 8:
+#line 49 "parser.y"
+    { PRINT_RULE }
+#line 1640 "parser.cpp"
+    break;
+
+  case 9:
+#line 50 "parser.y"
+    { PRINT_RULE }
+#line 1646 "parser.cpp"
+    break;
+
+  case 10:
+#line 53 "parser.y"
+    { PRINT_RULE }
+#line 1652 "parser.cpp"
+    break;
+
+  case 11:
+#line 58 "parser.y"
+    { PRINT_RULE }
+#line 1658 "parser.cpp"
+    break;
+
+  case 12:
+#line 59 "parser.y"
+    { PRINT_RULE }
+#line 1664 "parser.cpp"
+    break;
+
+  case 13:
+#line 60 "parser.y"
+    { PRINT_RULE }
+#line 1670 "parser.cpp"
+    break;
+
+  case 14:
+#line 61 "parser.y"
+    { PRINT_RULE }
+#line 1676 "parser.cpp"
+    break;
+
+  case 15:
+#line 66 "parser.y"
+    { PRINT_RULE }
+#line 1682 "parser.cpp"
+    break;
+
+  case 16:
+#line 67 "parser.y"
+    { PRINT_RULE }
+#line 1688 "parser.cpp"
+    break;
+
+  case 17:
+#line 72 "parser.y"
+    { PRINT_RULE }
+#line 1694 "parser.cpp"
+    break;
+
+  case 18:
+#line 73 "parser.y"
+    { PRINT_RULE }
+#line 1700 "parser.cpp"
+    break;
+
+  case 19:
+#line 74 "parser.y"
+    { PRINT_RULE }
+#line 1706 "parser.cpp"
+    break;
+
+  case 20:
+#line 75 "parser.y"
+    { PRINT_RULE }
+#line 1712 "parser.cpp"
+    break;
+
+  case 21:
+#line 76 "parser.y"
+    { PRINT_RULE }
+#line 1718 "parser.cpp"
+    break;
+
+  case 22:
+#line 77 "parser.y"
+    { PRINT_RULE }
+#line 1724 "parser.cpp"
+    break;
+
+  case 23:
+#line 82 "parser.y"
+    { PRINT_RULE }
+#line 1730 "parser.cpp"
+    break;
+
+  case 24:
+#line 83 "parser.y"
+    { PRINT_RULE }
+#line 1736 "parser.cpp"
+    break;
+
+  case 25:
+#line 88 "parser.y"
+    { PRINT_RULE }
+#line 1742 "parser.cpp"
+    break;
+
+  case 26:
+#line 89 "parser.y"
+    { PRINT_RULE }
+#line 1748 "parser.cpp"
+    break;
+
+  case 27:
+#line 90 "parser.y"
+    { PRINT_RULE }
+#line 1754 "parser.cpp"
+    break;
+
+  case 28:
+#line 91 "parser.y"
+    { PRINT_RULE }
+#line 1760 "parser.cpp"
+    break;
+
+  case 29:
+#line 96 "parser.y"
+    { PRINT_RULE }
+#line 1766 "parser.cpp"
+    break;
+
+  case 30:
+#line 97 "parser.y"
+    { PRINT_RULE }
+#line 1772 "parser.cpp"
+    break;
+
+  case 31:
+#line 98 "parser.y"
+    { PRINT_RULE }
+#line 1778 "parser.cpp"
+    break;
+
+  case 32:
+#line 99 "parser.y"
+    { PRINT_RULE }
+#line 1784 "parser.cpp"
+    break;
+
+  case 33:
+#line 100 "parser.y"
+    { PRINT_RULE }
+#line 1790 "parser.cpp"
+    break;
+
+  case 34:
+#line 101 "parser.y"
+    { PRINT_RULE }
+#line 1796 "parser.cpp"
+    break;
+
+  case 35:
+#line 102 "parser.y"
+    { PRINT_RULE }
+#line 1802 "parser.cpp"
+    break;
+
+  case 36:
+#line 103 "parser.y"
+    { PRINT_RULE }
+#line 1808 "parser.cpp"
+    break;
+
+  case 37:
+#line 104 "parser.y"
+    { PRINT_RULE }
+#line 1814 "parser.cpp"
+    break;
+
+  case 38:
+#line 105 "parser.y"
+    { PRINT_RULE }
+#line 1820 "parser.cpp"
+    break;
+
+  case 39:
+#line 106 "parser.y"
+    { PRINT_RULE }
+#line 1826 "parser.cpp"
+    break;
+
+  case 40:
+#line 107 "parser.y"
+    { PRINT_RULE }
+#line 1832 "parser.cpp"
+    break;
+
+  case 41:
+#line 108 "parser.y"
+    { PRINT_RULE }
+#line 1838 "parser.cpp"
+    break;
+
+  case 42:
+#line 109 "parser.y"
+    { PRINT_RULE }
+#line 1844 "parser.cpp"
+    break;
+
+  case 43:
+#line 114 "parser.y"
+    { PRINT_RULE /*s-ar putea sa ne vina mai usor daca facem vector size nul direct din regula fara eps pentru ca sa identificam noi nr de param*/}
+#line 1850 "parser.cpp"
+    break;
+
+  case 44:
+#line 115 "parser.y"
+    { PRINT_RULE }
+#line 1856 "parser.cpp"
+    break;
+
+  case 45:
+#line 120 "parser.y"
+    { PRINT_RULE }
+#line 1862 "parser.cpp"
+    break;
+
+  case 46:
+#line 125 "parser.y"
+    { PRINT_RULE }
+#line 1868 "parser.cpp"
+    break;
+
+  case 47:
+#line 126 "parser.y"
+    { PRINT_RULE }
+#line 1874 "parser.cpp"
+    break;
+
+  case 48:
+#line 131 "parser.y"
+    { PRINT_RULE }
+#line 1880 "parser.cpp"
+    break;
+
+  case 49:
+#line 132 "parser.y"
+    { PRINT_RULE }
+#line 1886 "parser.cpp"
+    break;
+
+  case 50:
+#line 137 "parser.y"
+    { PRINT_RULE }
+#line 1892 "parser.cpp"
+    break;
+
+  case 51:
+#line 138 "parser.y"
+    { PRINT_RULE }
+#line 1898 "parser.cpp"
+    break;
+
+  case 52:
+#line 139 "parser.y"
+    { PRINT_RULE }
+#line 1904 "parser.cpp"
+    break;
+
+  case 53:
+#line 140 "parser.y"
+    { PRINT_RULE }
+#line 1910 "parser.cpp"
+    break;
+
+  case 54:
+#line 145 "parser.y"
+    { PRINT_RULE }
+#line 1916 "parser.cpp"
+    break;
+
+  case 55:
+#line 146 "parser.y"
+    { PRINT_RULE }
+#line 1922 "parser.cpp"
+    break;
+
+  case 56:
+#line 151 "parser.y"
+    { PRINT_RULE }
+#line 1928 "parser.cpp"
+    break;
+
+  case 57:
+#line 152 "parser.y"
+    { PRINT_RULE }
+#line 1934 "parser.cpp"
+    break;
+
+  case 58:
+#line 157 "parser.y"
+    { PRINT_RULE }
+#line 1940 "parser.cpp"
+    break;
+
+  case 59:
+#line 162 "parser.y"
+    { PRINT_RULE }
+#line 1946 "parser.cpp"
+    break;
+
+  case 60:
+#line 163 "parser.y"
+    { PRINT_RULE }
+#line 1952 "parser.cpp"
     break;
 
   case 61:
-#line 162 "parser.y"
-    {/*nu stiu daca aici este corect, dar eu presupun ca da*/}
-#line 1609 "parser.cpp"
+#line 168 "parser.y"
+    {/*nu stiu daca aici este corect, dar eu presupun ca da*/ PRINT_RULE }
+#line 1958 "parser.cpp"
+    break;
+
+  case 62:
+#line 173 "parser.y"
+    { PRINT_RULE }
+#line 1964 "parser.cpp"
+    break;
+
+  case 63:
+#line 174 "parser.y"
+    { PRINT_RULE }
+#line 1970 "parser.cpp"
+    break;
+
+  case 64:
+#line 179 "parser.y"
+    { PRINT_RULE }
+#line 1976 "parser.cpp"
+    break;
+
+  case 65:
+#line 180 "parser.y"
+    { PRINT_RULE }
+#line 1982 "parser.cpp"
+    break;
+
+  case 66:
+#line 185 "parser.y"
+    { PRINT_RULE }
+#line 1988 "parser.cpp"
+    break;
+
+  case 67:
+#line 186 "parser.y"
+    { PRINT_RULE }
+#line 1994 "parser.cpp"
+    break;
+
+  case 68:
+#line 191 "parser.y"
+    { PRINT_RULE }
+#line 2000 "parser.cpp"
+    break;
+
+  case 69:
+#line 192 "parser.y"
+    { PRINT_RULE }
+#line 2006 "parser.cpp"
+    break;
+
+  case 70:
+#line 193 "parser.y"
+    { PRINT_RULE }
+#line 2012 "parser.cpp"
+    break;
+
+  case 71:
+#line 194 "parser.y"
+    { PRINT_RULE }
+#line 2018 "parser.cpp"
+    break;
+
+  case 72:
+#line 199 "parser.y"
+    { PRINT_RULE }
+#line 2024 "parser.cpp"
+    break;
+
+  case 73:
+#line 200 "parser.y"
+    { PRINT_RULE }
+#line 2030 "parser.cpp"
+    break;
+
+  case 74:
+#line 201 "parser.y"
+    { PRINT_RULE }
+#line 2036 "parser.cpp"
+    break;
+
+  case 75:
+#line 202 "parser.y"
+    { PRINT_RULE }
+#line 2042 "parser.cpp"
+    break;
+
+  case 76:
+#line 203 "parser.y"
+    { PRINT_RULE }
+#line 2048 "parser.cpp"
+    break;
+
+  case 77:
+#line 204 "parser.y"
+    { PRINT_RULE }
+#line 2054 "parser.cpp"
+    break;
+
+  case 78:
+#line 205 "parser.y"
+    { PRINT_RULE }
+#line 2060 "parser.cpp"
+    break;
+
+  case 79:
+#line 206 "parser.y"
+    { PRINT_RULE }
+#line 2066 "parser.cpp"
+    break;
+
+  case 80:
+#line 211 "parser.y"
+    { PRINT_RULE }
+#line 2072 "parser.cpp"
+    break;
+
+  case 81:
+#line 212 "parser.y"
+    { PRINT_RULE }
+#line 2078 "parser.cpp"
+    break;
+
+  case 82:
+#line 213 "parser.y"
+    { PRINT_RULE }
+#line 2084 "parser.cpp"
+    break;
+
+  case 83:
+#line 214 "parser.y"
+    { PRINT_RULE }
+#line 2090 "parser.cpp"
+    break;
+
+  case 84:
+#line 215 "parser.y"
+    { PRINT_RULE }
+#line 2096 "parser.cpp"
+    break;
+
+  case 85:
+#line 216 "parser.y"
+    { PRINT_RULE }
+#line 2102 "parser.cpp"
+    break;
+
+  case 86:
+#line 221 "parser.y"
+    { PRINT_RULE }
+#line 2108 "parser.cpp"
+    break;
+
+  case 87:
+#line 226 "parser.y"
+    { PRINT_RULE }
+#line 2114 "parser.cpp"
+    break;
+
+  case 88:
+#line 231 "parser.y"
+    { PRINT_RULE }
+#line 2120 "parser.cpp"
+    break;
+
+  case 89:
+#line 232 "parser.y"
+    { PRINT_RULE }
+#line 2126 "parser.cpp"
+    break;
+
+  case 90:
+#line 233 "parser.y"
+    { PRINT_RULE }
+#line 2132 "parser.cpp"
+    break;
+
+  case 91:
+#line 238 "parser.y"
+    { PRINT_RULE }
+#line 2138 "parser.cpp"
+    break;
+
+  case 92:
+#line 239 "parser.y"
+    { PRINT_RULE }
+#line 2144 "parser.cpp"
     break;
 
   case 93:
-#line 238 "parser.y"
-    {/*de asemenea nu stiu daca este ok ce fac aicea*/}
-#line 1615 "parser.cpp"
+#line 244 "parser.y"
+    {/*de asemenea nu stiu daca este ok ce fac aicea*/ PRINT_RULE }
+#line 2150 "parser.cpp"
+    break;
+
+  case 94:
+#line 249 "parser.y"
+    { PRINT_RULE }
+#line 2156 "parser.cpp"
+    break;
+
+  case 95:
+#line 250 "parser.y"
+    { PRINT_RULE }
+#line 2162 "parser.cpp"
+    break;
+
+  case 96:
+#line 255 "parser.y"
+    { PRINT_RULE }
+#line 2168 "parser.cpp"
+    break;
+
+  case 97:
+#line 260 "parser.y"
+    { PRINT_RULE }
+#line 2174 "parser.cpp"
+    break;
+
+  case 98:
+#line 265 "parser.y"
+    { PRINT_RULE }
+#line 2180 "parser.cpp"
+    break;
+
+  case 99:
+#line 270 "parser.y"
+    { PRINT_RULE }
+#line 2186 "parser.cpp"
+    break;
+
+  case 100:
+#line 275 "parser.y"
+    { PRINT_RULE }
+#line 2192 "parser.cpp"
+    break;
+
+  case 101:
+#line 280 "parser.y"
+    { PRINT_RULE }
+#line 2198 "parser.cpp"
+    break;
+
+  case 102:
+#line 281 "parser.y"
+    { PRINT_RULE }
+#line 2204 "parser.cpp"
+    break;
+
+  case 103:
+#line 286 "parser.y"
+    { PRINT_RULE }
+#line 2210 "parser.cpp"
+    break;
+
+  case 104:
+#line 287 "parser.y"
+    { PRINT_RULE }
+#line 2216 "parser.cpp"
+    break;
+
+  case 105:
+#line 288 "parser.y"
+    { PRINT_RULE }
+#line 2222 "parser.cpp"
+    break;
+
+  case 106:
+#line 289 "parser.y"
+    { PRINT_RULE }
+#line 2228 "parser.cpp"
+    break;
+
+  case 107:
+#line 290 "parser.y"
+    { PRINT_RULE }
+#line 2234 "parser.cpp"
+    break;
+
+  case 108:
+#line 291 "parser.y"
+    { PRINT_RULE }
+#line 2240 "parser.cpp"
+    break;
+
+  case 109:
+#line 296 "parser.y"
+    { PRINT_RULE }
+#line 2246 "parser.cpp"
+    break;
+
+  case 110:
+#line 301 "parser.y"
+    { PRINT_RULE }
+#line 2252 "parser.cpp"
+    break;
+
+  case 111:
+#line 302 "parser.y"
+    { PRINT_RULE }
+#line 2258 "parser.cpp"
+    break;
+
+  case 112:
+#line 305 "parser.y"
+    { PRINT_RULE }
+#line 2264 "parser.cpp"
+    break;
+
+  case 113:
+#line 306 "parser.y"
+    { PRINT_RULE }
+#line 2270 "parser.cpp"
+    break;
+
+  case 114:
+#line 307 "parser.y"
+    { PRINT_RULE }
+#line 2276 "parser.cpp"
+    break;
+
+  case 115:
+#line 308 "parser.y"
+    { PRINT_RULE }
+#line 2282 "parser.cpp"
+    break;
+
+  case 116:
+#line 309 "parser.y"
+    { PRINT_RULE }
+#line 2288 "parser.cpp"
+    break;
+
+  case 117:
+#line 310 "parser.y"
+    { PRINT_RULE }
+#line 2294 "parser.cpp"
+    break;
+
+  case 118:
+#line 313 "parser.y"
+    { PRINT_RULE }
+#line 2300 "parser.cpp"
+    break;
+
+  case 119:
+#line 314 "parser.y"
+    { PRINT_RULE }
+#line 2306 "parser.cpp"
+    break;
+
+  case 120:
+#line 315 "parser.y"
+    { PRINT_RULE }
+#line 2312 "parser.cpp"
+    break;
+
+  case 121:
+#line 316 "parser.y"
+    { PRINT_RULE }
+#line 2318 "parser.cpp"
+    break;
+
+  case 122:
+#line 317 "parser.y"
+    { PRINT_RULE }
+#line 2324 "parser.cpp"
+    break;
+
+  case 123:
+#line 318 "parser.y"
+    { PRINT_RULE }
+#line 2330 "parser.cpp"
+    break;
+
+  case 124:
+#line 319 "parser.y"
+    { PRINT_RULE }
+#line 2336 "parser.cpp"
+    break;
+
+  case 125:
+#line 320 "parser.y"
+    { PRINT_RULE }
+#line 2342 "parser.cpp"
+    break;
+
+  case 126:
+#line 321 "parser.y"
+    { PRINT_RULE }
+#line 2348 "parser.cpp"
+    break;
+
+  case 127:
+#line 322 "parser.y"
+    { PRINT_RULE }
+#line 2354 "parser.cpp"
+    break;
+
+  case 128:
+#line 323 "parser.y"
+    { PRINT_RULE }
+#line 2360 "parser.cpp"
+    break;
+
+  case 129:
+#line 324 "parser.y"
+    { PRINT_RULE }
+#line 2366 "parser.cpp"
+    break;
+
+  case 130:
+#line 325 "parser.y"
+    { PRINT_RULE }
+#line 2372 "parser.cpp"
+    break;
+
+  case 131:
+#line 326 "parser.y"
+    { PRINT_RULE }
+#line 2378 "parser.cpp"
+    break;
+
+  case 132:
+#line 327 "parser.y"
+    { PRINT_RULE }
+#line 2384 "parser.cpp"
+    break;
+
+  case 133:
+#line 328 "parser.y"
+    { PRINT_RULE }
+#line 2390 "parser.cpp"
+    break;
+
+  case 134:
+#line 329 "parser.y"
+    { PRINT_RULE }
+#line 2396 "parser.cpp"
+    break;
+
+  case 135:
+#line 330 "parser.y"
+    { PRINT_RULE }
+#line 2402 "parser.cpp"
+    break;
+
+  case 136:
+#line 331 "parser.y"
+    { PRINT_RULE }
+#line 2408 "parser.cpp"
+    break;
+
+  case 137:
+#line 332 "parser.y"
+    { PRINT_RULE }
+#line 2414 "parser.cpp"
+    break;
+
+  case 138:
+#line 335 "parser.y"
+    { PRINT_RULE }
+#line 2420 "parser.cpp"
+    break;
+
+  case 139:
+#line 336 "parser.y"
+    { PRINT_RULE }
+#line 2426 "parser.cpp"
+    break;
+
+  case 140:
+#line 337 "parser.y"
+    { PRINT_RULE }
+#line 2432 "parser.cpp"
+    break;
+
+  case 141:
+#line 338 "parser.y"
+    { PRINT_RULE }
+#line 2438 "parser.cpp"
+    break;
+
+  case 142:
+#line 343 "parser.y"
+    { PRINT_RULE }
+#line 2444 "parser.cpp"
+    break;
+
+  case 143:
+#line 348 "parser.y"
+    { PRINT_RULE }
+#line 2450 "parser.cpp"
+    break;
+
+  case 144:
+#line 349 "parser.y"
+    { PRINT_RULE }
+#line 2456 "parser.cpp"
+    break;
+
+  case 145:
+#line 350 "parser.y"
+    { PRINT_RULE }
+#line 2462 "parser.cpp"
+    break;
+
+  case 146:
+#line 351 "parser.y"
+    { PRINT_RULE }
+#line 2468 "parser.cpp"
+    break;
+
+  case 147:
+#line 352 "parser.y"
+    { PRINT_RULE }
+#line 2474 "parser.cpp"
+    break;
+
+  case 148:
+#line 353 "parser.y"
+    { PRINT_RULE }
+#line 2480 "parser.cpp"
+    break;
+
+  case 149:
+#line 358 "parser.y"
+    { PRINT_RULE }
+#line 2486 "parser.cpp"
     break;
 
 
-#line 1619 "parser.cpp"
+#line 2490 "parser.cpp"
 
       default: break;
     }
@@ -1853,4 +2724,81 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 357 "parser.y"
+#line 363 "parser.y"
+
+
+void print_rule(int num)
+{
+	static bool read_once = false;
+	static bool valid_file = false;
+	static std::vector<char> grammar_file;
+	static std::map<int, char*> file_map;
+	if (not read_once) {
+		FILE *f = fopen("parser.y", "r");
+		valid_file = (f != nullptr);
+		if (valid_file) {
+			fseek(f, 0, SEEK_END);
+			long fsize = ftell(f);
+			fseek(f, 0, SEEK_SET);
+
+			grammar_file.resize(fsize);
+			char* data_ptr = &grammar_file.front();
+
+			fread(data_ptr, 1, fsize, f);
+
+			unsigned last_pos = 0;
+			unsigned pos = 0;
+			unsigned line = 1;
+
+			while (pos < fsize) {
+				if (grammar_file[pos] == '\n')
+				{
+					file_map[line++] = data_ptr + last_pos;
+					for (unsigned i = last_pos; i < pos; i++) {
+						if (grammar_file[i] == '\t')
+							grammar_file[i] = ' ';
+					}
+					last_pos = pos + 1;
+					grammar_file[pos] = '\0';
+				}
+				++pos;
+			}
+			file_map[line] = data_ptr + last_pos;
+			fclose(f);
+			read_once = true;
+		}
+		else
+			printf("File of grammar for debugging not found.\n");
+	}
+	if (valid_file) {
+		last_calls_stream << "(" << num << ") " << file_map[num] << "\n";
+		std::string parent("");
+		unsigned i = num;
+		auto npos = std::string::npos;
+		for (; i >= 1; --i) {
+			std::string str(file_map[i]);
+			auto dblp = str.find(':');
+			if (dblp != npos) {
+				unsigned o_sz = parent.size();
+				parent = parent + str;
+				if (o_sz)
+					parent[o_sz - 1] = ' ';
+				dblp += o_sz;
+				parent[dblp] = '\0';
+				parent.resize(dblp + 1);
+				if (std::count(str.begin(), str.end(), '|') != 0)
+				{
+					parent = "[warning]" + parent;
+					if (str[0] == ' ')
+						continue;
+				}
+				break;
+			}
+			else
+				continue;
+		}
+		if (parent == "" and i == -1)
+			parent = "[error]";
+		parents_stream << "(" << num << ") -> " << parent << "\n";
+	}
+}

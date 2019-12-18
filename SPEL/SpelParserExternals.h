@@ -1,25 +1,27 @@
 #pragma once
 #include <string>
+#include <sstream>
 #ifdef _WIN32
 #include "Windows.h"
 #endif
 
-std::string test_description;
-int test_state = 0;
-int NO_TEST = 0;
-int TEST_STARTED = 1;
-int TEST_ENDED = 2;
+//Debug variables
+bool enable_grammar_debug = false;
+bool enable_testing = false;
+std::stringstream last_calls_stream;
+std::stringstream parents_stream;
 
-std::string syy_text;
+//Test variables
+std::string test_description;
+
+//Text ontrol variables
 int scan_lines = 0;
 int entry_line = 1;
 int scan_position = 0;
-int yycolumn = 0;
-bool ended_input = false;
 
-#ifdef _WIN32
 void set_console_color(int color)
 {
+#ifdef _WIN32
 	WORD wColor;
 	//This handle is needed to get the current background attribute
 
@@ -33,5 +35,5 @@ void set_console_color(int color)
 		wColor = (csbi.wAttributes & 0xF0) + (color & 0x0F);
 		SetConsoleTextAttribute(hStdOut, wColor);
 	}
-}
 #endif
+}

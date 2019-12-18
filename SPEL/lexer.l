@@ -21,7 +21,7 @@ static void update_loc();
 static int curr_line = 1;
 static int curr_col = 1;
 
-#define YY_USER_ACTION update_loc(); 
+#define YY_USER_ACTION update_loc();
 %}
 
 %x comment
@@ -45,7 +45,7 @@ static int curr_col = 1;
 "string" {return STRING; } 
 "bool" {return BOOL; }
 "'"(\\)?."'" {return CHR; }
-\".*\" {return STR; } 	
+\"[^\"\n]*\" {return STR; } 	
 "true" {return TRUE; }
 "false" {return FALSE; }
 "begin" {return BGNF; }	
@@ -77,6 +77,8 @@ static int curr_col = 1;
 
 %%
 
+YY_BUFFER_STATE last_buffer = nullptr;
+
 // Runs at every action - updates line & col
 static void update_loc() {
 
@@ -104,10 +106,16 @@ void yyswitch(char* str, unsigned size)
 	curr_col = 1;
 	auto bs = yy_scan_buffer(str, size);
 	yy_switch_to_buffer(bs);
+	last_buffer = bs;
+}
+
+void yydelete() {
+	yy_delete_buffer(last_buffer);
 }
 
 void scan_string(char* str) {
-	yy_scan_string(str);
+	auto bs = yy_scan_string(str);
+	last_buffer = bs;
 }
 
 void yyerror(const char* msg)
