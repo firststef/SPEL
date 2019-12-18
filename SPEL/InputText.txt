@@ -1,3 +1,37 @@
+[TEST] Example Program
+
+The tale begins
+
+I summon thy name Link 
+	craft points life_points.
+	craft precise mana_points.
+	craft rune armor_enchantments.
+	craft absolute mortality.
+	craft tome allegiance bestow "Zelda".
+	
+	void spell attack sacrifice precise stamina, precise mana :
+		enchant stamina with stamina - 1.
+		enchant mana with mana - 2.
+	terminus
+	points spell fire sacrifice precise mana, rune equipment :
+		cast (mana*equipment).
+		enchant a with life_points of clone.//nu se poate enchant de variabila a obiectului. trebuie reparat
+		if (equipment > '\3') beginif
+			enchant a with life_points of clone.
+		endif
+		else beginelse
+			craft points a bestow 1.
+		endelse
+	terminus
+and thy brethren.
+
+craft Link clone.
+
+//enchant life_points of clone with 100.
+
+//craft artifact basic_attack bestow 3.
+
+[END]
 [TEST] Null program
 The tale begins
 [END]
@@ -11,39 +45,39 @@ linii*/
 [END]
 [TEST] Predefined types variable declarations
 The tale begins
-craft points a;
-craft precise b;
-craft rune v;
-craft tome str;
-craft absolute bolean;
+craft points a.
+craft precise b.
+craft rune v.
+craft tome str.
+craft absolute bolean.
 [END]
 [TEST] Variable init
 The tale begins
-craft points a = 1;
-craft precise b = c;
-craft precise d = 1.0;
-craft rune v = 'a';
-craft string str = "a";
-craft absolute bolean = true; 
+craft points a bestow 1.
+craft precise b bestow c.
+craft precise d bestow 1.0.
+craft rune v bestow 'a'.
+craft string str bestow "a".
+craft absolute bolean bestow true. 
 [END]
 [TEST] Const declarations
 The tale begins
-craft artifact points kst1=1;
-craft artifact precise kst2=1.1;
-craft artifact rune kst3=5;
-craft artifact tome kst4="kst4";
-craft artifact points vkst[3] = [1, 3, 1]; //declarare size la const? 
-craft artifact points _a=1;
+craft artifact points kst1 bestow 1.
+craft artifact precise kst2 bestow 1.1.
+craft artifact rune kst3 bestow 5.
+craft artifact tome kst4 bestow "kst4".
+craft artifact points vkst[3] bestow [1, 3, 1]. //declarare size la const? 
+craft artifact points _a bestow 1.
 [END]
 [TEST] Functions declaration
 The tale begins
-begin points man(points a, points b) 
-	return a+b*3;
-end
-begin points functie ()
-	b=55*3/2;
-	str="string1"+"string2";
-end
+points spell man sacrifice points a, points b: 
+	cast a+b*3.
+terminus
+points spell functie sacrifice time :
+	enchant b with 55*3/2.
+	enchant str with "string1"+"string2".
+terminus
 [END]
 [TEST] Class Declarations
 The tale begins
@@ -52,117 +86,117 @@ The tale begins
 //and thy brethren.
 
 I summon thy name clasa2
-//	begin points functie_clasa2() end;
+//	points spell functie_clasa2 sacrfice time : terminus.
 //	functia vida da eroare
-	begin void functie2() 
-		craft rune sir[]=['1', 'a', 2, '\4'];
-		craft points a=health of hero;
-	end
-	begin void functie_void_cu_return()
-//		return 4;
-		craft precise c=1.1;
-	end
+	void spell functie2 sacrifice time : 
+		craft rune sir[] bestow ['1', 'a', 2, '\4'].
+		craft points a bestow health of hero.
+	terminus
+	void spell functie_void_cu_return sacrifice time :
+//		cast 4.
+		craft precise c bestow 1.1.
+	terminus
 	//in declaratii la functii const nu trebuie sa fie initializat
-	begin tome functie_cu_return (tome a, artifact rune b[]) 
-		return b[3];
-//		craft artifact precise vec[]=[1,4.5];
-		craft artifact precise vec[5]=[1,4.5];
-	end
+	tome spell functie_cu_return sacrifice tome a, artifact rune b[]:
+		cast b[3].
+//		craft artifact precise vec[] bestow [1,4.5].
+		craft artifact precise vec[5] bestow [1,4.5].
+	terminus
 and thy brethren.
 I summon thy name clasa3
-	begin void functie2() 
-		craft rune sir[]=['1', 'a', 2, '\4'];
-	end
-	craft points x;
-	begin void functie_void_cu_return()
-		craft precise c=1.1;
-	end
-	craft absolute variabila[]=[true, false];
+	void spell functie2 sacrifice time: 
+		craft rune sir[] bestow ['1', 'a', 2, '\4'].
+	terminus
+	craft points x.
+	void spell functie_void_cu_return sacrifice time :
+		craft precise c bestow 1.1.
+	terminus
+	craft absolute variabila[] bestow [true, false].
 and thy brethren.
 [END]
 [TEST] Class instantiation
 The tale begins
-craft clasa1 obj;
+craft clasa1 obj.
 [END]
 [TEST] Vector declarations
 The tale begins
-craft points a1[];
-craft precise b1[];
-craft rune v1[];
-craft tome str1[];
-craft absolute bol1[];
-craft clasa1 obj1[];
+craft points a1[].
+craft precise b1[].
+craft rune v1[].
+craft tome str1[].
+craft absolute bol1[].
+craft clasa1 obj1[].
 [END]
 [TEST] Function calls
 The tale begins
-functie(a + a of obj);
-functie(man(1+3));
-functie(45);
-functie(3+4, "7");
-functie(kst1);
-functie(a);
+chant functie sacrifice a + a of obj:.
+chant functie sacrifice chant man sacrifice 1+3 :: .
+chant functie sacrifice 45 :.
+chant functie sacrifice 3+4, "7":.
+chant functie sacrifice kst1 :.
+chant functie sacrifice a:.
 [END]
 [TEST] Conditionals & Arithmetic
 The tale begins
 if (a && (b != 0)) beginif
-	functie(1);
+	chant functie sacrifice 1:.
 endif
 else beginelse
-	functie(1);
+	chant functie sacrifice 1:.
 endelse
 [END] 
 [TEST] Loops
 The tale begins
 while (c >= 0 && (b!=0))
-	craft points a=health of hero;
-	craft tome str1[1]=[3];
-	functie(45);
+	craft points a bestow health of hero.
+	craft tome str1[1] bestow [3].
+	chant functie sacrifice 45:.
 endwhile
 [END]
 [TEST] For loops
 The tale begins
-for (x in 1:30) //for (points x=1; x<=30; x++)
-	craft points b;
+for (x in 1:30) //for (points x=1. x<=30. x++)
+	craft points b.
 endfor
-craft points x=functie(3);
+craft points x bestow chant functie sacrifice 3 : .
 for (x in str1) //for (auto:x in str1) - 
-	craft points a=health[3] of hero;
-	craft points a=health of hero[4];
-	craft rune f=4;
-	functie(4);
-	b=3/(health of hero[3]);
+	craft points a bestow health[3] of hero.
+	craft points a bestow health of hero[4].
+	craft rune f bestow 4.
+	chant functie sacrifice 4 : .
+	enchant b with 3/(health of hero[3]).
 endfor
 [END]
 [TEST][SHOULD FAIL] List instantiation on a single unit
 The tale begins
-craft tome str="string1"+"string2","asas";
+craft tome str bestow "string1"+"string2","asas".
 [END] 
 [TEST] Eval function
 The tale begins
-EVAL();
-EVAL(a);
-EVAL(3);
+EVAL().
+EVAL(a).
+EVAL(3).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function float
 The tale begins
-EVAL(3.0);
+EVAL(3.0).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function string
 The tale begins
-EVAL("str");
+EVAL("str").
 [END]
 [TEST][SHOULD FAIL] Non-int eval function multiple param
 The tale begins
-EVAL(1, 2);
+EVAL(1, 2).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function expression
 The tale begins
-EVAL(1 = 2);
+EVAL(enchant 1 with 2).
 [END]
 //Testele de aici vor fi facute cand facem testing pentru semantic
-points a; //trebuie sa dea eroare
-a="4"; //eroare
+points a. //trebuie sa dea eroare
+enchant a with "4". //eroare
 
-points man(points a, points b){return 4;}//eroare, definita cu aceeasi signatura
-man(b, 4);//eroare
-Eval(4.5); //eroare
+points man sacrifice points a, points b : {cast 4.}//eroare, definita cu aceeasi signatura
+man(b, 4).//eroare
+Eval(4.5). //eroare

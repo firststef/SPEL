@@ -33,7 +33,7 @@ void print_rule(int num, char* s);
 %token LEQ BEQ EQ NEQ INT OF FLOAT CHAR STRING CHR ID NR NRF NOT
 %token STR TRUE FALSE BGNF ENDF AND OR RET CLASS CONST BOOL ELSE IF
 %token FOR WHILE ENDWHILE BEGINIF BEGINELSE ENDELSE ENDIF ENDFOR VOID
-%token IN EVAL BG BGNP ENDCLASS CRAFT
+%token IN EVAL BG BGNP ENDCLASS CRAFT BSTOW ENCH WITH SACRF TIME CHNT
 %nonassoc IFX
 %nonassoc ELSE
 %start sp
@@ -68,8 +68,8 @@ class_body : class_var { PRINT_RULE }
 
 
 
-class_var : CRAFT type class_ids ';' { PRINT_RULE }
-		  | CRAFT CONST type const_class_ids ';'{ PRINT_RULE }
+class_var : CRAFT type class_ids '.' { PRINT_RULE }
+		  | CRAFT CONST type const_class_ids '.'{ PRINT_RULE }
 		  ;
 
 
@@ -91,9 +91,9 @@ class_ids : class_id { PRINT_RULE }
 
 
 class_id : ID { PRINT_RULE }
-		 | ID '=' class_id_initialization { PRINT_RULE }
+		 | ID BSTOW class_id_initialization { PRINT_RULE }
 		 | ID '[' vector_size ']' { PRINT_RULE }
-		 | ID '[' vector_size ']' '=' vector_initialization { PRINT_RULE }
+		 | ID '[' vector_size ']' BSTOW vector_initialization { PRINT_RULE }
 		 ;
 
 
@@ -105,7 +105,7 @@ class_id_initialization : ID { PRINT_RULE }
 						| STR { PRINT_RULE }
 						| TRUE { PRINT_RULE }
 						| FALSE { PRINT_RULE }
-						| ID '(' call_parameters ')' { PRINT_RULE }
+						| CHNT ID SACRF call_parameters ':' { PRINT_RULE }
 						| ID '[' vector_position ']' { PRINT_RULE }
 						| ID OF ID { PRINT_RULE }
 						| ID '[' vector_position ']' OF ID { PRINT_RULE }
@@ -133,7 +133,7 @@ vector_body : class_id_initialization { PRINT_RULE }
 
 
 
-call_parameters : { PRINT_RULE }
+call_parameters : TIME { PRINT_RULE }
 				| f_parameters { PRINT_RULE }
 				;
 
@@ -141,7 +141,7 @@ call_parameters : { PRINT_RULE }
 
 vector_position : ID { PRINT_RULE }
 				| NR { PRINT_RULE }
-				| ID '(' call_parameters ')' { PRINT_RULE }
+				| CHNT ID SACRF call_parameters ':' { PRINT_RULE }
 				| ID '[' vector_position ']' { PRINT_RULE }
 				;
 
@@ -153,8 +153,8 @@ const_class_ids : const_class_id { PRINT_RULE }
 
 
 
-const_class_id : ID '=' class_id_initialization { PRINT_RULE }
-			   | ID '[' const_vector_size ']' '=' vector_initialization { PRINT_RULE }
+const_class_id : ID BSTOW class_id_initialization { PRINT_RULE }
+			   | ID '[' const_vector_size ']' BSTOW vector_initialization { PRINT_RULE }
 			   ;
 
 
@@ -175,13 +175,13 @@ f_parameter : class_id_initialization {/*nu stiu daca aici este corect, dar eu p
 
 
 
-class_f : BGNF type ID '(' f_declaration_parameters ')' function_body ENDF { PRINT_RULE }
-		| BGNF VOID ID '(' f_declaration_parameters ')' no_return_function_body ENDF { PRINT_RULE }
+class_f : type BGNF ID SACRF f_declaration_parameters ':' function_body ENDF { PRINT_RULE }
+		| VOID BGNF ID SACRF f_declaration_parameters ':' no_return_function_body ENDF { PRINT_RULE }
 		;
 
 
 
-f_declaration_parameters : { PRINT_RULE }
+f_declaration_parameters : TIME { PRINT_RULE }
 						 | declaration_parameters { PRINT_RULE }
 						 ;
 
@@ -202,23 +202,23 @@ declaration_parameter : type ID { PRINT_RULE }
 
 
 function_body : class_var function_body { PRINT_RULE }
-			  | RET class_id_initialization ';' function_body { PRINT_RULE }
-			  | RET eval_expr ';' function_body { PRINT_RULE }
+			  | RET class_id_initialization '.' function_body { PRINT_RULE }
+			  | RET eval_expr '.' function_body { PRINT_RULE }
 			  | function_instruction function_body { PRINT_RULE }
 			  | class_var { PRINT_RULE }
-			  | RET class_id_initialization ';' { PRINT_RULE }
-			  | RET eval_expr ';' { PRINT_RULE }
+			  | RET class_id_initialization '.' { PRINT_RULE }
+			  | RET eval_expr '.' { PRINT_RULE }
 			  | function_instruction { PRINT_RULE }
-		      | EVAL '(' ')' ';' { PRINT_RULE }
-			  | EVAL '(' NR ')' ';' { PRINT_RULE }
-			  | EVAL '(' ID ')' ';' { PRINT_RULE }
+		      | EVAL '(' ')' '.' { PRINT_RULE }
+			  | EVAL '(' NR ')' '.' { PRINT_RULE }
+			  | EVAL '(' ID ')' '.' { PRINT_RULE }
 			  ;
 
 
 
-function_instruction : ID '=' eval_expr ';' { PRINT_RULE }
-					 | ID '[' vector_position ']' '=' eval_expr ';' { PRINT_RULE }
-					 | ID '(' call_parameters ')' ';' { PRINT_RULE }
+function_instruction : ENCH ID WITH eval_expr '.' { PRINT_RULE }
+					 | ENCH ID '[' vector_position ']' WITH eval_expr '.' { PRINT_RULE }
+					 | CHNT ID SACRF call_parameters ':' '.' { PRINT_RULE }
 					 | while_instr { PRINT_RULE }
 					 | if_instr { PRINT_RULE }
 					 | for_instr { PRINT_RULE }
@@ -295,7 +295,7 @@ for_1 : ID { PRINT_RULE }
 	  | NR { PRINT_RULE }
 	  | NRF { PRINT_RULE }
 	  | CHR { PRINT_RULE }
-	  | ID '(' call_parameters ')' { PRINT_RULE }
+	  | CHNT  ID SACRF call_parameters ':' { PRINT_RULE }
 	  | ID '[' vector_position ']' { PRINT_RULE }
 	  ;
 
@@ -307,7 +307,7 @@ for_body : no_return_function_body { PRINT_RULE }
 
 
 eval_expr : expr { PRINT_RULE }
-		  | var '=' expr { PRINT_RULE }
+		  | ENCH var WITH expr { PRINT_RULE }
 		  ;
 
 var : ID { PRINT_RULE }
@@ -357,11 +357,11 @@ statement : declaration { PRINT_RULE }
 		  | if_instr { PRINT_RULE }
 		  | while_instr { PRINT_RULE }
 		  | for_instr { PRINT_RULE }
-		  | ID '=' eval_expr ';' { PRINT_RULE }
-		  | ID '(' call_parameters ')' ';' { PRINT_RULE }
-		  | EVAL '(' ')' ';' { PRINT_RULE }
-	      | EVAL '(' NR ')' ';' { PRINT_RULE }
-		  | EVAL '(' ID ')' ';' { PRINT_RULE }
+		  | ENCH ID WITH eval_expr '.' { PRINT_RULE }
+		  | CHNT ID SACRF call_parameters ':' '.' { PRINT_RULE }
+		  | EVAL '(' ')' '.' { PRINT_RULE }
+	      | EVAL '(' NR ')' '.' { PRINT_RULE }
+		  | EVAL '(' ID ')' '.' { PRINT_RULE }
 		  ;
 
 

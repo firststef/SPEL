@@ -179,31 +179,48 @@ int main(int argc, char** argv)
 
 			//delete[] scan_buff;
 
-			//Output result
-			if (should_fail and parse_result)
+			auto pass = [&](const char* str)
 			{
 				set_console_color(10);
-				std::cout << "[FAILS]";
+				std::cout << str;
 				set_console_color(7);
 				std::cout << test_description.c_str() << std::endl;
-			}
-			else if (parse_result) {
+			};
+
+			auto fail = [&](const char* str)
+			{
 				if (enable_grammar_debug)
 				{
 					std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
 					std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
 				}
 				set_console_color(12);
-				std::cout << "[FAIL]";
+				std::cout << str;
 				set_console_color(7);
 				std::cout << test_description.c_str() << std::endl;
+			};
+
+			if (should_fail)
+			{
+				if (parse_result == 0)
+				{
+					fail("[PASSES]");
+				}
+				else
+				{
+					pass("[FAILS]");
+				}
 			}
 			else
 			{
-				set_console_color(10);
-				std::cout << "[PASS]";
-				set_console_color(7);
-				std::cout << test_description.c_str() << std::endl;
+				if (parse_result == 0)
+				{
+					pass("[PASS]");
+				}
+				else
+				{
+					fail("[FAIL]");
+				}
 			}
 		}
 	}
