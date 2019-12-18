@@ -20,10 +20,12 @@ extern std::stringstream parents_stream;
 extern int yylex();
 extern void yyerror(const char*);
 
+#define YYSTYPE char*
+
 //Define for avoiding duplicated token enum
 #define YYTOKENTYPE
-void print_rule(int num);
-#define PRINT_RULE print_rule(__LINE__);
+void print_rule(int num, char* s);
+#define PRINT_RULE print_rule(__LINE__, yylval);
 %}
 
 %locations
@@ -362,7 +364,7 @@ declaration : class_var { PRINT_RULE }
 
 %%
 
-void print_rule(int num)
+void print_rule(int num, char* s)
 {
 	static bool read_once = false;
 	static bool valid_file = false;
@@ -400,10 +402,10 @@ void print_rule(int num)
 			}
 			file_map[line] = data_ptr + last_pos;
 			fclose(f);
-			read_once = true;
 		}
 		else
 			printf("File of grammar for debugging not found.\n");
+		read_once = true;
 	}
 	if (valid_file) {
 		last_calls_stream << "(" << num << ") " << file_map[num] << "\n";
@@ -434,6 +436,6 @@ void print_rule(int num)
 		}
 		if (parent == "" and i == -1)
 			parent = "[error]";
-		parents_stream << "(" << num << ") -> " << parent << "\n";
+		parents_stream << "(" << num << ") -> " << parent << " == " << s << "\n";
 	}
 }

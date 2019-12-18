@@ -29,6 +29,9 @@ extern void yyerror(const char*);
 extern void scan_string(char* str);
 extern void yydelete();
 
+bool scan_str = false;
+int string_idx = 0;
+
 int main(int argc, char** argv)
 {
 	if (argc < 2)
@@ -45,25 +48,6 @@ int main(int argc, char** argv)
 	//Check program parameters
 	for (int i = 1; i < argc; ++i)
 	{
-		if (std::string(argv[i]) == "-s" || std::string(argv[i]) == "/s")
-		{
-			if (i == argc - 1)
-			{
-				std::cout << "String from input not found" << std::endl;
-#ifdef _WIN32
-				system("pause");
-#endif
-				return -1;
-			}
-
-			scan_string(argv[i + 1]);
-			yyparse();
-#ifdef _WIN32
-			system("pause");
-#endif
-			return 0;
-		}
-
 		if (std::string(argv[i]) == "-v" || std::string(argv[i]) == "/v")
 		{
 			enable_grammar_debug = true;
@@ -73,8 +57,40 @@ int main(int argc, char** argv)
 		{
 			enable_testing = true;
 		}
+		
+		if (std::string(argv[i]) == "-s" || std::string(argv[i]) == "/s")
+		{
+			if (i == argc - 1)
+			{
+				std::cout << "String from input not found" << std::endl;
+#ifdef _WIN32
+				system("pause");
+#endif
+				return -1;
+			}
+
+			scan_str = true;
+			string_idx = i + 1;
+		}
 	}
 
+	//Scan string
+	if (scan_str)
+	{
+		scan_string(argv[string_idx]);
+		const auto parse_result = yyparse();
+		if (enable_grammar_debug)
+		{
+			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
+			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
+		}
+#ifdef _WIN32
+		system("pause");
+#endif
+		return 0;
+	}
+
+	//Or scan from file
 	FILE *f = fopen(argv[1], "r");
 
 	if (f == nullptr)
@@ -166,7 +182,6 @@ int main(int argc, char** argv)
 			//Output result
 			if (should_fail and parse_result)
 			{
-
 				set_console_color(10);
 				std::cout << "[FAILS]";
 				set_console_color(7);
@@ -192,9 +207,14 @@ int main(int argc, char** argv)
 			}
 		}
 	}
-	else { //RUN ON FILE
+	else { //Single run on file
 		yyin = f;
 		const auto parse_result = yyparse();
+		if (parse_result && enable_grammar_debug)
+		{
+			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
+			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
+		}
 	}
 
 #ifdef _WIN32

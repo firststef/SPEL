@@ -6,6 +6,8 @@
 #include <cmath>
 #include <string>
 
+#define YYSTYPE char*
+
 #include "parser.h"
 
 //Test variables
@@ -21,7 +23,9 @@ static void update_loc();
 static int curr_line = 1;
 static int curr_col = 1;
 
-#define YY_USER_ACTION update_loc();
+extern YYSTYPE yylval;
+#define YY_USER_ACTION update_loc(); yylval=_strdup(yytext);
+
 %}
 
 %x comment
@@ -35,7 +39,7 @@ static int curr_col = 1;
 "//"(.)*\n ;
 "/*"(.|\n)*"*/" ;
 "int" {return INT; }
-"float" {return FLOAT; }
+"float" {return FLOAT;}
 "char" {return CHAR; }
 "of" {return OF; }
 "<=" {return LEQ; }
