@@ -34,7 +34,6 @@ You can pass a string to the console for the program to parse.
 
 > "-v or /v for enabling debug info";
 
-If you want to debug why the word is not accepted, you can do so by:
-- debugging in Visual Studio with breakpoints
-- running -v and looking at the accessed rules
-- running -v and looking at the accessed non-terminal states
+Running the debug mode will print the grammar rules and non-terminals in the order they were acessed by the compiler.Note
+
+Note: If you notice one non-terminal starts with [!warning] that means that the name of the non-terminal is probably incorect, due to a parser error. Refer to the printed rule for determining the correct non-terminal (look for the nt parent of the rule).
