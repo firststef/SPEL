@@ -36,31 +36,40 @@ extern YYSTYPE yylval;
 	BEGIN(INITIAL);
 	return 0;
 }
+"The tale begins\n" {return BGNP; }
 "//"(.)*\n ;
 "/*"(.|\n)*"*/" ;
-"int" {return INT; }
-"float" {return FLOAT;}
-"char" {return CHAR; }
+"points" {return INT; }
+"precise" {return FLOAT;}
+"rune" {return CHAR; }
+"tome" {return STRING; } 
+"absolute" {return BOOL; }
 "of" {return OF; }
 "<=" {return LEQ; }
 ">=" {return BEQ; }
 "==" {return EQ; }
 "!=" {return NEQ; }
-"string" {return STRING; } 
-"bool" {return BOOL; }
 "'"(\\)?."'" {return CHR; }
 \"[^\"\n]*\" {return STR; } 	
 "true" {return TRUE; }
 "false" {return FALSE; }
-"begin" {return BGNF; }	
-"end"	{return ENDF; }	
-"return" {return RET; }
+"spell" {return BGNF; }	
+"terminus" {return ENDF; }	
+"cast" {return RET; }
+"sacrifice" {return SACRF;}
+"time" {return TIME; }
 "in" {return IN; }
 "&&" {return AND; }
 "||" {return OR; }
 "not" {return NOT; }
-"class" {return CLASS; }
-"const" {return CONST; }
+"I summon thy name" {return CLASS; }
+"and thy brethren." {return ENDCLASS;}
+"craft" {return CRAFT; }
+"artifact" {return CONST; }
+"bestow" {return BSTOW; }
+"enchant" {return ENCH; }
+"chant" {return CHNT; }
+"with" {return WITH; }
 "if" {return IF; }
 "else" {return ELSE; }
 "while" {return WHILE; }
@@ -72,7 +81,7 @@ extern YYSTYPE yylval;
 "endwhile" {return ENDWHILE; }
 "endfor" {return ENDFOR; }
 "for" {return FOR; }
-"eval" {return EVAL; }
+"EVAL" {return EVAL; }
 [_A-Za-z][_A-Za-z0-9]* { return ID; }	
 [1-9][0-9]*|0 {return NR; }
 ([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }

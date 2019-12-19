@@ -87,8 +87,18 @@ extern int yydebug;
     VOID = 293,
     IN = 294,
     EVAL = 295,
-    IFX = 296,
-    UMINUS = 297
+    BG = 296,
+    BGNP = 297,
+    ENDCLASS = 298,
+    CRAFT = 299,
+    BSTOW = 300,
+    ENCH = 301,
+    WITH = 302,
+    SACRF = 303,
+    TIME = 304,
+    CHNT = 305,
+    IFX = 306,
+    UMINUS = 307
   };
 #endif
 
