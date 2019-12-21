@@ -1,0 +1,30 @@
+The tale begins
+
+I summon thy name Link 
+	craft points life_points.
+	craft precise mana_points.
+	craft rune armor_enchantments.
+	craft absolute mortality.
+	craft tome allegiance bestow "Zelda".
+	
+	void spell attack sacrifice precise stamina, precise mana :
+		enchant stamina with stamina - 1.
+		enchant mana with mana - 2.
+	terminus
+	points spell fire sacrifice precise mana, rune equipment :
+		cast (mana*equipment).
+		enchant a with life_points of clone.
+		if (equipment > '\3') beginif
+			enchant life_points of clone with a.
+		endif
+		else beginelse
+			cast 0.
+		endelse
+	terminus
+and thy brethren.
+
+craft Link clone.
+
+enchant life_points of clone with 100.
+
+craft artifact points basic_attack bestow 3.

@@ -379,6 +379,9 @@ declaration : class_var { PRINT_RULE }
 
 void print_rule(int num, char* s)
 {
+	if (not enable_grammar_debug)
+		return;
+
 	static bool read_once = false;
 	static bool valid_file = false;
 	static std::vector<char> grammar_file;

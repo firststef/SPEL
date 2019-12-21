@@ -23,6 +23,8 @@ extern int scan_lines;
 extern int entry_line;
 extern int scan_position;
 
+extern int yydebug;
+
 //Text control functions
 extern void yyswitch(char* str, unsigned size);
 extern void yyerror(const char*);
@@ -71,6 +73,11 @@ int main(int argc, char** argv)
 
 			scan_str = true;
 			string_idx = i + 1;
+		}
+
+		if (std::string(argv[i]) == "-d" || std::string(argv[i]) == "/d")
+		{
+			yydebug = 1;
 		}
 	}
 

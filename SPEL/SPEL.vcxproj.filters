@@ -54,5 +54,8 @@
     <Text Include="InputText.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="Program.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

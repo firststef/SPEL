@@ -122,7 +122,7 @@ void print_rule(int num, char* s);
 # define YY_YY_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -2838,6 +2838,9 @@ yyreturn:
 
 void print_rule(int num, char* s)
 {
+	if (not enable_grammar_debug)
+		return;
+
 	static bool read_once = false;
 	static bool valid_file = false;
 	static std::vector<char> grammar_file;
