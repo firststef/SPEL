@@ -71,7 +71,7 @@ craft artifact precise kst2 bestow 1.1.
 craft artifact rune kst3 bestow 5.
 craft artifact tome kst4 bestow "kst4".
 craft artifact points vkst[3] bestow [1, 3, 1]. //declarare size la const? 
-craft artifact points _a bestow 1.
+//craft artifact points _a bestow 1. - _ID will no longer be allowed
 [END]
 
 [TEST] Vector declarations

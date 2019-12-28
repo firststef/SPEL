@@ -25,70 +25,97 @@ static int curr_col = 1;
 
 extern YYSTYPE yylval;
 #define YY_USER_ACTION update_loc(); yylval=_strdup(yytext);
-
 %}
+
+INTEGER			-?([1-9][0-9]*|0)
+FLOAT           ([1-9][0-9]*|0)\.[0-9]+
+IDENTIFIER		[a-zA-Z][_a-zA-Z0-9]*
+STRING			\"[^\"\n]*\"
+CHAR			"'"(\\)?."'"
+SPACE			[ \t]
+ENDLINE			[\r\n]
+WS				[ \r\n\t]*
+SINGLEWS		[ \r\n\t]
+COMMENT			\/\/[^\n]*
+MULTICOMMENT	"/*"(.|\n)*"*/"
 
 %x comment
 
 %%
 
-<<EOF>> { //If found this token we exit the lexer
-	BEGIN(INITIAL);
-	return 0;
-}
 "The tale begins\n" {return BGNP; }
-"//"(.)*\n ;
-"/*"(.|\n)*"*/" ;
-"points" {return INT; }
-"precise" {return FLOAT;}
-"rune" {return CHAR; }
-"tome" {return STRING; } 
-"absolute" {return BOOL; }
-"of" {return OF; }
+
+ /* Default Types */
+points {return INT; }
+precise {return FLOAT;}
+rune {return CHAR; }
+tome {return STRING; }
+absolute {return BOOL; }
+
+artifact { return CONST; }
+
+ /* Values */
+true {return TRUE; }
+false {return FALSE; }
+{CHAR} {return CHR; }
+{STRING} {return STR; }
+
+ /* Operators */
 "<=" {return LEQ; }
 ">=" {return BEQ; }
 "==" {return EQ; }
 "!=" {return NEQ; }
-"'"(\\)?."'" {return CHR; }
-\"[^\"\n]*\" {return STR; } 	
-"true" {return TRUE; }
-"false" {return FALSE; }
-"spell" {return BGNF; }	
-"terminus" {return ENDF; }	
-"cast" {return RET; }
-"sacrifice" {return SACRF;}
-"time" {return TIME; }
-"in" {return IN; }
 "&&" {return AND; }
 "||" {return OR; }
-"not" {return NOT; }
+not {return NOT; }
+
+ /* Functions and classes */
+void {return VOID;}
 "I summon thy name" {return CLASS; }
-"and thy brethren." {return ENDCLASS;}
-"craft" {return CRAFT; }
-"artifact" {return CONST; }
-"bestow" {return BSTOW; }
-"enchant" {return ENCH; }
-"chant" {return CHNT; }
-"with" {return WITH; }
-"if" {return IF; }
-"else" {return ELSE; }
-"while" {return WHILE; }
-"void" {return VOID; }
-"beginif" {return BEGINIF; }
-"endif" {return ENDIF; }
-"beginelse" {return BEGINELSE;}
-"endelse" {return ENDELSE; }
-"endwhile" {return ENDWHILE; }
-"endfor" {return ENDFOR; }
-"for" {return FOR; }
-"EVAL" {return EVAL; }
-[_A-Za-z][_A-Za-z0-9]* { return ID; }	
-[1-9][0-9]*|0 {return NR; }
-([1-9][0-9]*\.[0-9]+)|(0\.[0-9]+) {return NRF; }
-[ \t] ;
-\n {yylineno++;}
+"and thy brethren." {return ENDCLASS; }
+
+ /* Language specific*/
+of {return OF; }
+spell {return BGNF; }
+terminus {return ENDF; }
+cast {return RET; }
+sacrifice {return SACRF;}
+time {return TIME; }
+in {return IN; }
+craft {return CRAFT; }
+bestow {return BSTOW; }
+enchant {return ENCH; }
+chant {return CHNT; }
+with {return WITH; }
+
+ /* Loops */
+if {return IF; }
+else {return ELSE; }
+while {return WHILE; }
+beginif {return BEGINIF; }
+endif {return ENDIF; }
+beginelse {return BEGINELSE;}
+endelse {return ENDELSE; }
+endwhile {return ENDWHILE; }
+endfor {return ENDFOR; }
+for {return FOR; }
+
+EVAL {return EVAL; }
+
+{IDENTIFIER} { return ID; }
+{INTEGER} {return NR; }
+{FLOAT} {return NRF; }
+
+ /* Consume the rest */
+{COMMENT} { }
+{MULTICOMMENT} { }
+[ \t\n\r] { }
 . {return yytext[0]; }
 
+<<EOF>> { //If found this token we exit the lexer
+	BEGIN(INITIAL);
+	return 0;
+}
 %%
 
 YY_BUFFER_STATE last_buffer = nullptr;

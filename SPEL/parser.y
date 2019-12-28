@@ -21,6 +21,7 @@ extern int yylex();
 extern void yyerror(const char*);
 
 #define YYSTYPE char*
+#define YYDEBUG 1
 
 //Define for avoiding duplicated token enum
 #define YYTOKENTYPE
