@@ -1,9 +1,8 @@
 /* A Bison parser, made by GNU Bison 3.4.1.  */
 
-/* Bison interface for Yacc-like parsers in C
+/* Skeleton interface for Bison GLR parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
-   Inc.
+   Copyright (C) 2002-2015, 2018-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,11 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
-
-#ifndef YY_YY_PARSER_H_INCLUDED
-# define YY_YY_PARSER_H_INCLUDED
+#ifndef YY_YY_PARSER_HPP_INCLUDED
+# define YY_YY_PARSER_HPP_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -43,6 +39,38 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
+/* "%code requires" blocks.  */
+#line 9 "parser.y"
+
+
+#include "Memory.hpp"
+
+#define YY_NO_UNISTD_H 1
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+	typedef void* yyscan_t;
+#endif
+
+#define YYLLOC_DEFAULT(Current, Rhs, N)																\
+	do																								\
+		if (N)																						\
+		{																							\
+			(Current).first_line = YYRHSLOC (Rhs, 1).first_line;									\
+			(Current).first_column = YYRHSLOC (Rhs, 1).first_column;								\
+			(Current).last_line = YYRHSLOC (Rhs, N).last_line;										\
+			(Current).last_column = YYRHSLOC (Rhs, N).last_column;									\
+		}																							\
+		else																						\
+		{																							\
+			(Current).first_line = (Current).last_line = YYRHSLOC (Rhs, 0).last_line;				\
+			(Current).first_column = (Current).last_column = YYRHSLOC (Rhs, 0).last_column;	  \
+		}																							\
+	while (0)
+
+void print_rule(int num, char* s);
+#define PRINT_RULE print_rule(__LINE__, nullptr);
+
+#line 74 "parser.hpp"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -124,8 +152,7 @@ struct YYLTYPE
 #endif
 
 
-extern YYSTYPE yylval;
-extern YYLTYPE yylloc;
-int yyparse (void);
 
-#endif /* !YY_YY_PARSER_H_INCLUDED  */
+int yyparse (ParseState* parse_state, yyscan_t scanner);
+
+#endif /* !YY_YY_PARSER_HPP_INCLUDED  */
