@@ -2,7 +2,7 @@
 
 Spel is a programming language submitted as an evaluation project for the 2019-20 Formal Language and Compilers course at the UAIC University.
 
-Spel is a language designed to mimic a fantasy story, in a way you might no expect.
+Spel is a language designed to mimic a fantasy story, in a way you might not expect.
 
 Spel was compiled with win_flex_bison, but it *might* be compatible with lex/yacc.
 
