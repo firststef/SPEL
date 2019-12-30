@@ -281,10 +281,9 @@ int main(int argc, char** argv){
 
 			//Skip after TEST name and save name
 			char buffer[200] = { 0 };
-			char* n_ptr = strstr(t_ptr + 6 + should_fail * 13, "\n");
+			char* n_ptr = strstr(t_ptr + 6 + should_fail * 13, ":");
 			if (not n_ptr)
 				break;
-			scan_lines++;
 			entry_line = scan_lines;
 
 			memcpy(buffer, t_ptr, n_ptr - t_ptr + 1);
