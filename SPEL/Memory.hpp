@@ -5,7 +5,7 @@
 
 struct ParseState
 {
-	TNode* rootNode;
+	std::shared_ptr<Node> rootNode;
 	//TNode* topNode;
 	void* memContext;
 

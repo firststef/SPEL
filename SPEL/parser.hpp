@@ -151,7 +151,32 @@ void print_rule(int num, char* s);
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 79 "parser.y"
+
+	Node* node;
+	CompileUnit* c_unit;
+	DeclarationHolder* dec_holder;
+	ClassDefinition* class_def;
+	IntVal* int_val;
+	FloatVal* float_val;
+	CharVal* char_val;
+	StringVal* string_val;
+	BoolVal* bool_val;
+	VariableDeclaration* variable_dec;
+	ComposedStatement* comp_stmt;
+	Expression* expr;
+	IterationSelectionStatement* iter_sel_stmt;
+	Assignment* asgmt;
+	FunctionDeclaration* func_decl;
+	FunctionCall* func_call;
+	Return* ret;
+
+#line 177 "parser.hpp"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
