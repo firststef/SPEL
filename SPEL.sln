@@ -9,6 +9,8 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Grammar - Debug|x64 = Grammar - Debug|x64
+		Grammar - Debug|x86 = Grammar - Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 		Tester - Debug|x64 = Tester - Debug|x64
@@ -21,6 +23,10 @@ Global
 		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Debug|x64.Build.0 = Debug|x64
 		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Debug|x86.ActiveCfg = Debug|Win32
 		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Debug|x86.Build.0 = Debug|Win32
+		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Grammar - Debug|x64.ActiveCfg = Grammar - Debug|x64
+		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Grammar - Debug|x64.Build.0 = Grammar - Debug|x64
+		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Grammar - Debug|x86.ActiveCfg = Grammar - Debug|Win32
+		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Grammar - Debug|x86.Build.0 = Grammar - Debug|Win32
 		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Release|x64.ActiveCfg = Release|x64
 		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Release|x64.Build.0 = Release|x64
 		{C0303D71-F119-4F25-BD9C-D9BC7EF718D2}.Release|x86.ActiveCfg = Release|Win32

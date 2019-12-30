@@ -9,8 +9,9 @@ struct ParseState
 	//TNode* topNode;
 	void* memContext;
 
-	int hasError;
+	int hasError = 0;
 	int errorLine;
+
 	int errorColumn;
 	std::string errorMessage;
 	std::string errorToken;
@@ -19,18 +20,3 @@ struct ParseState
 	//int numRawCodeBlocks[RCT_Count];
 	int numOpenBrackets;
 };
-
-struct CompilerResult{
-  std::string errorMessage;
-  int errorLine;
-  int errorColumn;
-};
-
-inline const char* dup_str(void* context, const char* s)
-{
-	static std::vector<std::string> allocator;
-
-	allocator.emplace_back(s);
-
-	return allocator.back().c_str();
-}

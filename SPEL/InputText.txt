@@ -1,7 +1,7 @@
 [TEST] Example Program
-The tale begins
+The tale begins.
 
-I summon thy name Link 
+I summon thy name Link
 	craft points life_points.
 	craft precise mana_points.
 	craft rune armor_enchantments.
@@ -33,11 +33,12 @@ craft artifact points basic_attack bestow 3.
 [END]
 
 [TEST] Null program
-The tale begins
+The tale begins.
 [END]
 
+
 [TEST] Comentarii
-The tale begins
+The tale begins.
 /* comentariu cu text intern
 pe mai multe 
 linii*/
@@ -46,7 +47,7 @@ linii*/
 [END]
 
 [TEST] Predefined types variable declarations
-The tale begins
+The tale begins.
 craft points a.
 craft precise b.
 craft rune v.
@@ -55,17 +56,17 @@ craft absolute bolean.
 [END]
 
 [TEST] Variable init
-The tale begins
+The tale begins.
 craft points a bestow 1.
 craft precise b bestow c.
 craft precise d bestow 1.0.
 craft rune v bestow 'a'.
 craft string str bestow "a".
-craft absolute bolean bestow true. 
+craft absolute bolean bestow true.
 [END]
 
 [TEST] Const declarations
-The tale begins
+The tale begins.
 craft artifact points kst1 bestow 1.
 craft artifact precise kst2 bestow 1.1.
 craft artifact rune kst3 bestow 5.
@@ -75,7 +76,7 @@ craft artifact points vkst[3] bestow [1, 3, 1]. //declarare size la const?
 [END]
 
 [TEST] Vector declarations
-The tale begins
+The tale begins.
 craft points a1[].
 craft precise b1[].
 craft rune v1[].
@@ -85,7 +86,7 @@ craft clasa1 obj1[].
 [END]
 
 [TEST] Functions declaration
-The tale begins
+The tale begins.
 points spell man sacrifice points a, points b: 
 	cast a+b*3.
 terminus
@@ -96,7 +97,7 @@ terminus
 [END]
 
 [TEST] Function calls
-The tale begins
+The tale begins.
 chant functie sacrifice a + a of obj:.
 chant functie sacrifice chant man sacrifice 1+3 :: .
 chant functie sacrifice 45 :.
@@ -106,7 +107,7 @@ chant functie sacrifice a:.
 [END]
 
 [TEST] Cast return
-The tale begins
+The tale begins.
 points spell functie sacrifice time :
 	cast 0.
 terminus
@@ -117,7 +118,7 @@ terminus
 [END]
 
 [TEST] Return in main
-The tale begins
+The tale begins.
 if (true) beginif
 	cast 0.
 endif
@@ -125,7 +126,7 @@ cast 1.
 [END]
 
 [TEST] Class Declarations
-The tale begins
+The tale begins.
 //aceasta trebuie sa dea eroare daca este documentata
 //I summon thy name clasa1 
 //and thy brethren.
@@ -161,12 +162,12 @@ and thy brethren.
 [END]
 
 [TEST] Class instantiation
-The tale begins
+The tale begins.
 craft clasa1 obj.
 [END]
 
 [TEST] Conditionals & Arithmetic
-The tale begins
+The tale begins.
 if (a && (b != 0)) beginif
 	chant functie sacrifice 1:.
 endif
@@ -176,7 +177,7 @@ endelse
 [END] 
 
 [TEST] Loops
-The tale begins
+The tale begins.
 while (c >= 0 && (b!=0))
 	craft points a bestow health of hero.
 	craft tome str1[1] bestow [3].
@@ -185,7 +186,7 @@ endwhile
 [END]
 
 [TEST] For loops
-The tale begins
+The tale begins.
 for (x in 1:30) //for (points x=1. x<=30. x++)
 	craft points b.
 endfor
@@ -200,22 +201,22 @@ endfor
 [END]
 
 [TEST] Array element assign
-The tale begins
+The tale begins.
 enchant v[5] with 4.
 [END]
 
 [TEST] Of operator
-The tale begins
+The tale begins.
 enchant life_points of clone with 100.
 [END]
 
 [TEST][SHOULD FAIL] List instantiation on a single unit
-The tale begins
+The tale begins.
 craft tome str bestow "string1"+"string2","asas".
 [END]
 
 [TEST][SHOULD FAIL] Arithmetic operations vs boolean operations
-The tale begins
+The tale begins.
 if (2+3 < a - 1) beginif
 	craft artifact points ii bestow 0.
 endif
@@ -227,25 +228,25 @@ endif
 
 
 [TEST] Eval function
-The tale begins
+The tale begins.
 EVAL().
 EVAL(a).
 EVAL(3).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function float
-The tale begins
+The tale begins.
 EVAL(3.0).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function string
-The tale begins
+The tale begins.
 EVAL("str").
 [END]
 [TEST][SHOULD FAIL] Non-int eval function multiple param
-The tale begins
+The tale begins.
 EVAL(1, 2).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function expression
-The tale begins
+The tale begins.
 EVAL(enchant 1 with 2).
 [END]
 

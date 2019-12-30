@@ -1,8 +1,12 @@
 %{
 #include "parser.hpp"
 
-#define YY_USER_ACTION yylloc->first_column = yycolumn + 1; yylloc->first_line = yylineno + 1; yycolumn += (int)yyleng;
-#define YY_USER_INIT yylineno = 0; yycolumn = 0;
+void update_loc(yyscan_t scanner);
+#define YY_USER_ACTION update_loc(yyscanner);
+
+int lineno;
+int column;
+#define YY_USER_INIT lineno = 1; column = 1;
 %}
 
 %option yylineno reentrant noyywrap nounistd bison-bridge bison-locations
@@ -25,7 +29,7 @@ MULTICOMMENT	"/*"(.|\n)*"*/"
 
 %%
 
-"The tale begins" {return BGNP; }
+"The tale begins." {return BGNP; }
 
  /* Default Types */
 points {return INT; }
@@ -93,3 +97,30 @@ EVAL {return EVAL; }
 {MULTICOMMENT} { }
 [ \t\n\r] { }
 . {return yytext[0]; }
+
+%%
+
+void update_loc(yyscan_t scanner) {
+	
+	struct yyguts_t * yyg = (struct yyguts_t*)scanner;
+
+	yylloc->first_line = lineno;
+	yylloc->first_column = column;
+
+	{char * s; for (s = yytext; *s != '\0'; s++) {
+		if (*s == '\n') {
+			lineno++;
+			column = 1;
+		}
+		else {
+			column++;
+		}
+	}}
+
+	yylloc->last_line = lineno;
+	yylloc->last_column = column - 1;
+
+	static std::string saved_token;
+	saved_token = yytext;
+	yylloc->last_token = saved_token.c_str();
+}

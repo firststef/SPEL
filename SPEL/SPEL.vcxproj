@@ -275,9 +275,9 @@
   <ItemGroup>
     <CustomBuild Include="lexer.l">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_flex --wincompat %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">win_flex --wincompat %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_flex --wincompat %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lexer</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">Generating lexer</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">Generating lexer</Message>
@@ -287,8 +287,8 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">parser.y</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">parser.y</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">parser.y</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_flex --wincompat -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_flex --wincompat %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_flex --wincompat %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lexer</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">Generating lexer</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp</Outputs>
@@ -304,50 +304,50 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">%(Filename).cpp</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">parser.yy</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">parser.yy</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">parser.yy</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">parser.y</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">parser.y</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">parser.y</AdditionalInputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_flex --wincompat %(Identity)</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">win_flex --wincompat %(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating lexer</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">Generating lexer</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">%(Filename).cpp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">parser.yy</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">parser.yy</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">parser.y</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">parser.y</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="parser.y">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_bison -o %(Filename).cpp %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_bison %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">win_bison -t %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">win_bison %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">Generating parser</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp; %(Filename).hpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">%(Filename).cpp; %(Filename).hpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">%(Filename).cpp; %(Filename).hpp</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_bison %(Identity)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">win_bison %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">win_bison -o %(Filename).cpp %(Identity) --debug</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">Generating parser</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp; %(Filename).hpp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">%(Filename).cpp; %(Filename).hpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp; %(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">%(Filename).cpp; %(Filename).h</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
