@@ -194,12 +194,6 @@ expr
   | STR
   | TRUE
   | FALSE
-  | expr '>' expr
-  | expr '<' expr
-  | expr NEQ expr
-  | expr EQ expr
-  | expr BEQ expr
-  | expr LEQ expr
   ;
 
 call_parameters
