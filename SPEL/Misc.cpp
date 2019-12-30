@@ -1,23 +1,7 @@
-#pragma once
-#include <string>
-#include <sstream>
+#include "Misc.hpp"
 #ifdef _WIN32
 #include "Windows.h"
 #endif
-
-//Debug variables
-bool enable_grammar_debug = false;
-bool enable_testing = false;
-std::stringstream last_calls_stream;
-std::stringstream parents_stream;
-
-//Test variables
-std::string test_description;
-
-//Text ontrol variables
-int scan_lines = 0;
-int entry_line = 1;
-int scan_position = 0;
 
 void set_console_color(int color)
 {

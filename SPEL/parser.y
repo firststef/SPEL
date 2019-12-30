@@ -1,35 +1,64 @@
-%defines "parser.h"
-
 %{
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <string>
-#include <vector>
-#include <map>
-#include <sstream>
-#include <iostream>
+#include "Parser.hpp"
+#include "Lexer.hpp"
+#define inline
 
-#include "SpelParserExternals.h"
-
-//Debug variables
-extern bool enable_grammar_debug;
-extern std::stringstream last_calls_stream;
-extern std::stringstream parents_stream;
-
-extern int yylex();
-extern void yyerror(const char*);
-
-#define YYSTYPE char*
-#define YYDEBUG 1
-
-//Define for avoiding duplicated token enum
-#define YYTOKENTYPE
-void print_rule(int num, char* s);
-#define PRINT_RULE print_rule(__LINE__, yylval);
+void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
 %}
 
+%code requires{
+
+#include "Memory.hpp"
+
+#include <string>
+
+#define YY_NO_UNISTD_H 1
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+	typedef void* yyscan_t;
+#endif
+
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+  const char* last_token;
+};
+#define YYLTYPE_IS_DECLARED 1
+
+#define YYLLOC_DEFAULT(Current, Rhs, N)																\
+	do																								\
+		if (N)																						\
+		{																							\
+			(Current).first_line = YYRHSLOC (Rhs, 1).first_line;									\
+			(Current).first_column = YYRHSLOC (Rhs, 1).first_column;								\
+			(Current).last_line = YYRHSLOC (Rhs, N).last_line;										\
+			(Current).last_column = YYRHSLOC (Rhs, N).last_column;									\
+			(Current).last_token = YYRHSLOC (Rhs, N).last_token;									\
+		}																							\
+		else																						\
+		{																							\
+			(Current).first_line = (Current).last_line = YYRHSLOC (Rhs, 0).last_line;				\
+			(Current).first_column = (Current).last_column = YYRHSLOC (Rhs, 0).last_column;			\
+			(Current).last_token = YYRHSLOC (Rhs, 0).last_token;									\
+		}																							\
+	while (0)
+
+void print_rule(int num, char* s);
+#define PRINT_RULE print_rule(__LINE__, nullptr);
+}
+
+%output  "parser.cpp"
+%defines "parser.hpp"
+
+%define api.pure
 %locations
+%lex-param { yyscan_t scanner }
+%parse-param { ParseState* parse_state }
+%parse-param { yyscan_t scanner }
 
 %token LEQ BEQ EQ NEQ INT OF FLOAT CHAR STRING CHR ID NR NRF NOT
 %token STR TRUE FALSE BGNF ENDF AND OR RET CLASS CONST BOOL ELSE IF
@@ -374,85 +403,17 @@ statement : declaration { PRINT_RULE }
 declaration : class_var { PRINT_RULE }
 			;
 
-
-
 %%
 
 void print_rule(int num, char* s)
 {
-	if (not enable_grammar_debug)
-		return;
+}
 
-	static bool read_once = false;
-	static bool valid_file = false;
-	static std::vector<char> grammar_file;
-	static std::map<int, char*> file_map;
-	if (not read_once) {
-		FILE *f = fopen("parser.y", "r");
-		valid_file = (f != nullptr);
-		if (valid_file) {
-			fseek(f, 0, SEEK_END);
-			long fsize = ftell(f);
-			fseek(f, 0, SEEK_SET);
-
-			grammar_file.resize(fsize);
-			char* data_ptr = &grammar_file.front();
-
-			fread(data_ptr, 1, fsize, f);
-
-			unsigned last_pos = 0;
-			unsigned pos = 0;
-			unsigned line = 1;
-
-			while (pos < fsize) {
-				if (grammar_file[pos] == '\n')
-				{
-					file_map[line++] = data_ptr + last_pos;
-					for (unsigned i = last_pos; i < pos; i++) {
-						if (grammar_file[i] == '\t')
-							grammar_file[i] = ' ';
-					}
-					last_pos = pos + 1;
-					grammar_file[pos] = '\0';
-				}
-				++pos;
-			}
-			file_map[line] = data_ptr + last_pos;
-			fclose(f);
-		}
-		else
-			printf("File of grammar for debugging not found.\n");
-		read_once = true;
-	}
-	if (valid_file) {
-		last_calls_stream << "(" << num << ") " << file_map[num] << "\n";
-		std::string parent("");
-		unsigned i = num;
-		auto npos = std::string::npos;
-		for (; i >= 1; --i) {
-			std::string str(file_map[i]);
-			auto dblp = str.find(':');
-			if (dblp != npos) {
-				unsigned o_sz = parent.size();
-				parent = parent + str;
-				if (o_sz)
-					parent[o_sz - 1] = ' ';
-				dblp += o_sz;
-				parent[dblp] = '\0';
-				parent.resize(dblp + 1);
-				if (std::count(str.begin(), str.end(), '|') != 0)
-				{
-					parent = "[warning]" + parent;
-					if (str[0] == ' ')
-						continue;
-				}
-				break;
-			}
-			else
-				continue;
-		}
-		if (parent == "" and i == -1)
-			parent = "[error]";
-		parents_stream << "(" << num << ") -> " << parent << " == " << s << "\n";
-	}
+void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg)
+{
+	parse_state->hasError = 1;
+	parse_state->errorLine = locp->first_line;
+	parse_state->errorColumn = locp->first_column;
+	parse_state->errorMessage = msg;
+	parse_state->errorToken = locp->last_token;
 }

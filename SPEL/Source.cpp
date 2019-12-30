@@ -1,47 +1,175 @@
+#define YY_NO_UNISTD_H 1
+#include "Misc.hpp"
+
+#include "parser.hpp"
+#include "lexer.hpp"
 #include <iostream>
-#include "parser.h"
-#include <vector>
 #include <sstream>
 
-//INPUT VARIABLES
-extern FILE* yyin;
+bool enable_grammar_debug = false;
+bool enable_testing = false;
+bool integrated_debug = false;
 
-//Unit testing variables
-extern bool enable_testing;
-extern std::string test_description;
+std::stringstream last_calls_stream;
+std::stringstream parents_stream;
 
-//Unit testing functions
-extern void set_console_color(int color);
+//DOCS: Parse a string with a provided context
+//Note: Make sure ParseState is initialized (previous errors have been cleared)
+void scompile(ParseState* parseState, const char* source){
+	yyscan_t scanner;
 
-//Debug variables
-extern bool enable_grammar_debug;
-extern std::stringstream last_calls_stream;
-extern std::stringstream parents_stream;
+	if (yylex_init_extra(parseState, &scanner))
+	{
+		parseState->hasError = 1;
+		parseState->errorMessage = "Internal error: Lexer failed to initialize.";
+		return;
+	}
 
-//Text control variables
-extern int scan_lines;
-extern int entry_line;
-extern int scan_position;
+	YY_BUFFER_STATE state = yy_scan_string(source, scanner);
 
-extern int yydebug;
+	yydebug = integrated_debug;
 
-//Text control functions
-extern void yyswitch(char* str, unsigned size);
-extern void yyerror(const char*);
-extern void scan_string(char* str);
-extern void yydelete();
+	bool parsingFailed = yyparse(parseState, scanner) > 0;
 
-bool scan_str = false;
-int string_idx = 0;
+	if(parseState->hasError == 0 && parsingFailed)
+	{
+		parseState->hasError = 1;
+		parseState->errorMessage = "Internal error: Parsing failed.";
+		parseState->errorLine = -1;
+		parseState->errorColumn = -1;
+	}
 
-int main(int argc, char** argv)
+	yy_delete_buffer(state, scanner);
+	yylex_destroy(scanner);
+}
+
+//DOCS: Parse a string with a provided context
+//Note: Make sure ParseState is initialized (previous errors have been cleared)
+void fcompile(ParseState* parseState, FILE* source) {
+	yyscan_t scanner;
+
+	if (yylex_init_extra(parseState, &scanner))
+	{
+		parseState->hasError = 1;
+		parseState->errorMessage = "Internal error: Lexer failed to initialize.";
+		return;
+	}
+
+	yydebug = integrated_debug;
+
+	yyset_in(source, scanner);
+	bool parsingFailed = yyparse(parseState, scanner) > 0;
+
+	if (parseState->hasError == 0 && parsingFailed)
+	{
+		parseState->hasError = 1;
+		parseState->errorMessage = "Internal error: Parsing failed.";
+		parseState->errorLine = -1;
+		parseState->errorColumn = -1;
+	}
+	
+	yylex_destroy(scanner);
+}
+
+void output_result(ParseState& parse_state, std::string test_description = "", int entry_line = 0, bool should_fail = false)
 {
+	auto pass = [&](const char* str)
+	{
+		set_console_color(10);
+		std::cout << str;
+		set_console_color(7);
+		std::cout << test_description.c_str() << std::endl;
+	};
+
+	auto fail = [&](const char* str)
+	{
+		if (enable_grammar_debug)
+		{
+			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
+			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
+		}
+		set_console_color(12);
+		std::cout << str;
+		set_console_color(7);
+		std::cout << test_description.c_str() << std::endl;
+	};
+
+	auto warn = [&](const char* str)
+	{
+		if (enable_grammar_debug)
+		{
+			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
+			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
+		}
+		set_console_color(14);
+		std::cout << str;
+		set_console_color(7);
+		std::cout << test_description.c_str() << std::endl;
+	};
+
+	if (should_fail)
+	{
+		if (parse_state.hasError == 0)
+		{
+			fail("[PASSES]");
+		}
+		else
+		{
+			if (parse_state.errorMessage == "syntax is ambiguous")
+			{
+				warn("[WARN]");
+			}
+			else
+			{
+				pass("[FAILS]");
+			}
+
+			std::cout << "Error: " << parse_state.errorMessage << " line " << entry_line + parse_state.errorLine << " column " << parse_state.errorColumn << " : " << parse_state.errorToken << std::endl;
+		}
+	}
+	else
+	{
+		if (parse_state.hasError == 0)
+		{
+			pass("[PASS]");
+		}
+		else
+		{
+			if (parse_state.errorMessage == "syntax is ambiguous")
+			{
+				warn("[WARN]");
+			}
+			else
+			{
+				fail("[FAIL]");
+			}
+
+			std::cout << "Error: " << parse_state.errorMessage << " line " << entry_line + parse_state.errorLine << " column " << parse_state.errorColumn << " : " << parse_state.errorToken << std::endl;
+		}
+	}
+}
+
+int main(int argc, char** argv){
+
+	//Test variables
+	std::string test_description;
+
+	//Text control variables
+	int scan_lines = 0;
+	int entry_line = 1;
+	int scan_position = 0;
+
+	//Program options variables
+	bool scan_str = false;
+	int string_idx = 0;
+
 	if (argc < 2)
 	{
 		std::cout << "Arguments not provided" << std::endl;
-		std::cout << "-t or /t for running on a test file" << std::endl;		std::cout << "-s or /s \"string\" for parsing a string" << std::endl;
+		std::cout << "--test or /test for running on a test file" << std::endl;
+		std::cout << "-s or /s \"string\" for parsing a string" << std::endl;
 		std::cout << "-v or /v for enabling debug info" << std::endl;
-		#ifdef _WIN32
+#ifdef _WIN32
 		system("pause");
 #endif
 		return 0;
@@ -55,11 +183,11 @@ int main(int argc, char** argv)
 			enable_grammar_debug = true;
 		}
 
-		if (std::string(argv[i]) == "-t" || std::string(argv[i]) == "/t")
+		if (std::string(argv[i]) == "--test" || std::string(argv[i]) == "/test")
 		{
 			enable_testing = true;
 		}
-		
+
 		if (std::string(argv[i]) == "-s" || std::string(argv[i]) == "/s")
 		{
 			if (i == argc - 1)
@@ -77,20 +205,25 @@ int main(int argc, char** argv)
 
 		if (std::string(argv[i]) == "-d" || std::string(argv[i]) == "/d")
 		{
-			yydebug = 1;
+			integrated_debug = true;
 		}
 	}
 
 	//Scan string
 	if (scan_str)
 	{
-		scan_string(argv[string_idx]);
-		const auto parse_result = yyparse();
+		ParseState parse_state;
+		
+		scompile(&parse_state, argv[string_idx]);
+		
 		if (enable_grammar_debug)
 		{
 			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
 			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
-		}
+		}
+
+		output_result(parse_state);
+		
 #ifdef _WIN32
 		system("pause");
 #endif
@@ -102,7 +235,7 @@ int main(int argc, char** argv)
 
 	if (f == nullptr)
 	{
-		std::cout << "File not found" << std::endl;
+		std::cout << "File not found" << std::endl;
 #ifdef _WIN32
 		system("pause");
 #endif
@@ -148,7 +281,7 @@ int main(int argc, char** argv)
 
 			//Skip after TEST name and save name
 			char buffer[200] = { 0 };
-			char* n_ptr = strstr(t_ptr + should_fail * 13, "\n");
+			char* n_ptr = strstr(t_ptr + 6 + should_fail * 13, "\n");
 			if (not n_ptr)
 				break;
 			scan_lines++;
@@ -180,71 +313,32 @@ int main(int argc, char** argv)
 			scan_buff[buf_size + 1] = 0;
 
 			//Switch to buffer and parse()
-			yyswitch(scan_buff, buf_size + 2);
-			const auto parse_result = yyparse();
-			yydelete();
+			ParseState parse_state;
+			scompile(&parse_state, scan_buff);
 
-			//delete[] scan_buff;
+			delete[] scan_buff;
 
-			auto pass = [&](const char* str)
-			{
-				set_console_color(10);
-				std::cout << str;
-				set_console_color(7);
-				std::cout << test_description.c_str() << std::endl;
-			};
-
-			auto fail = [&](const char* str)
-			{
-				if (enable_grammar_debug)
-				{
-					std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
-					std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
-				}
-				set_console_color(12);
-				std::cout << str;
-				set_console_color(7);
-				std::cout << test_description.c_str() << std::endl;
-			};
-
-			if (should_fail)
-			{
-				if (parse_result == 0)
-				{
-					fail("[PASSES]");
-				}
-				else
-				{
-					pass("[FAILS]");
-				}
-			}
-			else
-			{
-				if (parse_result == 0)
-				{
-					pass("[PASS]");
-				}
-				else
-				{
-					fail("[FAIL]");
-				}
-			}
+			output_result(parse_state, test_description, entry_line, should_fail);
 		}
 	}
 	else { //Single run on file
-		yyin = f;
-		const auto parse_result = yyparse();
-		if (parse_result && enable_grammar_debug)
+
+		ParseState parse_state;
+		fcompile(&parse_state, f);
+		
+		if (parse_state.hasError == 0 && enable_grammar_debug)
 		{
 			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
 			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
 		}
+
+		output_result(parse_state);
 	}
 
 #ifdef _WIN32
 	system("pause");
 #endif
 	fclose(f);
-
+	
 	return 1;
 }
