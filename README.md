@@ -14,10 +14,7 @@ You can create tests for checking the language by appending blocks with the stru
 
 ```c++
 [TEST] Test name (mandatory \n)
-statement
-/*
-*/
-declaration //
+//Your code here
 [END]
 ```
 
