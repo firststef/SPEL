@@ -71,21 +71,63 @@ void print_rule(int num, char* s);
 %left  '+'  '-'
 %left  '*'  '/'  '%'
 %left  UMINUS      /*  supplies  precedence  for  unary  minus  */
+
+%type <node> sp
+%type <c_unit> compile_unit
+%type <dec_holder> class_def;
+
+%union {
+	Node* node;
+	CompileUnit* c_unit;
+	DeclarationHolder* dec_holder;
+	ClassDefinition* class_def;
+	IntVal* int_val;
+	FloatVal* float_val;
+	CharVal* char_val;
+	StringVal* string_val;
+	BoolVal* bool_val;
+	VariableDeclaration* variable_dec;
+	ComposedStatement* comp_stmt;
+	Expression* expr;
+	IterationSelectionStatement* iter_sel_stmt;
+	Assignment* asgmt;
+	FunctionDeclaration* func_decl;
+	FunctionCall* func_call;
+	Return* ret;
+};
+
 %%
 
-sp : BGNP s { printf("Reached start symbol.\n"); }
+sp : BGNP compile_unit {
+	printf("Reached start symbol.\n");
+	parse_state->rootNode = std::make_shared<Node>();
+	$$ = parse_state->rootNode.get();
+	$$->c_unit = std::make_shared<CompileUnit>(); 
+}
    | BGNP { printf("Reached start symbol.\n"); }
    ;
 
-s : class_def s { PRINT_RULE }
-  | function_def s { PRINT_RULE }
-  | statement s { PRINT_RULE }
-  | class_def { PRINT_RULE }
-  | function_def { PRINT_RULE }
-  | statement { PRINT_RULE }
+compile_unit 
+  : class_def compile_unit{
+	PRINT_RULE 
+	$$ = new CompileUnit();
+	$$->dec_holder.push_back(std::shared_ptr<DeclarationHolder>($1));
+	$$->dec_holder.push_back($2->dec_holder.front());
+}
+  | function_def compile_unit{
+	$$ = new CompileUnit();
+	PRINT_RULE
+}
+  | statement compile_unit {
+	$$ = new CompileUnit();
+	PRINT_RULE
+}
+  | class_def { $$ = new CompileUnit(); PRINT_RULE }
+  | function_def { $$ = new CompileUnit(); PRINT_RULE }
+  | statement { $$ = new CompileUnit(); PRINT_RULE }
   ;
 
-class_def : CLASS ID class_body ENDCLASS { PRINT_RULE }
+class_def : CLASS ID class_body ENDCLASS { $$ = new DeclarationHolder(); PRINT_RULE }
 		  ;
 
 
@@ -269,6 +311,9 @@ while_condition : boolean { PRINT_RULE }
 
 boolean : check { PRINT_RULE }
 		| check AND boolean { PRINT_RULE }
+		| '(' check ')' AND boolean
+		| '(' check ')' OR boolean
+		| '(' check ')'
 		| check OR boolean { PRINT_RULE }
 		;
 
@@ -276,6 +321,12 @@ boolean : check { PRINT_RULE }
 
 check : NOT eval_expr { PRINT_RULE }
 	  | eval_expr { PRINT_RULE }
+   	  | expr '>' expr{ PRINT_RULE }
+	  | expr '<' expr{ PRINT_RULE }
+	  | expr NEQ expr{ PRINT_RULE }
+	  | expr EQ expr{ PRINT_RULE }
+	  | expr BEQ expr{ PRINT_RULE }
+	  | expr LEQ expr{ PRINT_RULE }
 	  ;
 
 
@@ -349,7 +400,7 @@ var : ID { PRINT_RULE }
 	| ID '[' vector_position ']' OF ID '[' vector_position ']' { PRINT_RULE }
 	;
 
-expr : '(' expr ')' { PRINT_RULE }
+expr: '(' expr ')' { PRINT_RULE }
 	 | expr '+' expr { PRINT_RULE }
 	 | expr '-' expr { PRINT_RULE }
 	 | expr '*' expr { PRINT_RULE }
@@ -357,18 +408,13 @@ expr : '(' expr ')' { PRINT_RULE }
 	 | expr '%' expr { PRINT_RULE }
 	 | '-' expr %prec UMINUS { PRINT_RULE }
 	 | var { PRINT_RULE }
+     | CHNT ID SACRF call_parameters ':' { PRINT_RULE }
 	 | NR { PRINT_RULE }
 	 | NRF { PRINT_RULE }
 	 | CHR { PRINT_RULE }
 	 | STR { PRINT_RULE }
 	 | TRUE { PRINT_RULE }
 	 | FALSE { PRINT_RULE }
-	 | expr '>' expr { PRINT_RULE }
-	 | expr '<' expr { PRINT_RULE }
-	 | expr NEQ expr { PRINT_RULE }
-	 | expr EQ expr { PRINT_RULE }
-	 | expr BEQ expr { PRINT_RULE }
-	 | expr LEQ expr { PRINT_RULE }
 	 ;
 
 no_return_function_body : class_var no_return_function_body { PRINT_RULE }

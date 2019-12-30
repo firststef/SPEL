@@ -104,6 +104,7 @@ chant functie sacrifice 45 :.
 chant functie sacrifice 3+4, "7":.
 chant functie sacrifice kst1 :.
 chant functie sacrifice a:.
+enchant id with chant functie sacrifice time:.
 [END]
 
 [TEST] Cast return:
@@ -217,7 +218,7 @@ craft tome str bestow "string1"+"string2","asas".
 
 [TEST][SHOULD FAIL] Arithmetic operations vs boolean operations:
 The tale begins.
-if (2+3 < a - 1) beginif
+if (2 + 3) beginif
 	craft artifact points ii bestow 0.
 endif
 [END]
