@@ -11,15 +11,26 @@ struct IterationSelectionStatement;
 struct Expression;
 struct Assignment;
 struct DeclarationHolder;
+struct ClassDefinition;
 
 struct Node{
 
 	std::shared_ptr<CompileUnit> c_unit;
 };
 
+enum BlockType {
+	CLASS_TYPE,
+	DECLARATION_TYPE
+};
+
+struct BlockHolder {
+	BlockType type;
+	std::shared_ptr<ClassDefinition> class_dec;
+	std::shared_ptr<DeclarationHolder> decl_dec;
+};
 struct CompileUnit
 {
-	std::vector<std::shared_ptr<DeclarationHolder>> dec_holder;
+	std::vector<std::shared_ptr<BlockHolder>> block_holder;
 };
 
 enum DeclarationType
@@ -98,9 +109,14 @@ struct VariableDeclaration
 
 	//union sau cv
 	TypeValue value;
+	//numele clasei daca ii tip obiect
+	Identifier class_name = "if";//cica da eroare daca puneam nullptr
 	std::vector<TypeValue> values;
+	int size_of_vector=0;
+
 
 	std::shared_ptr<Expression> expr;
+	std::vector< std::shared_ptr<Expression>> exprs;
 };
 
 struct Statement

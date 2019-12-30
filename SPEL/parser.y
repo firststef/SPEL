@@ -60,10 +60,16 @@ void print_rule(int num, char* s);
 %parse-param { ParseState* parse_state }
 %parse-param { yyscan_t scanner }
 
-%token LEQ BEQ EQ NEQ INT OF FLOAT CHAR STRING CHR ID NR NRF NOT
-%token STR TRUE FALSE BGNF ENDF AND OR RET CLASS CONST BOOL ELSE IF
+%token LEQ BEQ EQ NEQ INT OF FLOAT CHAR STRING NOT
+%token BGNF ENDF AND OR RET CLASS CONST BOOL ELSE IF
 %token FOR WHILE ENDWHILE BEGINIF BEGINELSE ENDELSE ENDIF ENDFOR VOID
 %token IN EVAL BG BGNP ENDCLASS CRAFT BSTOW ENCH WITH SACRF TIME CHNT
+%token <str> ID STR
+%token <integer> NR
+%token <floating> NRF
+%token <chr> CHR
+%token <booling> TRUE FALSE
+
 %nonassoc IFX
 %nonassoc ELSE
 %start sp
@@ -74,11 +80,22 @@ void print_rule(int num, char* s);
 
 %type <node> sp
 %type <c_unit> compile_unit
-%type <dec_holder> class_def;
+%type <bl_holder> class_def, function_def, statement
+%type <class_def> class_body
+%type <dec_holder> class_var, class_f
+%type <variable_dec> type, class_id
+%type <integer> vector_size
+%type <expr> class_id_initialization
 
 %union {
+	bool* booling;
+	char* chr;
+	float* floating;
+	std::string* str;
+	int* integer;
 	Node* node;
 	CompileUnit* c_unit;
+	BlockHolder* bl_holder;
 	DeclarationHolder* dec_holder;
 	ClassDefinition* class_def;
 	IntVal* int_val;
@@ -98,12 +115,7 @@ void print_rule(int num, char* s);
 
 %%
 
-sp : BGNP compile_unit {
-	printf("Reached start symbol.\n");
-	parse_state->rootNode = std::make_shared<Node>();
-	$$ = parse_state->rootNode.get();
-	$$->c_unit = std::make_shared<CompileUnit>(); 
-}
+sp : BGNP compile_unit 
    | BGNP { printf("Reached start symbol.\n"); }
    ;
 
@@ -111,47 +123,132 @@ compile_unit
   : class_def compile_unit{
 	PRINT_RULE 
 	$$ = new CompileUnit();
-	$$->dec_holder.push_back(std::shared_ptr<DeclarationHolder>($1));
-	$$->dec_holder.push_back($2->dec_holder.front());
+	$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+	//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
+	$$->block_holder.push_back(nullptr);
 }
   | function_def compile_unit{
 	$$ = new CompileUnit();
+	$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+	//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
+	$$->block_holder.push_back(nullptr);
 	PRINT_RULE
 }
   | statement compile_unit {
 	$$ = new CompileUnit();
+	$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+	//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
+	$$->block_holder.push_back(nullptr);
 	PRINT_RULE
 }
-  | class_def { $$ = new CompileUnit(); PRINT_RULE }
-  | function_def { $$ = new CompileUnit(); PRINT_RULE }
-  | statement { $$ = new CompileUnit(); PRINT_RULE }
+  | class_def { 
+  $$ = new CompileUnit();
+  $$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+  PRINT_RULE 
+}
+  | function_def { 
+  $$ = new CompileUnit();
+  $$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+  PRINT_RULE 
+}
+  | statement { 
+  $$ = new CompileUnit();
+  $$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+  PRINT_RULE 
+}
   ;
 
-class_def : CLASS ID class_body ENDCLASS { $$ = new DeclarationHolder(); PRINT_RULE }
+class_def : CLASS ID class_body ENDCLASS { 
+	$$ = new BlockHolder(); 
+	$$->type=CLASS_TYPE;
+	
+	//aici cred ca nu trebuie asa cum ii mai jos, ci cum e dedesubt
+	$$->class_dec=std::make_shared<ClassDefinition>();
+	//$$->class_dec=$3; //asta nu merge nu stiu de ce
+
+
+	$$->class_dec->name=ID;
+	//printf("\n\n%s\n\n", $$->class_dec->name);
+	//nu afiseaza ce trebuie (sau ce as vrea eu), iar pe release da eroare
+	PRINT_RULE 
+}
 		  ;
 
 
 
-class_body : class_var { PRINT_RULE }
-		   | class_f { PRINT_RULE }
-		   | class_var class_body { PRINT_RULE }
-		   | class_f class_body { PRINT_RULE }
+class_body : class_var { 
+	//as fi vrut asa: //$$=&std::make_shared<ClassDefinition>();
+	$$=new ClassDefinition();
+	$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
+	PRINT_RULE 
+}
+		   | class_f { 
+	$$=new ClassDefinition();
+//	$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
+	PRINT_RULE 
+}
+		   | class_var class_body { 
+	$$=new ClassDefinition();
+	$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
+//	$$->decl_holders..push_back($2->dec_holder.front());
+	PRINT_RULE 
+}
+		   | class_f class_body { 
+	$$=new ClassDefinition();
+	
+//	$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
+//	$$->decl_holders..push_back($2->dec_holder.front());
+	PRINT_RULE 
+}
 		   ;
 
 
 
-class_var : CRAFT type class_ids '.' { PRINT_RULE }
-		  | CRAFT CONST type const_class_ids '.'{ PRINT_RULE }
+class_var : CRAFT type class_id '.' { 
+	$$=new DeclarationHolder();
+	$$->type=VAR_DEC;
+	$$->var_dec=std::make_shared<VariableDeclaration>();
+	$$->var_dec->type=$2->type;
+	$$->var_dec->class_name=$2->class_name;
+
+	PRINT_RULE 
+}
+		  | CRAFT CONST type const_class_id '.'{ PRINT_RULE }
 		  ;
 
 
 
-type : ID { PRINT_RULE }
-	 | INT { PRINT_RULE }
-	 | FLOAT { PRINT_RULE }
-	 | CHAR { PRINT_RULE }
-	 | STRING { PRINT_RULE }
-	 | BOOL { PRINT_RULE }
+type : ID { 
+	$$=new VariableDeclaration();
+	$$->type=TYPE_OBJECT;
+	$$->class_name=ID;
+	PRINT_RULE 
+}
+	 | INT { 
+	$$=new VariableDeclaration();
+	$$->type=TYPE_INT;
+	PRINT_RULE 
+}
+	 | FLOAT { 
+	$$=new VariableDeclaration();
+	$$->type=TYPE_FLOAT;
+	PRINT_RULE 
+}
+	 | CHAR { 
+	$$=new VariableDeclaration();
+	$$->type=TYPE_CHAR;
+	PRINT_RULE 
+}
+	 | STRING { 
+	$$=new VariableDeclaration();
+	$$->type=TYPE_STRING;
+	PRINT_RULE 
+}
+	 | BOOL { 
+	$$=new VariableDeclaration();
+	$$->type=TYPE_BOOL;
+	PRINT_RULE 
+}
 	 ;
 
 
@@ -162,34 +259,126 @@ class_ids : class_id { PRINT_RULE }
 
 
 
-class_id : ID { PRINT_RULE }
-		 | ID BSTOW class_id_initialization { PRINT_RULE }
-		 | ID '[' vector_size ']' { PRINT_RULE }
-		 | ID '[' vector_size ']' BSTOW vector_initialization { PRINT_RULE }
+class_id : ID { 
+	$$=new VariableDeclaration();
+	$$->name=ID;
+	PRINT_RULE 
+}
+		 | ID BSTOW class_id_initialization { 
+	$$=new VariableDeclaration();
+	$$->name=ID;
+	$$->expr=std::shared_ptr<Expression>($3);
+	//initializarea mai trebuie facuta
+	PRINT_RULE 
+}
+		 | ID '[' vector_size ']' { 
+	$$=new VariableDeclaration();
+	$$->name=ID;
+	
+	$$->size_of_vector=*$3;
+	PRINT_RULE
+}
+		 | ID '[' vector_size ']' BSTOW vector_initialization { 
+	$$=new VariableDeclaration();
+	$$->name=ID;
+	//ceva de rezolvat initializarea ca mai jos
+	//$$->exprs=$6;
+	//initializarea mai trebuie facuta
+	
+	$$->size_of_vector=*$3;
+	PRINT_RULE
+}
 		 ;
 
 
 
-class_id_initialization : ID { PRINT_RULE }
-						| NR { PRINT_RULE }
-						| NRF { PRINT_RULE }
-						| CHR { PRINT_RULE }
-						| STR { PRINT_RULE }
-						| TRUE { PRINT_RULE }
-						| FALSE { PRINT_RULE }
-						| CHNT ID SACRF call_parameters ':' { PRINT_RULE }
-						| ID '[' vector_position ']' { PRINT_RULE }
-						| ID OF ID { PRINT_RULE }
-						| ID '[' vector_position ']' OF ID { PRINT_RULE }
-						| ID OF ID '[' vector_position ']' { PRINT_RULE }
-						| ID '[' vector_position ']' OF ID '[' vector_position ']' { PRINT_RULE }
-						| eval_expr { PRINT_RULE }
+class_id_initialization : ID { 
+	$$=new Expression();
+	$$->name=*$1;
+	printf("\n\n%s\n\n", $$->name.c_str());//??
+	PRINT_RULE 
+}
+						| NR { 
+	$$=new Expression();
+	$$->type=TYPE_INT;
+	//$$->value=$1;//??
+	printf("\n\n%d\n\n", $1);//??
+	PRINT_RULE 
+}
+						| NRF { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| CHR { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| STR { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| TRUE { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| FALSE { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| CHNT ID SACRF call_parameters ':' { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| ID '[' vector_position ']' { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| ID OF ID { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| ID '[' vector_position ']' OF ID { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| ID OF ID '[' vector_position ']' { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| ID '[' vector_position ']' OF ID '[' vector_position ']' { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
+						| eval_expr { 
+	$$=new Expression();
+
+	PRINT_RULE 
+}
 						;
 
 
 
-vector_size : { PRINT_RULE /*s-ar putea sa ne vina mai usor daca facem vector size nul direct din regula fara eps pentru ca sa identificam noi nr de param*/}
-			| NR { PRINT_RULE }
+vector_size : {
+	$$=new int();
+	*$$=0;
+	PRINT_RULE 
+}
+			| NR {
+	$$=new int();
+	*$$=NR;
+	PRINT_RULE 
+}
 			;
 
 

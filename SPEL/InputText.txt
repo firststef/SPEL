@@ -1,8 +1,9 @@
 [TEST] Example Program:
 The tale begins.
 
+craft points life_points bestow 5.
 I summon thy name Link
-	craft points life_points.
+	craft points life_points bestow 5.
 	craft precise mana_points.
 	craft rune armor_enchantments.
 	craft absolute mortality.

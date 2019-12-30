@@ -105,45 +105,45 @@ void print_rule(int num, char* s);
     FLOAT = 264,
     CHAR = 265,
     STRING = 266,
-    CHR = 267,
-    ID = 268,
-    NR = 269,
-    NRF = 270,
-    NOT = 271,
-    STR = 272,
-    TRUE = 273,
-    FALSE = 274,
-    BGNF = 275,
-    ENDF = 276,
-    AND = 277,
-    OR = 278,
-    RET = 279,
-    CLASS = 280,
-    CONST = 281,
-    BOOL = 282,
-    ELSE = 283,
-    IF = 284,
-    FOR = 285,
-    WHILE = 286,
-    ENDWHILE = 287,
-    BEGINIF = 288,
-    BEGINELSE = 289,
-    ENDELSE = 290,
-    ENDIF = 291,
-    ENDFOR = 292,
-    VOID = 293,
-    IN = 294,
-    EVAL = 295,
-    BG = 296,
-    BGNP = 297,
-    ENDCLASS = 298,
-    CRAFT = 299,
-    BSTOW = 300,
-    ENCH = 301,
-    WITH = 302,
-    SACRF = 303,
-    TIME = 304,
-    CHNT = 305,
+    NOT = 267,
+    BGNF = 268,
+    ENDF = 269,
+    AND = 270,
+    OR = 271,
+    RET = 272,
+    CLASS = 273,
+    CONST = 274,
+    BOOL = 275,
+    ELSE = 276,
+    IF = 277,
+    FOR = 278,
+    WHILE = 279,
+    ENDWHILE = 280,
+    BEGINIF = 281,
+    BEGINELSE = 282,
+    ENDELSE = 283,
+    ENDIF = 284,
+    ENDFOR = 285,
+    VOID = 286,
+    IN = 287,
+    EVAL = 288,
+    BG = 289,
+    BGNP = 290,
+    ENDCLASS = 291,
+    CRAFT = 292,
+    BSTOW = 293,
+    ENCH = 294,
+    WITH = 295,
+    SACRF = 296,
+    TIME = 297,
+    CHNT = 298,
+    ID = 299,
+    STR = 300,
+    NR = 301,
+    NRF = 302,
+    CHR = 303,
+    TRUE = 304,
+    FALSE = 305,
     IFX = 306,
     UMINUS = 307
   };
@@ -153,10 +153,16 @@ void print_rule(int num, char* s);
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 79 "parser.y"
+#line 90 "parser.y"
 
+	bool* booling;
+	char* chr;
+	float* floating;
+	std::string* str;
+	int* integer;
 	Node* node;
 	CompileUnit* c_unit;
+	BlockHolder* bl_holder;
 	DeclarationHolder* dec_holder;
 	ClassDefinition* class_def;
 	IntVal* int_val;
@@ -173,7 +179,7 @@ union YYSTYPE
 	FunctionCall* func_call;
 	Return* ret;
 
-#line 177 "parser.hpp"
+#line 183 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

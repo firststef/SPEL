@@ -7,6 +7,7 @@ void update_loc(yyscan_t scanner);
 int lineno;
 int column;
 #define YY_USER_INIT lineno = 1; column = 1;
+#define SAVE_TOKEN yylval->str = new std::string(yytext, yyleng);
 %}
 
 %option yylineno reentrant noyywrap nounistd bison-bridge bison-locations
@@ -41,10 +42,10 @@ absolute {return BOOL; }
 artifact { return CONST; }
 
  /* Values */
-true {return TRUE; }
-false {return FALSE; }
-{CHAR} {return CHR; }
-{STRING} {return STR; }
+true {SAVE_TOKEN return TRUE; }
+false {SAVE_TOKEN return FALSE; }
+{CHAR} {SAVE_TOKEN return CHR; }
+{STRING} {SAVE_TOKEN return STR; }
 
  /* Operators */
 "<=" {return LEQ; }
@@ -88,9 +89,9 @@ for {return FOR; }
 
 EVAL {return EVAL; }
 
-{IDENTIFIER} { return ID; }
-{INTEGER} {return NR; }
-{FLOAT} {return NRF; }
+{IDENTIFIER} {SAVE_TOKEN return ID; }
+{INTEGER} {SAVE_TOKEN return NR; }
+{FLOAT} {SAVE_TOKEN return NRF; }
 
  /* Consume the rest */
 {COMMENT} { }
