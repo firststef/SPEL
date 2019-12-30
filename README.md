@@ -13,7 +13,7 @@ Command arguments:
 You can create tests for checking the language by appending blocks with the structure:
 
 ```c++
-[TEST] Test name (mandatory \n)
+[TEST] Test name :
 //Your code here
 [END]
 ```
