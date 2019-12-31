@@ -12,8 +12,34 @@ struct Expression;
 struct Assignment;
 struct DeclarationHolder;
 struct ClassDefinition;
+struct FunctionCall;
 
 
+struct Context
+{
+	std::string name;
+
+	Context* parent = nullptr;
+
+	std::string get_context()
+	{
+		Context* current = this;
+		std::string full_context;
+		
+		while(current != nullptr)
+		{
+			full_context = current->name + "." + full_context;
+			current = current->parent;
+		}
+
+		return full_context;
+	}
+};
+
+struct ContextUnit
+{
+	Context context;
+};
 
 struct Node{
 
@@ -84,6 +110,7 @@ struct BoolVal
 
 enum Type
 {
+	NONE,
 	TYPE_INT,
 	TYPE_FLOAT,
 	TYPE_CHAR,
@@ -112,17 +139,20 @@ struct VariableDeclaration
 
 	//union sau cv
 	TypeValue value;
+	std::vector<TypeValue> values;
+	int size_of_vector = 0;
+	
+	std::string context;
+	
 	//numele clasei daca ii tip obiect
 	Identifier class_name = "if";
 
-	std::vector<TypeValue> values;
-	int size_of_vector=0;
-
 	std::shared_ptr<Expression> expr;
-	std::vector< std::shared_ptr<Expression>> exprs;
+	std::vector<std::shared_ptr<Expression>> exprs;
+	
 };
 
-struct Statement
+struct Statement 
 {
 	std::shared_ptr<VariableDeclaration> var_dec;
 	std::shared_ptr<IterationSelectionStatement> iter_sel_stmt;
@@ -134,10 +164,24 @@ struct ComposedStatement
 	std::vector<Statement> statements;
 };
 
+enum ExpressionType
+{
+	VALUE,
+	VECTOR_NAME,
+	VARIABLE_NAME,
+	REFERENCE,
+	CALL
+};
+
 struct Expression
 {
+	ExpressionType e_type;
+	
 	std::shared_ptr<VariableDeclaration> var;
+	std::shared_ptr<FunctionCall> call;
+
 	Identifier name;
+	int position;
 	
 	Type type;
 	TypeValue value;
@@ -151,7 +195,7 @@ enum IterationSelectionType
 	TYPE_FOR
 };
 
-struct IterationSelectionStatement
+struct IterationSelectionStatement : ContextUnit
 {
 	IterationSelectionType type;
 	
@@ -173,7 +217,7 @@ struct Assignment
 	Expression expr;
 };
 
-struct FunctionDeclaration
+struct FunctionDeclaration : ContextUnit
 {
 	bool is_void = false;
 	Type return_val;
@@ -189,7 +233,7 @@ struct FunctionCall
 {
 	Identifier name;
 
-	std::vector<Expression> params;
+	std::vector<std::shared_ptr<Expression>> params;
 };
 
 struct Return
@@ -197,7 +241,22 @@ struct Return
 	std::shared_ptr<Expression> ret;
 };
 
+inline int get_unique_id()
+{
+	static int id = 0;
+	return id++;
+}
+
 //std::shared_ptr<VariableDeclaration> search_for_var()
 //{
 //	
 //}
+//
+//
+
+
+//if there is time, delete vector_position to expression
+
+//something with ->name
+
+//de scos class_ids

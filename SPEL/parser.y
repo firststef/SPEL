@@ -4,6 +4,8 @@
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
+std::shared_ptr<VariableDeclaration> search_variable(std::string name);
+std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object);
 %}
 
 %code requires{
@@ -81,19 +83,18 @@ void print_rule(int num, char* s);
 %left  '*'  '/'  '%'
 %left  UMINUS      /*  supplies  precedence  for  unary  minus  */
 
-%type <node> sp
-%type <c_unit> compile_unit
-%type <bl_holder> class_def, function_def, statement
-%type <class_def> class_body
-%type <dec_holder> class_var, class_f
-%type <variable_dec> type, class_id
+
+%type <class_def> class_def class_body
+%type <func_decl> function_def
+%type <dec_holder> class_var class_f
+%type <variable_dec> type class_id const_class_id
 %type <int_val> vector_size
-%type <expr> class_id_initialization
+%type <expr> class_id_initialization vector_position
+%type <func_call> call_parameters
+%type <exprs> vector_initialization
 
 %union {
 	Node* node;
-	CompileUnit* c_unit;
-	BlockHolder* bl_holder;
 	DeclarationHolder* dec_holder;
 	ClassDefinition* class_def;
 	IntVal* int_val;
@@ -109,82 +110,94 @@ void print_rule(int num, char* s);
 	FunctionDeclaration* func_decl;
 	FunctionCall* func_call;
 	Return* ret;
+
+	std::vector< std::shared_ptr<Expression>>* exprs;
 };
 
 %%
 
 sp 
   : BGNP compile_unit { 
-		parse_state->rootNode = std::make_shared<Node>();
-		parse_state->rootNode->c_unit = std::shared_ptr<CompileUnit>($2);
+		/*for (auto& holder : $2->block_holder) {
+			if (holder.type == DECLARATION_TYPE) {
+				if (holder->decl_dec->type == VAR_FUNC) {
+
+				}
+			}
+		}*/
+
+		//parse_state->rootNode = std::make_shared<Node>();
+		//parse_state->rootNode->c_unit = std::shared_ptr<CompileUnit>($2);
 	}
   | BGNP {  }
   ;
 
 compile_unit 
   : class_def compile_unit {
-		$$ = new CompileUnit();
-		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
-		//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
-		//$$->block_holder.push_back(nullptr);
+		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>($1));
+
+		//$$ = new CompileUnit();
+		//$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
 	}
   | function_def compile_unit{
-		$$ = new CompileUnit();
-		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
-		//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
-		//$$->block_holder.push_back(nullptr);
+		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($1));
+		
+		//$$ = new CompileUnit();
+		//$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
 	}
   | statement compile_unit {
-		$$ = new CompileUnit();
-		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
-		//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
-		//$$->block_holder.push_back(nullptr);
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
 	}
   | class_def { 
-		$$ = new CompileUnit();
-		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));  
+		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>($1));
+
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));  */
 	}
   | function_def { 
-		$$ = new CompileUnit();
-		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($1));
+
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
 	}
   | statement { 
-		$$ = new CompileUnit();
-		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
 	}
   ;
 
 class_def 
   : CLASS ID class_body ENDCLASS { 
-	  	$$ = new BlockHolder(); 
+	  	/*$$ = new BlockHolder(); 
 		$$->type=CLASS_TYPE;
-	
-		//aici cred ca nu trebuie asa cum ii mai jos, ci cum e dedesubt
-		//$$->class_dec=std::make_shared<ClassDefinition>();
-		//$$->class_dec=$3; //asta nu merge nu stiu de ce
 
 		$$->class_dec = std::shared_ptr<ClassDefinition>($3);
 
-		$$->class_dec->name = $2->value; // $2 ID StringVal
+		$$->class_dec->name = $2->value;
+		delete $2;*/
+		
+		$$ = $3;
+
+		$3->name = $2->value; 
 		delete $2;
-		//printf("\n\n%s\n\n", $$->class_dec->name);
-		//nu afiseaza ce trebuie (sau ce as vrea eu), iar pe release da eroare
+
+		//verificare ca nu mai este o data definita clasa cu acelasi ID
 	}
   ;
 
 class_body 
   : class_var { 
-		//as fi vrut asa: //$$=&std::make_shared<ClassDefinition>();
 		$$ = new ClassDefinition();
-		$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
+		$$->decl_holders.push_back(*$1);
 	}
   | class_f { 
 		$$ = new ClassDefinition();
-		$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
+		$$->decl_holders.push_back(*$1);
 	}
   | class_var class_body { 
 		$$=new ClassDefinition();
-		$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
+		$$->decl_holders.push_back(*$1);
 		for (auto& holder : $2->decl_holders)
 			$$->decl_holders.push_back(holder);
   }
@@ -200,16 +213,39 @@ class_var
   : CRAFT type class_id '.' { 
 		$$=new DeclarationHolder();
 		$$->type=VAR_DEC;
-		$$->var_dec = std::shared_ptr<VariableDeclaration>($2);
+
+		$3->type = $2->type;
+		//if($3->type!=NONE) if($3->type!=$2->type) yyerror();
+		//cateodata tipul $3 nu este setat (cand nu am initializat)
+		
+		$3->class_name = $2->class_name;
+		$$->var_dec = std::shared_ptr<VariableDeclaration>($3);
+		delete $2;
+
+		parse_state->variableStack.push_back($$->var_dec);
+		
 	}
-  | CRAFT CONST type const_class_id '.' {  }
-;
+  | CRAFT CONST type const_class_id '.' {  
+
+		  $$ = new DeclarationHolder();
+		  $$->type = VAR_DEC;
+
+		  $4->type = $3->type;
+		  $4->class_name = $3->class_name;
+		  $4->is_const = true;
+		  $$->var_dec = std::shared_ptr<VariableDeclaration>($4);
+		  delete $3;
+
+		  parse_state->variableStack.push_back($$->var_dec);
+	}
+  ;
 
 type 
   : ID { 
 		$$=new VariableDeclaration();
 		$$->type=TYPE_OBJECT;
 		$$->class_name = $1->value;
+		//verificare daca ID este in vectorul de clase
 		delete $1;
 	}
   | INT { 
@@ -245,7 +281,7 @@ class_ids
 
 class_id 
   : ID { 
-		$$=new VariableDeclaration();
+		$$ = new VariableDeclaration();
 		$$->name = $1->value;
 		delete $1;
 	}
@@ -253,8 +289,10 @@ class_id
 		$$=new VariableDeclaration();
 		$$->name = $1->value;
 		delete $1;
-
-		//de verificat daca aici ID are acelasi tip cu tipul class_id_initiaization
+		$$->type = $3->type;
+		$$->value = $3->value;
+		//de verificat ca in class id_initialization toate 
+		//variabilele si constantele sunt type
 
 		$$->expr = std::shared_ptr<Expression>($3);
 	}
@@ -271,12 +309,13 @@ class_id
 		$$->name = $1->value;
 		delete $1;
 
-		//ceva de rezolvat initializarea ca mai jos
-		//$$->exprs=$6;
-		//initializarea mai trebuie facuta
-
 		$$->size_of_vector=$3->value;
 		delete $3;
+
+		//should do size validation
+		//should do vector_init to ex
+		$$->exprs = *$6;
+		delete $6;
 	}
   ;
 
@@ -284,55 +323,74 @@ class_id
 
 class_id_initialization 
   : ID { 
-		$$=new Expression();
-		$$->name= $1->value;
+		$$ = new Expression();
+		$$->name = $1->value;
+		$$->e_type = VARIABLE_NAME;
+
+		//$$->value = search($$->name)->value;
+
 		delete $1;
 	}
   | NR { 
 		$$=new Expression();
 		$$->type=TYPE_INT;
 		$$->value.int_val = std::shared_ptr<IntVal>($1);
+		$$->e_type = VALUE;
 	}
   | NRF { 
 		$$=new Expression();
 		$$->type = TYPE_FLOAT;
 		$$->value.float_val = std::shared_ptr<FloatVal>($1);
+		$$->e_type = VALUE;
 	}
   | CHR { 
 		$$=new Expression();
 		$$->type = TYPE_CHAR;
 		$$->value.char_val = std::shared_ptr<CharVal>($1);
+		$$->e_type = VALUE;
 	}
   | STR { 
 		$$=new Expression();
 		$$->type = TYPE_STRING;
 		$$->value.string_val = std::shared_ptr<StringVal>($1);
+		$$->e_type = VALUE;
 	}
   | TRUE { 
 		$$=new Expression();
 		$$->type = TYPE_BOOL;
 		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
+		$$->e_type = VALUE;
 	}
   | FALSE { 
 		$$=new Expression();
 		$$->type = TYPE_BOOL;
 		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
+		$$->e_type = VALUE;
 	}
   | CHNT ID SACRF call_parameters ':' { 
 		$$ = new Expression();
 
-		//to be implemented - need type deduction
-		//by searching for variable
+		$$->call = std::shared_ptr<FunctionCall>($4);
+		$$->call->name = $2->value;
+		$$->e_type = CALL;
+		//search for function template - validate name and params
+		
 	}
   | ID '[' vector_position ']' { 
 		$$=new Expression();
-
+		$$->name = $1->value;
+		$$->e_type = VECTOR_NAME;
+		$$->position = $3->value.int_val->value; //trebuie evaluata aici poz
+		delete $3;
 		//to be implemented - need type deduction
 		//by searching for variable
 	}
-  | ID OF ID { 
+  | ID OF ID { //ignore all OF statements
 		$$=new Expression();
 
+		$$->var = search_variable_in_class($1->value, $3->value); //if null, fail
+		$$->e_type = REFERENCE;
+		
 		//to be implemented - need type deduction
 		//by searching for variable
 	}
@@ -642,4 +700,16 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 	parse_state->errorColumn = locp->first_column;
 	parse_state->errorMessage = msg;
 	parse_state->errorToken = locp->last_token;
+}
+
+std::shared_ptr<VariableDeclaration> search_variable
+(std::string name)
+{
+	return nullptr;
+}
+
+std::shared_ptr<VariableDeclaration> search_variable_in_class
+(std::string name, std::string class_object)
+{
+	return nullptr;
 }

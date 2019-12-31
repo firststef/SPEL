@@ -73,8 +73,10 @@
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
+std::shared_ptr<VariableDeclaration> search_variable(std::string name);
+std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object);
 
-#line 78 "parser.cpp"
+#line 80 "parser.cpp"
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus
@@ -108,7 +110,7 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 9 "parser.y"
+#line 11 "parser.y"
 
 
 #include "Memory.hpp"
@@ -151,9 +153,9 @@ struct YYLTYPE
 	while (0)
 
 void print_rule(int num, char* s);
-#define PRINT_RULE print_rule(__LINE__, nullptr);
+#define  print_rule(__LINE__, nullptr);
 
-#line 157 "parser.cpp"
+#line 159 "parser.cpp"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -217,16 +219,9 @@ void print_rule(int num, char* s);
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 90 "parser.y"
+#line 96 "parser.y"
 
-	bool* booling;
-	char* chr;
-	float* floating;
-	std::string* str;
-	int* integer;
 	Node* node;
-	CompileUnit* c_unit;
-	BlockHolder* bl_holder;
 	DeclarationHolder* dec_holder;
 	ClassDefinition* class_def;
 	IntVal* int_val;
@@ -243,7 +238,9 @@ union YYSTYPE
 	FunctionCall* func_call;
 	Return* ret;
 
-#line 247 "parser.cpp"
+	std::vector< std::shared_ptr<Expression>>* exprs;
+
+#line 244 "parser.cpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -568,22 +565,22 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   118,   118,   119,   123,   130,   137,   144,   149,   154,
-     161,   179,   185,   190,   196,   207,   216,   221,   227,   232,
-     237,   242,   247,   262,   267,   274,   281,   295,   301,   308,
-     313,   318,   323,   328,   333,   338,   343,   348,   353,   358,
-     363,   372,   377,   386,   391,   392,   397,   398,   403,   404,
-     405,   406,   417,   418,   423,   428,   429,   434,   439,   440,
-     445,   446,   451,   452,   457,   458,   459,   460,   465,   466,
-     467,   468,   469,   470,   471,   472,   473,   474,   475,   480,
-     481,   482,   483,   484,   485,   486,   491,   496,   501,   502,
-     503,   504,   505,   506,   511,   512,   513,   514,   515,   516,
-     517,   518,   523,   528,   529,   534,   539,   544,   549,   554,
-     559,   560,   565,   566,   567,   568,   569,   570,   575,   580,
-     581,   584,   585,   586,   587,   588,   589,   592,   593,   594,
-     595,   596,   597,   598,   599,   600,   601,   602,   603,   604,
-     605,   606,   609,   610,   611,   612,   617,   622,   623,   624,
-     625,   626,   627,   628,   629,   630,   631,   632,   633,   638
+       0,   120,   120,   132,   136,   142,   148,   152,   158,   164,
+     171,   190,   194,   198,   204,   213,   228,   244,   251,   255,
+     259,   263,   267,   283,   288,   299,   307,   325,   334,   340,
+     346,   352,   358,   364,   370,   379,   388,   397,   403,   409,
+     415,   425,   428,   435,   440,   441,   446,   447,   452,   453,
+     454,   455,   466,   467,   472,   477,   478,   483,   488,   489,
+     494,   495,   500,   501,   506,   507,   508,   509,   514,   515,
+     516,   517,   518,   519,   520,   521,   522,   523,   524,   529,
+     530,   531,   532,   533,   534,   535,   540,   545,   550,   551,
+     552,   553,   554,   555,   560,   561,   562,   563,   564,   565,
+     566,   567,   572,   577,   578,   583,   588,   593,   598,   603,
+     608,   609,   614,   615,   616,   617,   618,   619,   624,   629,
+     630,   633,   634,   635,   636,   637,   638,   641,   642,   643,
+     644,   645,   646,   647,   648,   649,   650,   651,   652,   653,
+     654,   655,   658,   659,   660,   661,   666,   671,   672,   673,
+     674,   675,   676,   677,   678,   679,   680,   681,   682,   687
 };
 #endif
 
@@ -1724,1120 +1721,1172 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
+  case 2:
+#line 120 "parser.y"
+    { 
+		/*for (auto& holder : $2->block_holder) {
+			if (holder.type == DECLARATION_TYPE) {
+				if (holder->decl_dec->type == VAR_FUNC) {
+
+				}
+			}
+		}*/
+
+		//parse_state->rootNode = std::make_shared<Node>();
+		//parse_state->rootNode->c_unit = std::shared_ptr<CompileUnit>($2);
+	}
+#line 1739 "parser.cpp"
+    break;
+
   case 3:
-#line 119 "parser.y"
-    { printf("Reached start symbol.\n"); }
-#line 1731 "parser.cpp"
+#line 132 "parser.y"
+    {  }
+#line 1745 "parser.cpp"
     break;
 
   case 4:
-#line 123 "parser.y"
+#line 136 "parser.y"
     {
-	PRINT_RULE 
-	(yyval.c_unit) = new CompileUnit();
-	(yyval.c_unit)->block_holder.push_back(std::shared_ptr<BlockHolder>((yyvsp[-1].bl_holder)));
-	//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
-	(yyval.c_unit)->block_holder.push_back(nullptr);
-}
-#line 1743 "parser.cpp"
+		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>((yyvsp[-1].class_def)));
+
+		//$$ = new CompileUnit();
+		//$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+	}
+#line 1756 "parser.cpp"
     break;
 
   case 5:
-#line 130 "parser.y"
+#line 142 "parser.y"
     {
-	(yyval.c_unit) = new CompileUnit();
-	(yyval.c_unit)->block_holder.push_back(std::shared_ptr<BlockHolder>((yyvsp[-1].bl_holder)));
-	//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
-	(yyval.c_unit)->block_holder.push_back(nullptr);
-	PRINT_RULE
-}
-#line 1755 "parser.cpp"
-    break;
-
-  case 6:
-#line 137 "parser.y"
-    {
-	(yyval.c_unit) = new CompileUnit();
-	(yyval.c_unit)->block_holder.push_back(std::shared_ptr<BlockHolder>((yyvsp[-1].bl_holder)));
-	//$$->block_holder.push_back($2->dec_holder.front()); //dedesubt ii inlocuitoarea
-	(yyval.c_unit)->block_holder.push_back(nullptr);
-	PRINT_RULE
-}
+		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>((yyvsp[-1].func_decl)));
+		
+		//$$ = new CompileUnit();
+		//$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
+	}
 #line 1767 "parser.cpp"
     break;
 
-  case 7:
-#line 144 "parser.y"
-    { 
-  (yyval.c_unit) = new CompileUnit();
-  (yyval.c_unit)->block_holder.push_back(std::shared_ptr<BlockHolder>((yyvsp[0].bl_holder)));
-  PRINT_RULE 
-}
-#line 1777 "parser.cpp"
+  case 6:
+#line 148 "parser.y"
+    {
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
+	}
+#line 1776 "parser.cpp"
     break;
 
-  case 8:
-#line 149 "parser.y"
+  case 7:
+#line 152 "parser.y"
     { 
-  (yyval.c_unit) = new CompileUnit();
-  (yyval.c_unit)->block_holder.push_back(std::shared_ptr<BlockHolder>((yyvsp[0].bl_holder)));
-  PRINT_RULE 
-}
+		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>((yyvsp[0].class_def)));
+
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));  */
+	}
 #line 1787 "parser.cpp"
     break;
 
-  case 9:
-#line 154 "parser.y"
+  case 8:
+#line 158 "parser.y"
     { 
-  (yyval.c_unit) = new CompileUnit();
-  (yyval.c_unit)->block_holder.push_back(std::shared_ptr<BlockHolder>((yyvsp[0].bl_holder)));
-  PRINT_RULE 
-}
-#line 1797 "parser.cpp"
+		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>((yyvsp[0].func_decl)));
+
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
+	}
+#line 1798 "parser.cpp"
+    break;
+
+  case 9:
+#line 164 "parser.y"
+    { 
+		/*$$ = new CompileUnit();
+		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
+	}
+#line 1807 "parser.cpp"
     break;
 
   case 10:
-#line 161 "parser.y"
+#line 171 "parser.y"
     { 
-	(yyval.bl_holder) = new BlockHolder(); 
-	(yyval.bl_holder)->type=CLASS_TYPE;
-	
-	//aici cred ca nu trebuie asa cum ii mai jos, ci cum e dedesubt
-	(yyval.bl_holder)->class_dec=std::make_shared<ClassDefinition>();
-	//$$->class_dec=$3; //asta nu merge nu stiu de ce
+	  	/*$$ = new BlockHolder(); 
+		$$->type=CLASS_TYPE;
 
+		$$->class_dec = std::shared_ptr<ClassDefinition>($3);
 
-	(yyval.bl_holder)->class_dec->name=ID;
-	//printf("\n\n%s\n\n", $$->class_dec->name);
-	//nu afiseaza ce trebuie (sau ce as vrea eu), iar pe release da eroare
-	PRINT_RULE 
-}
-#line 1816 "parser.cpp"
+		$$->class_dec->name = $2->value;
+		delete $2;*/
+		
+		(yyval.class_def) = (yyvsp[-1].class_def);
+
+		(yyvsp[-1].class_def)->name = (yyvsp[-2].string_val)->value; 
+		delete (yyvsp[-2].string_val);
+
+		//verificare ca nu mai este o data definita clasa cu acelasi ID
+	}
+#line 1828 "parser.cpp"
     break;
 
   case 11:
-#line 179 "parser.y"
+#line 190 "parser.y"
     { 
-	//as fi vrut asa: //$$=&std::make_shared<ClassDefinition>();
-	(yyval.class_def)=new ClassDefinition();
-	(yyval.class_def)->decl_holders.push_back(*(yyvsp[0].dec_holder));//de decomentat cand e definit $1
-	PRINT_RULE 
-}
-#line 1827 "parser.cpp"
-    break;
-
-  case 12:
-#line 185 "parser.y"
-    { 
-	(yyval.class_def)=new ClassDefinition();
-//	$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
-	PRINT_RULE 
-}
+		(yyval.class_def) = new ClassDefinition();
+		(yyval.class_def)->decl_holders.push_back(*(yyvsp[0].dec_holder));
+	}
 #line 1837 "parser.cpp"
     break;
 
-  case 13:
-#line 190 "parser.y"
+  case 12:
+#line 194 "parser.y"
     { 
-	(yyval.class_def)=new ClassDefinition();
-	(yyval.class_def)->decl_holders.push_back(*(yyvsp[-1].dec_holder));//de decomentat cand e definit $1
-//	$$->decl_holders..push_back($2->dec_holder.front());
-	PRINT_RULE 
-}
-#line 1848 "parser.cpp"
+		(yyval.class_def) = new ClassDefinition();
+		(yyval.class_def)->decl_holders.push_back(*(yyvsp[0].dec_holder));
+	}
+#line 1846 "parser.cpp"
+    break;
+
+  case 13:
+#line 198 "parser.y"
+    { 
+		(yyval.class_def)=new ClassDefinition();
+		(yyval.class_def)->decl_holders.push_back(*(yyvsp[-1].dec_holder));
+		for (auto& holder : (yyvsp[0].class_def)->decl_holders)
+			(yyval.class_def)->decl_holders.push_back(holder);
+  }
+#line 1857 "parser.cpp"
     break;
 
   case 14:
-#line 196 "parser.y"
+#line 204 "parser.y"
     { 
-	(yyval.class_def)=new ClassDefinition();
-	
-//	$$->decl_holders.push_back(*$1);//de decomentat cand e definit $1
-//	$$->decl_holders..push_back($2->dec_holder.front());
-	PRINT_RULE 
-}
-#line 1860 "parser.cpp"
+		(yyval.class_def) = new ClassDefinition();
+		(yyval.class_def)->decl_holders.push_back(*(yyvsp[-1].dec_holder));
+		for (auto& holder : (yyvsp[0].class_def)->decl_holders)
+			(yyval.class_def)->decl_holders.push_back(holder);
+	}
+#line 1868 "parser.cpp"
     break;
 
   case 15:
-#line 207 "parser.y"
+#line 213 "parser.y"
     { 
-	(yyval.dec_holder)=new DeclarationHolder();
-	(yyval.dec_holder)->type=VAR_DEC;
-	(yyval.dec_holder)->var_dec=std::make_shared<VariableDeclaration>();
-	(yyval.dec_holder)->var_dec->type=(yyvsp[-2].variable_dec)->type;
-	(yyval.dec_holder)->var_dec->class_name=(yyvsp[-2].variable_dec)->class_name;
+		(yyval.dec_holder)=new DeclarationHolder();
+		(yyval.dec_holder)->type=VAR_DEC;
 
-	PRINT_RULE 
-}
-#line 1874 "parser.cpp"
+		(yyvsp[-1].variable_dec)->type = (yyvsp[-2].variable_dec)->type;
+		//if($3->type!=NONE) if($3->type!=$2->type) yyerror();
+		//cateodata tipul $3 nu este setat (cand nu am initializat)
+		
+		(yyvsp[-1].variable_dec)->class_name = (yyvsp[-2].variable_dec)->class_name;
+		(yyval.dec_holder)->var_dec = std::shared_ptr<VariableDeclaration>((yyvsp[-1].variable_dec));
+		delete (yyvsp[-2].variable_dec);
+
+		parse_state->variableStack.push_back((yyval.dec_holder)->var_dec);
+		
+	}
+#line 1888 "parser.cpp"
     break;
 
   case 16:
-#line 216 "parser.y"
-    { PRINT_RULE }
-#line 1880 "parser.cpp"
+#line 228 "parser.y"
+    {  
+
+		  (yyval.dec_holder) = new DeclarationHolder();
+		  (yyval.dec_holder)->type = VAR_DEC;
+
+		  (yyvsp[-1].variable_dec)->type = (yyvsp[-2].variable_dec)->type;
+		  (yyvsp[-1].variable_dec)->class_name = (yyvsp[-2].variable_dec)->class_name;
+		  (yyvsp[-1].variable_dec)->is_const = true;
+		  (yyval.dec_holder)->var_dec = std::shared_ptr<VariableDeclaration>((yyvsp[-1].variable_dec));
+		  delete (yyvsp[-2].variable_dec);
+
+		  parse_state->variableStack.push_back((yyval.dec_holder)->var_dec);
+	}
+#line 1906 "parser.cpp"
     break;
 
   case 17:
-#line 221 "parser.y"
+#line 244 "parser.y"
     { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->type=TYPE_OBJECT;
-	(yyval.variable_dec)->class_name=ID;
-	PRINT_RULE 
-}
-#line 1891 "parser.cpp"
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->type=TYPE_OBJECT;
+		(yyval.variable_dec)->class_name = (yyvsp[0].string_val)->value;
+		//verificare daca ID este in vectorul de clase
+		delete (yyvsp[0].string_val);
+	}
+#line 1918 "parser.cpp"
     break;
 
   case 18:
-#line 227 "parser.y"
+#line 251 "parser.y"
     { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->type=TYPE_INT;
-	PRINT_RULE 
-}
-#line 1901 "parser.cpp"
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->type=TYPE_INT;
+	}
+#line 1927 "parser.cpp"
     break;
 
   case 19:
-#line 232 "parser.y"
+#line 255 "parser.y"
     { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->type=TYPE_FLOAT;
-	PRINT_RULE 
-}
-#line 1911 "parser.cpp"
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->type=TYPE_FLOAT;	 
+	}
+#line 1936 "parser.cpp"
     break;
 
   case 20:
-#line 237 "parser.y"
+#line 259 "parser.y"
     { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->type=TYPE_CHAR;
-	PRINT_RULE 
-}
-#line 1921 "parser.cpp"
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->type=TYPE_CHAR;
+	}
+#line 1945 "parser.cpp"
     break;
 
   case 21:
-#line 242 "parser.y"
+#line 263 "parser.y"
     { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->type=TYPE_STRING;
-	PRINT_RULE 
-}
-#line 1931 "parser.cpp"
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->type=TYPE_STRING;
+	}
+#line 1954 "parser.cpp"
     break;
 
   case 22:
-#line 247 "parser.y"
-    { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->type=TYPE_BOOL;
-	PRINT_RULE 
-}
-#line 1941 "parser.cpp"
-    break;
-
-  case 23:
-#line 262 "parser.y"
-    { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->name=ID;
-	PRINT_RULE 
-}
-#line 1951 "parser.cpp"
-    break;
-
-  case 24:
 #line 267 "parser.y"
     { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->name=ID;
-	(yyval.variable_dec)->expr=std::shared_ptr<Expression>((yyvsp[0].expr));
-	//initializarea mai trebuie facuta
-	PRINT_RULE 
-}
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->type=TYPE_BOOL; 
+	}
 #line 1963 "parser.cpp"
     break;
 
-  case 25:
-#line 274 "parser.y"
+  case 23:
+#line 283 "parser.y"
     { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->name=ID;
-	
-	(yyval.variable_dec)->size_of_vector=*(yyvsp[-1].integer);
-	PRINT_RULE
-}
-#line 1975 "parser.cpp"
+		(yyval.variable_dec) = new VariableDeclaration();
+		(yyval.variable_dec)->name = (yyvsp[0].string_val)->value;
+		delete (yyvsp[0].string_val);
+	}
+#line 1973 "parser.cpp"
+    break;
+
+  case 24:
+#line 288 "parser.y"
+    { 
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->name = (yyvsp[-2].string_val)->value;
+		delete (yyvsp[-2].string_val);
+		(yyval.variable_dec)->type = (yyvsp[0].expr)->type;
+		(yyval.variable_dec)->value = (yyvsp[0].expr)->value;
+		//de verificat ca in class id_initialization toate 
+		//variabilele si constantele sunt type
+
+		(yyval.variable_dec)->expr = std::shared_ptr<Expression>((yyvsp[0].expr));
+	}
+#line 1989 "parser.cpp"
+    break;
+
+  case 25:
+#line 299 "parser.y"
+    { 
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->name= (yyvsp[-3].string_val)->value;
+		delete (yyvsp[-3].string_val);
+
+		(yyval.variable_dec)->size_of_vector = (yyvsp[-1].int_val)->value;
+		delete (yyvsp[-1].int_val);
+	}
+#line 2002 "parser.cpp"
     break;
 
   case 26:
-#line 281 "parser.y"
-    { 
-	(yyval.variable_dec)=new VariableDeclaration();
-	(yyval.variable_dec)->name=ID;
-	//ceva de rezolvat initializarea ca mai jos
-	//$$->exprs=$6;
-	//initializarea mai trebuie facuta
-	
-	(yyval.variable_dec)->size_of_vector=*(yyvsp[-3].integer);
-	PRINT_RULE
-}
-#line 1990 "parser.cpp"
+#line 307 "parser.y"
+    {
+		(yyval.variable_dec)=new VariableDeclaration();
+		(yyval.variable_dec)->name = (yyvsp[-5].string_val)->value;
+		delete (yyvsp[-5].string_val);
+
+		(yyval.variable_dec)->size_of_vector=(yyvsp[-3].int_val)->value;
+		delete (yyvsp[-3].int_val);
+
+		//should do size validation
+		//should do vector_init to ex
+		(yyval.variable_dec)->exprs = *(yyvsp[0].exprs);
+		delete (yyvsp[0].exprs);
+	}
+#line 2020 "parser.cpp"
     break;
 
   case 27:
-#line 295 "parser.y"
+#line 325 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-	(yyval.expr)->name=*(yyvsp[0].str);
-	printf("\n\n%s\n\n", (yyval.expr)->name.c_str());//??
-	PRINT_RULE 
-}
-#line 2001 "parser.cpp"
+		(yyval.expr) = new Expression();
+		(yyval.expr)->name = (yyvsp[0].string_val)->value;
+		(yyval.expr)->e_type = VARIABLE_NAME;
+
+		//$$->value = search($$->name)->value;
+
+		delete (yyvsp[0].string_val);
+	}
+#line 2034 "parser.cpp"
     break;
 
   case 28:
-#line 301 "parser.y"
+#line 334 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-	(yyval.expr)->type=TYPE_INT;
-	//$$->value=$1;//??
-	printf("\n\n%d\n\n", (yyvsp[0].integer));//??
-	PRINT_RULE 
-}
-#line 2013 "parser.cpp"
+		(yyval.expr)=new Expression();
+		(yyval.expr)->type=TYPE_INT;
+		(yyval.expr)->value.int_val = std::shared_ptr<IntVal>((yyvsp[0].int_val));
+		(yyval.expr)->e_type = VALUE;
+	}
+#line 2045 "parser.cpp"
     break;
 
   case 29:
-#line 308 "parser.y"
+#line 340 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2023 "parser.cpp"
+		(yyval.expr)=new Expression();
+		(yyval.expr)->type = TYPE_FLOAT;
+		(yyval.expr)->value.float_val = std::shared_ptr<FloatVal>((yyvsp[0].float_val));
+		(yyval.expr)->e_type = VALUE;
+	}
+#line 2056 "parser.cpp"
     break;
 
   case 30:
-#line 313 "parser.y"
+#line 346 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2033 "parser.cpp"
+		(yyval.expr)=new Expression();
+		(yyval.expr)->type = TYPE_CHAR;
+		(yyval.expr)->value.char_val = std::shared_ptr<CharVal>((yyvsp[0].char_val));
+		(yyval.expr)->e_type = VALUE;
+	}
+#line 2067 "parser.cpp"
     break;
 
   case 31:
-#line 318 "parser.y"
+#line 352 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2043 "parser.cpp"
+		(yyval.expr)=new Expression();
+		(yyval.expr)->type = TYPE_STRING;
+		(yyval.expr)->value.string_val = std::shared_ptr<StringVal>((yyvsp[0].string_val));
+		(yyval.expr)->e_type = VALUE;
+	}
+#line 2078 "parser.cpp"
     break;
 
   case 32:
-#line 323 "parser.y"
+#line 358 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2053 "parser.cpp"
+		(yyval.expr)=new Expression();
+		(yyval.expr)->type = TYPE_BOOL;
+		(yyval.expr)->value.bool_val = std::shared_ptr<BoolVal>((yyvsp[0].bool_val));
+		(yyval.expr)->e_type = VALUE;
+	}
+#line 2089 "parser.cpp"
     break;
 
   case 33:
-#line 328 "parser.y"
+#line 364 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2063 "parser.cpp"
+		(yyval.expr)=new Expression();
+		(yyval.expr)->type = TYPE_BOOL;
+		(yyval.expr)->value.bool_val = std::shared_ptr<BoolVal>((yyvsp[0].bool_val));
+		(yyval.expr)->e_type = VALUE;
+	}
+#line 2100 "parser.cpp"
     break;
 
   case 34:
-#line 333 "parser.y"
+#line 370 "parser.y"
     { 
-	(yyval.expr)=new Expression();
+		(yyval.expr) = new Expression();
 
-	PRINT_RULE 
-}
-#line 2073 "parser.cpp"
+		(yyval.expr)->call = std::shared_ptr<FunctionCall>((yyvsp[-1].func_call));
+		(yyval.expr)->call->name = (yyvsp[-3].string_val)->value;
+		(yyval.expr)->e_type = CALL;
+		//search for function template - validate name and params
+		
+	}
+#line 2114 "parser.cpp"
     break;
 
   case 35:
-#line 338 "parser.y"
+#line 379 "parser.y"
     { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2083 "parser.cpp"
+		(yyval.expr)=new Expression();
+		(yyval.expr)->name = (yyvsp[-3].string_val)->value;
+		(yyval.expr)->e_type = VECTOR_NAME;
+		(yyval.expr)->position = (yyvsp[-1].expr)->value.int_val->value; //trebuie evaluata aici poz
+		delete (yyvsp[-1].expr);
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+#line 2128 "parser.cpp"
     break;
 
   case 36:
-#line 343 "parser.y"
-    { 
-	(yyval.expr)=new Expression();
+#line 388 "parser.y"
+    { //ignore all OF statements
+		(yyval.expr)=new Expression();
 
-	PRINT_RULE 
-}
-#line 2093 "parser.cpp"
+		(yyval.expr)->var = search_variable_in_class((yyvsp[-2].string_val)->value, (yyvsp[0].string_val)->value); //if null, fail
+		(yyval.expr)->e_type = REFERENCE;
+		
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+#line 2142 "parser.cpp"
     break;
 
   case 37:
-#line 348 "parser.y"
+#line 397 "parser.y"
     { 
-	(yyval.expr)=new Expression();
+		(yyval.expr)=new Expression();
 
-	PRINT_RULE 
-}
-#line 2103 "parser.cpp"
-    break;
-
-  case 38:
-#line 353 "parser.y"
-    { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2113 "parser.cpp"
-    break;
-
-  case 39:
-#line 358 "parser.y"
-    { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2123 "parser.cpp"
-    break;
-
-  case 40:
-#line 363 "parser.y"
-    { 
-	(yyval.expr)=new Expression();
-
-	PRINT_RULE 
-}
-#line 2133 "parser.cpp"
-    break;
-
-  case 41:
-#line 372 "parser.y"
-    {
-	(yyval.integer)=new int();
-	*(yyval.integer)=0;
-	PRINT_RULE 
-}
-#line 2143 "parser.cpp"
-    break;
-
-  case 42:
-#line 377 "parser.y"
-    {
-	(yyval.integer)=new int();
-	*(yyval.integer)=NR;
-	PRINT_RULE 
-}
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
 #line 2153 "parser.cpp"
     break;
 
+  case 38:
+#line 403 "parser.y"
+    { 
+		(yyval.expr)=new Expression(); 
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+#line 2164 "parser.cpp"
+    break;
+
+  case 39:
+#line 409 "parser.y"
+    { 
+		(yyval.expr)=new Expression();
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+#line 2175 "parser.cpp"
+    break;
+
+  case 40:
+#line 415 "parser.y"
+    { 
+		(yyval.expr)=new Expression();
+		//$$->type = $1->type;
+		//$$->value = $1->value;
+	}
+#line 2185 "parser.cpp"
+    break;
+
+  case 41:
+#line 425 "parser.y"
+    {
+	  (yyval.int_val) = new IntVal({ 0 });
+	}
+#line 2193 "parser.cpp"
+    break;
+
+  case 42:
+#line 428 "parser.y"
+    {
+		(yyval.int_val) = new IntVal({(yyvsp[0].int_val)->value});
+		delete (yyvsp[0].int_val);
+	}
+#line 2202 "parser.cpp"
+    break;
+
   case 43:
-#line 386 "parser.y"
-    { PRINT_RULE }
-#line 2159 "parser.cpp"
+#line 435 "parser.y"
+    {  }
+#line 2208 "parser.cpp"
     break;
 
   case 44:
-#line 391 "parser.y"
-    { PRINT_RULE }
-#line 2165 "parser.cpp"
+#line 440 "parser.y"
+    {  }
+#line 2214 "parser.cpp"
     break;
 
   case 45:
-#line 392 "parser.y"
-    { PRINT_RULE }
-#line 2171 "parser.cpp"
+#line 441 "parser.y"
+    {  }
+#line 2220 "parser.cpp"
     break;
 
   case 46:
-#line 397 "parser.y"
-    { PRINT_RULE }
-#line 2177 "parser.cpp"
+#line 446 "parser.y"
+    {  }
+#line 2226 "parser.cpp"
     break;
 
   case 47:
-#line 398 "parser.y"
-    { PRINT_RULE }
-#line 2183 "parser.cpp"
+#line 447 "parser.y"
+    {  }
+#line 2232 "parser.cpp"
     break;
 
   case 48:
-#line 403 "parser.y"
-    { PRINT_RULE }
-#line 2189 "parser.cpp"
+#line 452 "parser.y"
+    {  }
+#line 2238 "parser.cpp"
     break;
 
   case 49:
-#line 404 "parser.y"
-    { PRINT_RULE }
-#line 2195 "parser.cpp"
+#line 453 "parser.y"
+    {  }
+#line 2244 "parser.cpp"
     break;
 
   case 50:
-#line 405 "parser.y"
-    { PRINT_RULE }
-#line 2201 "parser.cpp"
+#line 454 "parser.y"
+    {  }
+#line 2250 "parser.cpp"
     break;
 
   case 51:
-#line 406 "parser.y"
-    { PRINT_RULE }
-#line 2207 "parser.cpp"
+#line 455 "parser.y"
+    {  }
+#line 2256 "parser.cpp"
     break;
 
   case 52:
-#line 417 "parser.y"
-    { PRINT_RULE }
-#line 2213 "parser.cpp"
+#line 466 "parser.y"
+    {  }
+#line 2262 "parser.cpp"
     break;
 
   case 53:
-#line 418 "parser.y"
-    { PRINT_RULE }
-#line 2219 "parser.cpp"
+#line 467 "parser.y"
+    {  }
+#line 2268 "parser.cpp"
     break;
 
   case 54:
-#line 423 "parser.y"
-    { PRINT_RULE }
-#line 2225 "parser.cpp"
+#line 472 "parser.y"
+    {  }
+#line 2274 "parser.cpp"
     break;
 
   case 55:
-#line 428 "parser.y"
-    { PRINT_RULE }
-#line 2231 "parser.cpp"
+#line 477 "parser.y"
+    {  }
+#line 2280 "parser.cpp"
     break;
 
   case 56:
-#line 429 "parser.y"
-    { PRINT_RULE }
-#line 2237 "parser.cpp"
+#line 478 "parser.y"
+    {  }
+#line 2286 "parser.cpp"
     break;
 
   case 57:
-#line 434 "parser.y"
-    {/*nu stiu daca aici este corect, dar eu presupun ca da*/ PRINT_RULE }
-#line 2243 "parser.cpp"
+#line 483 "parser.y"
+    {/*nu stiu daca aici este corect, dar eu presupun ca da*/  }
+#line 2292 "parser.cpp"
     break;
 
   case 58:
-#line 439 "parser.y"
-    { PRINT_RULE }
-#line 2249 "parser.cpp"
+#line 488 "parser.y"
+    {  }
+#line 2298 "parser.cpp"
     break;
 
   case 59:
-#line 440 "parser.y"
-    { PRINT_RULE }
-#line 2255 "parser.cpp"
+#line 489 "parser.y"
+    {  }
+#line 2304 "parser.cpp"
     break;
 
   case 60:
-#line 445 "parser.y"
-    { PRINT_RULE }
-#line 2261 "parser.cpp"
+#line 494 "parser.y"
+    {  }
+#line 2310 "parser.cpp"
     break;
 
   case 61:
-#line 446 "parser.y"
-    { PRINT_RULE }
-#line 2267 "parser.cpp"
+#line 495 "parser.y"
+    {  }
+#line 2316 "parser.cpp"
     break;
 
   case 62:
-#line 451 "parser.y"
-    { PRINT_RULE }
-#line 2273 "parser.cpp"
+#line 500 "parser.y"
+    {  }
+#line 2322 "parser.cpp"
     break;
 
   case 63:
-#line 452 "parser.y"
-    { PRINT_RULE }
-#line 2279 "parser.cpp"
+#line 501 "parser.y"
+    {  }
+#line 2328 "parser.cpp"
     break;
 
   case 64:
-#line 457 "parser.y"
-    { PRINT_RULE }
-#line 2285 "parser.cpp"
+#line 506 "parser.y"
+    {  }
+#line 2334 "parser.cpp"
     break;
 
   case 65:
-#line 458 "parser.y"
-    { PRINT_RULE }
-#line 2291 "parser.cpp"
+#line 507 "parser.y"
+    {  }
+#line 2340 "parser.cpp"
     break;
 
   case 66:
-#line 459 "parser.y"
-    { PRINT_RULE }
-#line 2297 "parser.cpp"
+#line 508 "parser.y"
+    {  }
+#line 2346 "parser.cpp"
     break;
 
   case 67:
-#line 460 "parser.y"
-    { PRINT_RULE }
-#line 2303 "parser.cpp"
+#line 509 "parser.y"
+    {  }
+#line 2352 "parser.cpp"
     break;
 
   case 68:
-#line 465 "parser.y"
-    { PRINT_RULE }
-#line 2309 "parser.cpp"
+#line 514 "parser.y"
+    {  }
+#line 2358 "parser.cpp"
     break;
 
   case 69:
-#line 466 "parser.y"
-    { PRINT_RULE }
-#line 2315 "parser.cpp"
+#line 515 "parser.y"
+    {  }
+#line 2364 "parser.cpp"
     break;
 
   case 70:
-#line 467 "parser.y"
-    { PRINT_RULE }
-#line 2321 "parser.cpp"
+#line 516 "parser.y"
+    {  }
+#line 2370 "parser.cpp"
     break;
 
   case 71:
-#line 468 "parser.y"
-    { PRINT_RULE }
-#line 2327 "parser.cpp"
+#line 517 "parser.y"
+    {  }
+#line 2376 "parser.cpp"
     break;
 
   case 72:
-#line 469 "parser.y"
-    { PRINT_RULE }
-#line 2333 "parser.cpp"
+#line 518 "parser.y"
+    {  }
+#line 2382 "parser.cpp"
     break;
 
   case 73:
-#line 470 "parser.y"
-    { PRINT_RULE }
-#line 2339 "parser.cpp"
+#line 519 "parser.y"
+    {  }
+#line 2388 "parser.cpp"
     break;
 
   case 74:
-#line 471 "parser.y"
-    { PRINT_RULE }
-#line 2345 "parser.cpp"
+#line 520 "parser.y"
+    {  }
+#line 2394 "parser.cpp"
     break;
 
   case 75:
-#line 472 "parser.y"
-    { PRINT_RULE }
-#line 2351 "parser.cpp"
+#line 521 "parser.y"
+    {  }
+#line 2400 "parser.cpp"
     break;
 
   case 76:
-#line 473 "parser.y"
-    { PRINT_RULE }
-#line 2357 "parser.cpp"
+#line 522 "parser.y"
+    {  }
+#line 2406 "parser.cpp"
     break;
 
   case 77:
-#line 474 "parser.y"
-    { PRINT_RULE }
-#line 2363 "parser.cpp"
+#line 523 "parser.y"
+    {  }
+#line 2412 "parser.cpp"
     break;
 
   case 78:
-#line 475 "parser.y"
-    { PRINT_RULE }
-#line 2369 "parser.cpp"
+#line 524 "parser.y"
+    {  }
+#line 2418 "parser.cpp"
     break;
 
   case 79:
-#line 480 "parser.y"
-    { PRINT_RULE }
-#line 2375 "parser.cpp"
+#line 529 "parser.y"
+    {  }
+#line 2424 "parser.cpp"
     break;
 
   case 80:
-#line 481 "parser.y"
-    { PRINT_RULE }
-#line 2381 "parser.cpp"
+#line 530 "parser.y"
+    {  }
+#line 2430 "parser.cpp"
     break;
 
   case 81:
-#line 482 "parser.y"
-    { PRINT_RULE }
-#line 2387 "parser.cpp"
+#line 531 "parser.y"
+    {  }
+#line 2436 "parser.cpp"
     break;
 
   case 82:
-#line 483 "parser.y"
-    { PRINT_RULE }
-#line 2393 "parser.cpp"
+#line 532 "parser.y"
+    {  }
+#line 2442 "parser.cpp"
     break;
 
   case 83:
-#line 484 "parser.y"
-    { PRINT_RULE }
-#line 2399 "parser.cpp"
+#line 533 "parser.y"
+    {  }
+#line 2448 "parser.cpp"
     break;
 
   case 84:
-#line 485 "parser.y"
-    { PRINT_RULE }
-#line 2405 "parser.cpp"
+#line 534 "parser.y"
+    {  }
+#line 2454 "parser.cpp"
     break;
 
   case 85:
-#line 486 "parser.y"
-    { PRINT_RULE }
-#line 2411 "parser.cpp"
+#line 535 "parser.y"
+    {  }
+#line 2460 "parser.cpp"
     break;
 
   case 86:
-#line 491 "parser.y"
-    { PRINT_RULE }
-#line 2417 "parser.cpp"
+#line 540 "parser.y"
+    {  }
+#line 2466 "parser.cpp"
     break;
 
   case 87:
-#line 496 "parser.y"
-    { PRINT_RULE }
-#line 2423 "parser.cpp"
+#line 545 "parser.y"
+    {  }
+#line 2472 "parser.cpp"
     break;
 
   case 88:
-#line 501 "parser.y"
-    { PRINT_RULE }
-#line 2429 "parser.cpp"
+#line 550 "parser.y"
+    {  }
+#line 2478 "parser.cpp"
     break;
 
   case 89:
-#line 502 "parser.y"
-    { PRINT_RULE }
-#line 2435 "parser.cpp"
+#line 551 "parser.y"
+    {  }
+#line 2484 "parser.cpp"
     break;
 
   case 93:
-#line 506 "parser.y"
-    { PRINT_RULE }
-#line 2441 "parser.cpp"
+#line 555 "parser.y"
+    {  }
+#line 2490 "parser.cpp"
     break;
 
   case 94:
-#line 511 "parser.y"
-    { PRINT_RULE }
-#line 2447 "parser.cpp"
+#line 560 "parser.y"
+    {  }
+#line 2496 "parser.cpp"
     break;
 
   case 95:
-#line 512 "parser.y"
-    { PRINT_RULE }
-#line 2453 "parser.cpp"
+#line 561 "parser.y"
+    {  }
+#line 2502 "parser.cpp"
     break;
 
   case 96:
-#line 513 "parser.y"
-    { PRINT_RULE }
-#line 2459 "parser.cpp"
+#line 562 "parser.y"
+    {  }
+#line 2508 "parser.cpp"
     break;
 
   case 97:
-#line 514 "parser.y"
-    { PRINT_RULE }
-#line 2465 "parser.cpp"
+#line 563 "parser.y"
+    {  }
+#line 2514 "parser.cpp"
     break;
 
   case 98:
-#line 515 "parser.y"
-    { PRINT_RULE }
-#line 2471 "parser.cpp"
+#line 564 "parser.y"
+    {  }
+#line 2520 "parser.cpp"
     break;
 
   case 99:
-#line 516 "parser.y"
-    { PRINT_RULE }
-#line 2477 "parser.cpp"
+#line 565 "parser.y"
+    {  }
+#line 2526 "parser.cpp"
     break;
 
   case 100:
-#line 517 "parser.y"
-    { PRINT_RULE }
-#line 2483 "parser.cpp"
+#line 566 "parser.y"
+    {  }
+#line 2532 "parser.cpp"
     break;
 
   case 101:
-#line 518 "parser.y"
-    { PRINT_RULE }
-#line 2489 "parser.cpp"
+#line 567 "parser.y"
+    {  }
+#line 2538 "parser.cpp"
     break;
 
   case 102:
-#line 523 "parser.y"
-    {/*de asemenea nu stiu daca este ok ce fac aicea*/ PRINT_RULE }
-#line 2495 "parser.cpp"
+#line 572 "parser.y"
+    {/*de asemenea nu stiu daca este ok ce fac aicea*/  }
+#line 2544 "parser.cpp"
     break;
 
   case 103:
-#line 528 "parser.y"
-    { PRINT_RULE }
-#line 2501 "parser.cpp"
+#line 577 "parser.y"
+    {  }
+#line 2550 "parser.cpp"
     break;
 
   case 104:
-#line 529 "parser.y"
-    { PRINT_RULE }
-#line 2507 "parser.cpp"
+#line 578 "parser.y"
+    {  }
+#line 2556 "parser.cpp"
     break;
 
   case 105:
-#line 534 "parser.y"
-    { PRINT_RULE }
-#line 2513 "parser.cpp"
+#line 583 "parser.y"
+    {  }
+#line 2562 "parser.cpp"
     break;
 
   case 106:
-#line 539 "parser.y"
-    { PRINT_RULE }
-#line 2519 "parser.cpp"
+#line 588 "parser.y"
+    {  }
+#line 2568 "parser.cpp"
     break;
 
   case 107:
-#line 544 "parser.y"
-    { PRINT_RULE }
-#line 2525 "parser.cpp"
+#line 593 "parser.y"
+    {  }
+#line 2574 "parser.cpp"
     break;
 
   case 108:
-#line 549 "parser.y"
-    { PRINT_RULE }
-#line 2531 "parser.cpp"
+#line 598 "parser.y"
+    {  }
+#line 2580 "parser.cpp"
     break;
 
   case 109:
-#line 554 "parser.y"
-    { PRINT_RULE }
-#line 2537 "parser.cpp"
+#line 603 "parser.y"
+    {  }
+#line 2586 "parser.cpp"
     break;
 
   case 110:
-#line 559 "parser.y"
-    { PRINT_RULE }
-#line 2543 "parser.cpp"
+#line 608 "parser.y"
+    {  }
+#line 2592 "parser.cpp"
     break;
 
   case 111:
-#line 560 "parser.y"
-    { PRINT_RULE }
-#line 2549 "parser.cpp"
+#line 609 "parser.y"
+    {  }
+#line 2598 "parser.cpp"
     break;
 
   case 112:
-#line 565 "parser.y"
-    { PRINT_RULE }
-#line 2555 "parser.cpp"
+#line 614 "parser.y"
+    {  }
+#line 2604 "parser.cpp"
     break;
 
   case 113:
-#line 566 "parser.y"
-    { PRINT_RULE }
-#line 2561 "parser.cpp"
+#line 615 "parser.y"
+    {  }
+#line 2610 "parser.cpp"
     break;
 
   case 114:
-#line 567 "parser.y"
-    { PRINT_RULE }
-#line 2567 "parser.cpp"
+#line 616 "parser.y"
+    {  }
+#line 2616 "parser.cpp"
     break;
 
   case 115:
-#line 568 "parser.y"
-    { PRINT_RULE }
-#line 2573 "parser.cpp"
+#line 617 "parser.y"
+    {  }
+#line 2622 "parser.cpp"
     break;
 
   case 116:
-#line 569 "parser.y"
-    { PRINT_RULE }
-#line 2579 "parser.cpp"
+#line 618 "parser.y"
+    {  }
+#line 2628 "parser.cpp"
     break;
 
   case 117:
-#line 570 "parser.y"
-    { PRINT_RULE }
-#line 2585 "parser.cpp"
+#line 619 "parser.y"
+    {  }
+#line 2634 "parser.cpp"
     break;
 
   case 118:
-#line 575 "parser.y"
-    { PRINT_RULE }
-#line 2591 "parser.cpp"
+#line 624 "parser.y"
+    {  }
+#line 2640 "parser.cpp"
     break;
 
   case 119:
-#line 580 "parser.y"
-    { PRINT_RULE }
-#line 2597 "parser.cpp"
+#line 629 "parser.y"
+    {  }
+#line 2646 "parser.cpp"
     break;
 
   case 120:
-#line 581 "parser.y"
-    { PRINT_RULE }
-#line 2603 "parser.cpp"
+#line 630 "parser.y"
+    {  }
+#line 2652 "parser.cpp"
     break;
 
   case 121:
-#line 584 "parser.y"
-    { PRINT_RULE }
-#line 2609 "parser.cpp"
+#line 633 "parser.y"
+    {  }
+#line 2658 "parser.cpp"
     break;
 
   case 122:
-#line 585 "parser.y"
-    { PRINT_RULE }
-#line 2615 "parser.cpp"
+#line 634 "parser.y"
+    {  }
+#line 2664 "parser.cpp"
     break;
 
   case 123:
-#line 586 "parser.y"
-    { PRINT_RULE }
-#line 2621 "parser.cpp"
+#line 635 "parser.y"
+    {  }
+#line 2670 "parser.cpp"
     break;
 
   case 124:
-#line 587 "parser.y"
-    { PRINT_RULE }
-#line 2627 "parser.cpp"
+#line 636 "parser.y"
+    {  }
+#line 2676 "parser.cpp"
     break;
 
   case 125:
-#line 588 "parser.y"
-    { PRINT_RULE }
-#line 2633 "parser.cpp"
+#line 637 "parser.y"
+    {  }
+#line 2682 "parser.cpp"
     break;
 
   case 126:
-#line 589 "parser.y"
-    { PRINT_RULE }
-#line 2639 "parser.cpp"
+#line 638 "parser.y"
+    {  }
+#line 2688 "parser.cpp"
     break;
 
   case 127:
-#line 592 "parser.y"
-    { PRINT_RULE }
-#line 2645 "parser.cpp"
+#line 641 "parser.y"
+    {  }
+#line 2694 "parser.cpp"
     break;
 
   case 128:
-#line 593 "parser.y"
-    { PRINT_RULE }
-#line 2651 "parser.cpp"
+#line 642 "parser.y"
+    {  }
+#line 2700 "parser.cpp"
     break;
 
   case 129:
-#line 594 "parser.y"
-    { PRINT_RULE }
-#line 2657 "parser.cpp"
+#line 643 "parser.y"
+    {  }
+#line 2706 "parser.cpp"
     break;
 
   case 130:
-#line 595 "parser.y"
-    { PRINT_RULE }
-#line 2663 "parser.cpp"
+#line 644 "parser.y"
+    {  }
+#line 2712 "parser.cpp"
     break;
 
   case 131:
-#line 596 "parser.y"
-    { PRINT_RULE }
-#line 2669 "parser.cpp"
+#line 645 "parser.y"
+    {  }
+#line 2718 "parser.cpp"
     break;
 
   case 132:
-#line 597 "parser.y"
-    { PRINT_RULE }
-#line 2675 "parser.cpp"
+#line 646 "parser.y"
+    {  }
+#line 2724 "parser.cpp"
     break;
 
   case 133:
-#line 598 "parser.y"
-    { PRINT_RULE }
-#line 2681 "parser.cpp"
+#line 647 "parser.y"
+    {  }
+#line 2730 "parser.cpp"
     break;
 
   case 134:
-#line 599 "parser.y"
-    { PRINT_RULE }
-#line 2687 "parser.cpp"
+#line 648 "parser.y"
+    {  }
+#line 2736 "parser.cpp"
     break;
 
   case 135:
-#line 600 "parser.y"
-    { PRINT_RULE }
-#line 2693 "parser.cpp"
+#line 649 "parser.y"
+    {  }
+#line 2742 "parser.cpp"
     break;
 
   case 136:
-#line 601 "parser.y"
-    { PRINT_RULE }
-#line 2699 "parser.cpp"
+#line 650 "parser.y"
+    {  }
+#line 2748 "parser.cpp"
     break;
 
   case 137:
-#line 602 "parser.y"
-    { PRINT_RULE }
-#line 2705 "parser.cpp"
+#line 651 "parser.y"
+    {  }
+#line 2754 "parser.cpp"
     break;
 
   case 138:
-#line 603 "parser.y"
-    { PRINT_RULE }
-#line 2711 "parser.cpp"
+#line 652 "parser.y"
+    {  }
+#line 2760 "parser.cpp"
     break;
 
   case 139:
-#line 604 "parser.y"
-    { PRINT_RULE }
-#line 2717 "parser.cpp"
+#line 653 "parser.y"
+    {  }
+#line 2766 "parser.cpp"
     break;
 
   case 140:
-#line 605 "parser.y"
-    { PRINT_RULE }
-#line 2723 "parser.cpp"
+#line 654 "parser.y"
+    {  }
+#line 2772 "parser.cpp"
     break;
 
   case 141:
-#line 606 "parser.y"
-    { PRINT_RULE }
-#line 2729 "parser.cpp"
+#line 655 "parser.y"
+    {  }
+#line 2778 "parser.cpp"
     break;
 
   case 142:
-#line 609 "parser.y"
-    { PRINT_RULE }
-#line 2735 "parser.cpp"
+#line 658 "parser.y"
+    {  }
+#line 2784 "parser.cpp"
     break;
 
   case 143:
-#line 610 "parser.y"
-    { PRINT_RULE }
-#line 2741 "parser.cpp"
+#line 659 "parser.y"
+    {  }
+#line 2790 "parser.cpp"
     break;
 
   case 144:
-#line 611 "parser.y"
-    { PRINT_RULE }
-#line 2747 "parser.cpp"
+#line 660 "parser.y"
+    {  }
+#line 2796 "parser.cpp"
     break;
 
   case 145:
-#line 612 "parser.y"
-    { PRINT_RULE }
-#line 2753 "parser.cpp"
+#line 661 "parser.y"
+    {  }
+#line 2802 "parser.cpp"
     break;
 
   case 146:
-#line 617 "parser.y"
-    { PRINT_RULE }
-#line 2759 "parser.cpp"
+#line 666 "parser.y"
+    {  }
+#line 2808 "parser.cpp"
     break;
 
   case 147:
-#line 622 "parser.y"
-    { PRINT_RULE }
-#line 2765 "parser.cpp"
+#line 671 "parser.y"
+    {  }
+#line 2814 "parser.cpp"
     break;
 
   case 148:
-#line 623 "parser.y"
-    { PRINT_RULE }
-#line 2771 "parser.cpp"
+#line 672 "parser.y"
+    {  }
+#line 2820 "parser.cpp"
     break;
 
   case 149:
-#line 624 "parser.y"
-    { PRINT_RULE }
-#line 2777 "parser.cpp"
+#line 673 "parser.y"
+    {  }
+#line 2826 "parser.cpp"
     break;
 
   case 150:
-#line 625 "parser.y"
-    { PRINT_RULE }
-#line 2783 "parser.cpp"
+#line 674 "parser.y"
+    {  }
+#line 2832 "parser.cpp"
     break;
 
   case 151:
-#line 626 "parser.y"
-    { PRINT_RULE }
-#line 2789 "parser.cpp"
+#line 675 "parser.y"
+    {  }
+#line 2838 "parser.cpp"
     break;
 
   case 152:
-#line 627 "parser.y"
-    { PRINT_RULE }
-#line 2795 "parser.cpp"
+#line 676 "parser.y"
+    {  }
+#line 2844 "parser.cpp"
     break;
 
   case 153:
-#line 628 "parser.y"
-    { PRINT_RULE }
-#line 2801 "parser.cpp"
+#line 677 "parser.y"
+    {  }
+#line 2850 "parser.cpp"
     break;
 
   case 154:
-#line 629 "parser.y"
-    { PRINT_RULE }
-#line 2807 "parser.cpp"
+#line 678 "parser.y"
+    {  }
+#line 2856 "parser.cpp"
     break;
 
   case 155:
-#line 630 "parser.y"
-    { PRINT_RULE }
-#line 2813 "parser.cpp"
+#line 679 "parser.y"
+    {  }
+#line 2862 "parser.cpp"
     break;
 
   case 156:
-#line 631 "parser.y"
-    { PRINT_RULE }
-#line 2819 "parser.cpp"
+#line 680 "parser.y"
+    {  }
+#line 2868 "parser.cpp"
     break;
 
   case 157:
-#line 632 "parser.y"
-    { PRINT_RULE }
-#line 2825 "parser.cpp"
+#line 681 "parser.y"
+    {  }
+#line 2874 "parser.cpp"
     break;
 
   case 158:
-#line 633 "parser.y"
-    { PRINT_RULE }
-#line 2831 "parser.cpp"
+#line 682 "parser.y"
+    {  }
+#line 2880 "parser.cpp"
     break;
 
   case 159:
-#line 638 "parser.y"
-    { PRINT_RULE }
-#line 2837 "parser.cpp"
+#line 687 "parser.y"
+    {  }
+#line 2886 "parser.cpp"
     break;
 
 
-#line 2841 "parser.cpp"
+#line 2890 "parser.cpp"
 
       default: break;
     }
@@ -3075,12 +3124,12 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 641 "parser.y"
+#line 690 "parser.y"
 
 
-void print_rule(int num, char* s)
-{
-}
+//void print_rule(int num, char* s)
+//{
+//}
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg)
 {
@@ -3089,4 +3138,16 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 	parse_state->errorColumn = locp->first_column;
 	parse_state->errorMessage = msg;
 	parse_state->errorToken = locp->last_token;
+}
+
+std::shared_ptr<VariableDeclaration> search_variable
+(std::string name)
+{
+	return nullptr;
+}
+
+std::shared_ptr<VariableDeclaration> search_variable_in_class
+(std::string name, std::string class_object)
+{
+	return nullptr;
 }

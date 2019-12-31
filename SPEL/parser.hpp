@@ -44,7 +44,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 9 "parser.y"
+#line 11 "parser.y"
 
 
 #include "Memory.hpp"
@@ -87,7 +87,7 @@ struct YYLTYPE
 	while (0)
 
 void print_rule(int num, char* s);
-#define PRINT_RULE print_rule(__LINE__, nullptr);
+#define  print_rule(__LINE__, nullptr);
 
 #line 93 "parser.hpp"
 
@@ -153,16 +153,9 @@ void print_rule(int num, char* s);
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 90 "parser.y"
+#line 96 "parser.y"
 
-	bool* booling;
-	char* chr;
-	float* floating;
-	std::string* str;
-	int* integer;
 	Node* node;
-	CompileUnit* c_unit;
-	BlockHolder* bl_holder;
 	DeclarationHolder* dec_holder;
 	ClassDefinition* class_def;
 	IntVal* int_val;
@@ -179,7 +172,9 @@ union YYSTYPE
 	FunctionCall* func_call;
 	Return* ret;
 
-#line 183 "parser.hpp"
+	std::vector< std::shared_ptr<Expression>>* exprs;
+
+#line 178 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
