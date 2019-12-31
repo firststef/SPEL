@@ -4,8 +4,9 @@
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
-std::shared_ptr<VariableDeclaration> search_variable(std::string name);
+VariableDeclaration* search_variable(std::string name);
 std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object);
+Expression* auxExpression;
 %}
 
 %code requires{
@@ -87,9 +88,9 @@ void print_rule(int num, char* s);
 %type <class_def> class_def class_body
 %type <func_decl> function_def
 %type <dec_holder> class_var class_f
-%type <variable_dec> type class_id const_class_id
-%type <int_val> vector_size
-%type <expr> class_id_initialization vector_position
+%type <variable_dec> type class_id const_class_id var
+%type <int_val> vector_size vector_position
+%type <expr> class_id_initialization  eval_expr expr
 %type <func_call> call_parameters
 %type <exprs> vector_initialization
 
@@ -380,7 +381,7 @@ class_id_initialization
 		$$=new Expression();
 		$$->name = $1->value;
 		$$->e_type = VECTOR_NAME;
-		$$->position = $3->value.int_val->value; //trebuie evaluata aici poz
+		$$->position = $3->value; //trebuie evaluata aici poz
 		delete $3;
 		//to be implemented - need type deduction
 		//by searching for variable
@@ -449,11 +450,31 @@ call_parameters : TIME {  }
 
 
 
-vector_position : ID {  }
-				| NR {  }
-				| CHNT ID SACRF call_parameters ':' {  }
-				| ID '[' vector_position ']' {  }
-				;
+vector_position : ID { 
+		//asta e facut tot de mine, pentru ca am avut nevoie mai jos de unde am inceput
+
+		$$ = new IntVal();
+		$$->value=search_variable($1->value)->value.int_val->value;
+		delete $1;
+	}
+  | NR { 
+		$$=new IntVal();
+		$$=$1;
+		//delete $1;
+	}
+  | CHNT ID SACRF call_parameters ':' { 
+		$$=new IntVal();
+
+		auxExpression = new Expression();
+		auxExpression->call = std::shared_ptr<FunctionCall>($4);
+		auxExpression->call->name = $2->value;
+		auxExpression->e_type = CALL;
+		
+		//verificare daca functia e INT
+		//if (auxExpression->call->return_type!=TYPE_INT) yyerror();
+	}
+  | ID '[' vector_position ']' {  }
+  ;
 
 
 
@@ -627,33 +648,199 @@ for_body : function_body {  }
 
 
 eval_expr : expr {  }
-		  | ENCH var WITH expr {  }
-		  ;
+  | ENCH var WITH expr {
+		//de aici in jos facut-am eu 
 
-var : ID {  }
-	| ID '[' vector_position ']' {  }
-	| ID OF ID {  }
-	| ID '[' vector_position ']' OF ID {  }
-	| ID OF ID '[' vector_position ']' {  }
-	| ID '[' vector_position ']' OF ID '[' vector_position ']' {  }
-	;
 
-expr: '(' expr ')' {  }
-	 | expr '+' expr {  }
-	 | expr '-' expr {  }
-	 | expr '*' expr {  }
-	 | expr '/' expr {  }
-	 | expr '%' expr {  }
-	 | '-' expr %prec UMINUS {  }
-	 | var {  }
-     | CHNT ID SACRF call_parameters ':' {  }
-	 | NR {  }
-	 | NRF {  }
-	 | CHR {  }
-	 | STR {  }
-	 | TRUE {  }
-	 | FALSE {  }
-	 ;
+		$$=new Expression();
+		//$2->value=$4->value; //asta daca calculam expr
+		$2->expr=std::shared_ptr<Expression>($4);
+	}
+  ;
+
+var : ID { 
+		
+		$$=search_variable($1->value);
+
+	}
+  | ID '[' vector_position ']' {
+		$$=search_variable($1->value);
+		$$->position_in_vector=$3->value;
+	}
+  | ID OF ID { /*cum asta nu mai e posibila la noi nu o mai facem, nici celelalte de mai jos*/ }
+  | ID '[' vector_position ']' OF ID {  }
+  | ID OF ID '[' vector_position ']' {  }
+  | ID '[' vector_position ']' OF ID '[' vector_position ']' {  }
+  ;
+
+expr: '(' expr ')' { 
+		$$=new Expression();
+		$$=$2;
+		//delete $2;
+	}
+  | expr '+' expr { 
+		$$=new Expression();
+		//if ($1->type!=$3->type) yyerror();
+		$$->type=$1->type;
+
+		switch($$->type){
+			case TYPE_INT:
+				$$->value.int_val->value=$1->value.int_val->value+$3->value.int_val->value;
+				break;
+			case TYPE_FLOAT:
+				$$->value.float_val->value=$1->value.float_val->value+$3->value.float_val->value;
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val->value=$1->value.char_val->value+$3->value.char_val->value;
+				break;
+			case TYPE_STRING:
+				$$->value.string_val->value=$1->value.string_val->value+$3->value.string_val->value;
+				break;
+
+			case TYPE_BOOL:
+				$$->value.bool_val->value=$1->value.bool_val->value+$3->value.bool_val->value;
+				break;
+			default: 
+				//pt none si type_object(nu avem overloaded operators)
+				//yyerror();
+				break;
+		}
+		
+	}
+  | expr '-' expr { 
+		$$=new Expression();
+		//if ($1->type!=$3->type) yyerror();
+		$$->type=$1->type;
+		switch($$->type){
+			case TYPE_INT:
+				$$->value.int_val->value=$1->value.int_val->value-$3->value.int_val->value;
+				break;
+			case TYPE_FLOAT:
+				$$->value.float_val->value=$1->value.float_val->value-$3->value.float_val->value;
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val->value=$1->value.char_val->value-$3->value.char_val->value;
+				break;
+
+
+			case TYPE_BOOL:
+				$$->value.bool_val->value=$1->value.bool_val->value-$3->value.bool_val->value;
+				break;
+			default: 
+				//pt none si type_object(nu avem overloaded operators)
+				//pt string nu are sens sa faci "-". Daca vrei putem pune.
+				//yyerror();
+				break;
+		}
+	}
+  | expr '*' expr { 
+		$$=new Expression();
+		//if ($1->type!=$3->type) yyerror();
+		$$->type=$1->type;
+		switch($$->type){
+			case TYPE_INT:
+				$$->value.int_val->value=$1->value.int_val->value*$3->value.int_val->value;
+				break;
+			case TYPE_FLOAT:
+				$$->value.float_val->value=$1->value.float_val->value*$3->value.float_val->value;
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val->value=$1->value.char_val->value*$3->value.char_val->value;
+				break;
+
+
+			case TYPE_BOOL:
+				$$->value.bool_val->value=$1->value.bool_val->value*$3->value.bool_val->value;
+				break;
+			default: 
+				//pt none si type_object(nu avem overloaded operators)
+				//pt string nu are sens sa faci "*". Daca vrei putem pune.
+				//yyerror();
+				break;
+		}
+	}
+  | expr '/' expr { 
+		$$=new Expression();
+		//if ($1->type!=$3->type) yyerror();
+		$$->type=$1->type;
+		switch($$->type){
+			case TYPE_INT:
+				$$->value.int_val->value=$1->value.int_val->value/$3->value.int_val->value;
+				break;
+			case TYPE_FLOAT:
+				$$->value.float_val->value=$1->value.float_val->value/$3->value.float_val->value;
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val->value=$1->value.char_val->value/$3->value.char_val->value;
+				break;
+			default: 
+				//pt none si type_object(nu avem overloaded operators)
+				//nici string nici bool nu ii facut
+				//yyerror();
+				break;
+		}
+	}
+  | expr '%' expr { 
+		$$=new Expression();
+		//if ($1->type!=$3->type) yyerror();
+		$$->type=$1->type;
+		switch($$->type){
+			case TYPE_INT:
+				$$->value.int_val->value=$1->value.int_val->value%$3->value.int_val->value;
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val->value=$1->value.char_val->value%$3->value.char_val->value;
+				break;
+			default: 
+				//pt none si type_object(nu avem overloaded operators)
+				//nici string nici bool nu ii facut
+				//yyerror();
+				break;
+		}
+	}
+  | '-' expr %prec UMINUS { 
+		$$=new Expression();
+		$$->type=$2->type;
+		switch($$->type){
+			case TYPE_INT:
+				$$->value.int_val->value=-$2->value.int_val->value;
+				break;
+			case TYPE_FLOAT:
+				$$->value.float_val->value=-$2->value.float_val->value;
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val->value=-$2->value.char_val->value;
+				break;
+			default: 
+				//yyerror();
+				break;
+		}
+	}
+  | var { 
+		$$=new Expression();
+		$$->type=$1->type;
+		$$->value=$1->value;
+		//delete $1;
+	}
+  | CHNT ID SACRF call_parameters ':' { 
+		$$=new Expression();
+		$$->call=std::shared_ptr<FunctionCall>($4);
+		$$->call->name = $2->value;
+		$$->e_type = CALL;
+		$$->type=$$->call->return_type;
+		$$->value=$$->call->return_value;
+	}
+  | NR { 
+		$$=new Expression();
+		$$->type=TYPE_INT;
+		$$->value.int_val->value=$1->value;
+	}
+  | NRF {  }
+  | CHR {  }
+  | STR {  }
+  | TRUE {  }
+  | FALSE {  }
+  ;
 
 no_return_function_body : class_var no_return_function_body {  }
 						| function_instruction no_return_function_body {  }
@@ -702,7 +889,8 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 	parse_state->errorToken = locp->last_token;
 }
 
-std::shared_ptr<VariableDeclaration> search_variable
+//modificat pentru ca am nevoie sa fie tipul asta
+VariableDeclaration* search_variable
 (std::string name)
 {
 	return nullptr;

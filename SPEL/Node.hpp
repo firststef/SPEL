@@ -141,6 +141,8 @@ struct VariableDeclaration
 	TypeValue value;
 	std::vector<TypeValue> values;
 	int size_of_vector = 0;
+	int position_in_vector; //atunci cand accesam a[5]
+
 	
 	std::string context;
 	
@@ -232,7 +234,8 @@ struct FunctionDeclaration : ContextUnit
 struct FunctionCall
 {
 	Identifier name;
-
+	Type return_type;
+	TypeValue return_value;
 	std::vector<std::shared_ptr<Expression>> params;
 };
 
