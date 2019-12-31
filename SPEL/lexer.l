@@ -44,7 +44,7 @@ artifact { return CONST; }
 true { yylval->bool_val = new BoolVal({ true }); return TRUE; }
 false { yylval->bool_val = new BoolVal({ false }); return FALSE; }
 {CHAR} { yylval->char_val = new CharVal({ yytext[0] }); return CHR; }
-{STRING} { yylval->string_val = new StringVal({ std::string(yytext,yylen) }); return STR; }
+{STRING} { yylval->string_val = new StringVal({ std::string(yytext,yyleng) }); return STR; }
 
  /* Operators */
 "<=" {return LEQ; }
@@ -89,16 +89,16 @@ for {return FOR; }
 EVAL {return EVAL; }
 
 {IDENTIFIER} {
-	yylval->string_val = new StringVal({ std::string(yytext,yylen) });
+	yylval->string_val = new StringVal({ std::string(yytext,yyleng) });
 	return ID; 
 }
 {INTEGER} {
-	std::string store(yytext, yylen);
+	std::string store(yytext, yyleng);
 	yylval->int_val = new IntVal({ atoi(store.c_str()) });
 	return NR; 
 }
 {FLOAT} {
-	std::string store(yytext, yylen);
+	std::string store(yytext, yyleng);
 	yylval->float_val = new FloatVal({ float(atof(store.c_str())) });
 	return NRF; 
 }

@@ -87,7 +87,7 @@ void print_rule(int num, char* s);
 %type <class_def> class_body
 %type <dec_holder> class_var, class_f
 %type <variable_dec> type, class_id
-%type <integer> vector_size
+%type <int_val> vector_size
 %type <expr> class_id_initialization
 
 %union {
@@ -200,176 +200,178 @@ class_var
   : CRAFT type class_id '.' { 
 		$$=new DeclarationHolder();
 		$$->type=VAR_DEC;
-		$$->var_dec=std::make_shared<VariableDeclaration>();
-		$$->var_dec->type=$2->type;
-		$$->var_dec->class_name=$2->class_name;
+		$$->var_dec = std::shared_ptr<VariableDeclaration>($2);
 	}
   | CRAFT CONST type const_class_id '.' {  }
 ;
 
-type : ID { 
-	$$=new VariableDeclaration();
-	$$->type=TYPE_OBJECT;
-	$$->class_name=ID;
-	 
-}
-	 | INT { 
-	$$=new VariableDeclaration();
-	$$->type=TYPE_INT;
-	 
-}
-	 | FLOAT { 
-	$$=new VariableDeclaration();
-	$$->type=TYPE_FLOAT;
-	 
-}
-	 | CHAR { 
-	$$=new VariableDeclaration();
-	$$->type=TYPE_CHAR;
-	 
-}
-	 | STRING { 
-	$$=new VariableDeclaration();
-	$$->type=TYPE_STRING;
-	 
-}
-	 | BOOL { 
-	$$=new VariableDeclaration();
-	$$->type=TYPE_BOOL;
-	 
-}
-	 ;
+type 
+  : ID { 
+		$$=new VariableDeclaration();
+		$$->type=TYPE_OBJECT;
+		$$->class_name = $1->value;
+		delete $1;
+	}
+  | INT { 
+		$$=new VariableDeclaration();
+		$$->type=TYPE_INT;
+	}
+  | FLOAT { 
+		$$=new VariableDeclaration();
+		$$->type=TYPE_FLOAT;	 
+	}
+  | CHAR { 
+		$$=new VariableDeclaration();
+		$$->type=TYPE_CHAR;
+	}
+  | STRING { 
+		$$=new VariableDeclaration();
+		$$->type=TYPE_STRING;
+	}
+  | BOOL { 
+		$$=new VariableDeclaration();
+		$$->type=TYPE_BOOL; 
+	}
+  ;
+
+
+  /* To be removed */
+class_ids 
+  : class_id {  }
+  | class_id ',' class_ids {  }
+  ;
 
 
 
-class_ids : class_id {  }
-		  | class_id ',' class_ids {  }
-		  ;
+class_id 
+  : ID { 
+		$$=new VariableDeclaration();
+		$$->name = $1->value;
+		delete $1;
+	}
+  | ID BSTOW class_id_initialization { 
+		$$=new VariableDeclaration();
+		$$->name = $1->value;
+		delete $1;
+
+		//de verificat daca aici ID are acelasi tip cu tipul class_id_initiaization
+
+		$$->expr = std::shared_ptr<Expression>($3);
+	}
+  | ID '[' vector_size ']' { 
+		$$=new VariableDeclaration();
+		$$->name= $1->value;
+		delete $1;
+
+		$$->size_of_vector = $3->value;
+		delete $3;
+	}
+  | ID '[' vector_size ']' BSTOW vector_initialization {
+		$$=new VariableDeclaration();
+		$$->name = $1->value;
+		delete $1;
+
+		//ceva de rezolvat initializarea ca mai jos
+		//$$->exprs=$6;
+		//initializarea mai trebuie facuta
+
+		$$->size_of_vector=$3->value;
+		delete $3;
+	}
+  ;
 
 
 
-class_id : ID { 
-	$$=new VariableDeclaration();
-	$$->name=ID;
-	 
-}
-		 | ID BSTOW class_id_initialization { 
-	$$=new VariableDeclaration();
-	$$->name=ID;
-	$$->expr=std::shared_ptr<Expression>($3);
-	//initializarea mai trebuie facuta
-	 
-}
-		 | ID '[' vector_size ']' { 
-	$$=new VariableDeclaration();
-	$$->name=ID;
-	
-	$$->size_of_vector=*$3;
-	
-}
-		 | ID '[' vector_size ']' BSTOW vector_initialization { 
-	$$=new VariableDeclaration();
-	$$->name=ID;
-	//ceva de rezolvat initializarea ca mai jos
-	//$$->exprs=$6;
-	//initializarea mai trebuie facuta
-	
-	$$->size_of_vector=*$3;
-	
-}
-		 ;
+class_id_initialization 
+  : ID { 
+		$$=new Expression();
+		$$->name= $1->value;
+		delete $1;
+	}
+  | NR { 
+		$$=new Expression();
+		$$->type=TYPE_INT;
+		$$->value.int_val = std::shared_ptr<IntVal>($1);
+	}
+  | NRF { 
+		$$=new Expression();
+		$$->type = TYPE_FLOAT;
+		$$->value.float_val = std::shared_ptr<FloatVal>($1);
+	}
+  | CHR { 
+		$$=new Expression();
+		$$->type = TYPE_CHAR;
+		$$->value.char_val = std::shared_ptr<CharVal>($1);
+	}
+  | STR { 
+		$$=new Expression();
+		$$->type = TYPE_STRING;
+		$$->value.string_val = std::shared_ptr<StringVal>($1);
+	}
+  | TRUE { 
+		$$=new Expression();
+		$$->type = TYPE_BOOL;
+		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
+	}
+  | FALSE { 
+		$$=new Expression();
+		$$->type = TYPE_BOOL;
+		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
+	}
+  | CHNT ID SACRF call_parameters ':' { 
+		$$ = new Expression();
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+  | ID '[' vector_position ']' { 
+		$$=new Expression();
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+  | ID OF ID { 
+		$$=new Expression();
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+  | ID '[' vector_position ']' OF ID { 
+		$$=new Expression();
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+  | ID OF ID '[' vector_position ']' { 
+		$$=new Expression(); 
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+  | ID '[' vector_position ']' OF ID '[' vector_position ']' { 
+		$$=new Expression();
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+  | eval_expr { 
+		$$=new Expression();
+		//$$->type = $1->type;
+		//$$->value = $1->value;
+	}
+  ;
 
 
 
-class_id_initialization : ID { 
-	$$=new Expression();
-	$$->name=*$1;
-	printf("\n\n%s\n\n", $$->name.c_str());//??
-	 
-}
-						| NR { 
-	$$=new Expression();
-	$$->type=TYPE_INT;
-	//$$->value=$1;//??
-	printf("\n\n%d\n\n", $1);//??
-	 
-}
-						| NRF { 
-	$$=new Expression();
-
-	 
-}
-						| CHR { 
-	$$=new Expression();
-
-	 
-}
-						| STR { 
-	$$=new Expression();
-
-	 
-}
-						| TRUE { 
-	$$=new Expression();
-
-	 
-}
-						| FALSE { 
-	$$=new Expression();
-
-	 
-}
-						| CHNT ID SACRF call_parameters ':' { 
-	$$=new Expression();
-
-	 
-}
-						| ID '[' vector_position ']' { 
-	$$=new Expression();
-
-	 
-}
-						| ID OF ID { 
-	$$=new Expression();
-
-	 
-}
-						| ID '[' vector_position ']' OF ID { 
-	$$=new Expression();
-
-	 
-}
-						| ID OF ID '[' vector_position ']' { 
-	$$=new Expression();
-
-	 
-}
-						| ID '[' vector_position ']' OF ID '[' vector_position ']' { 
-	$$=new Expression();
-
-	 
-}
-						| eval_expr { 
-	$$=new Expression();
-
-	 
-}
-						;
-
-
-
-vector_size : {
-	$$=new int();
-	*$$=0;
-	 
-}
-			| NR {
-	$$=new int();
-	*$$=NR;
-	 
-}
-			;
-
+vector_size 
+  : {
+	  $$ = new IntVal({ 0 });
+	}
+  | NR {
+		$$ = new IntVal({$1->value});
+		delete $1;
+	}
+  ;
 
 
 vector_initialization : '[' vector_body ']' {  }
@@ -629,9 +631,9 @@ declaration : class_var {  }
 
 %%
 
-void print_rule(int num, char* s)
-{
-}
+//void print_rule(int num, char* s)
+//{
+//}
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg)
 {

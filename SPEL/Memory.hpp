@@ -2,12 +2,13 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 
 struct ParseState
 {
 	std::shared_ptr<Node> rootNode;
-	//TNode* topNode;
-	void* memContext;
+	
+	std::stack<std::vector<std::shared_ptr<VariableDeclaration>>> variableStack;
 
 	int hasError = 0;
 	int errorLine;
@@ -15,8 +16,4 @@ struct ParseState
 	int errorColumn;
 	std::string errorMessage;
 	std::string errorToken;
-
-	//NodeLink* nodeStack;
-	//int numRawCodeBlocks[RCT_Count];
-	int numOpenBrackets;
 };

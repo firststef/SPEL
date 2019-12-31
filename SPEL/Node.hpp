@@ -13,6 +13,8 @@ struct Assignment;
 struct DeclarationHolder;
 struct ClassDefinition;
 
+
+
 struct Node{
 
 	std::shared_ptr<CompileUnit> c_unit;
@@ -28,6 +30,7 @@ struct BlockHolder {
 	std::shared_ptr<ClassDefinition> class_dec;
 	std::shared_ptr<DeclarationHolder> decl_dec;
 };
+
 struct CompileUnit
 {
 	std::vector<std::shared_ptr<BlockHolder>> block_holder;
@@ -110,10 +113,10 @@ struct VariableDeclaration
 	//union sau cv
 	TypeValue value;
 	//numele clasei daca ii tip obiect
-	Identifier class_name = "if";//cica da eroare daca puneam nullptr
+	Identifier class_name = "if";
+
 	std::vector<TypeValue> values;
 	int size_of_vector=0;
-
 
 	std::shared_ptr<Expression> expr;
 	std::vector< std::shared_ptr<Expression>> exprs;
@@ -133,6 +136,7 @@ struct ComposedStatement
 
 struct Expression
 {
+	std::shared_ptr<VariableDeclaration> var;
 	Identifier name;
 	
 	Type type;
@@ -193,3 +197,7 @@ struct Return
 	std::shared_ptr<Expression> ret;
 };
 
+//std::shared_ptr<VariableDeclaration> search_for_var()
+//{
+//	
+//}
