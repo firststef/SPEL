@@ -691,6 +691,7 @@ expr: '(' expr ')' {
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
 		$$->e_type = VALUE;
+		///R:aici da pentru ca o calculezi manual
 
 		switch($$->type){
 			case TYPE_INT:
@@ -841,6 +842,7 @@ expr: '(' expr ')' {
 		$$->type=$1->type;
 		$$->value=$1->value;
 		$$->e_type = VALUE;
+		///R: pai aici variabila daca nu e calculata deja ar trebui calculata / sau daca nu se poate trebuie lasat tipul diferit de valoare
 
 		//delete $1;
 	}
@@ -904,7 +906,11 @@ no_return_function_body : class_var no_return_function_body {
 		for (auto& holder : $2->function_body.statements){
 				$$->function_body.statements.push_back(holder);
 		}
-			
+		/*
+		nu trebuie pus tipul statementului aici?
+
+		EDIT: vad acum ca nu am facut un enum cu tipul statementului - intr-adevar nu ne trebuie momentan, dar ar putea fi facut
+		*/
 	}
   | function_instruction no_return_function_body { /*aici nu cred ca trebuie scris nimic in afara de*/ 
 		$$=new FunctionDeclaration();
@@ -960,6 +966,7 @@ statement : declaration {
 		variable=search_variable($2->value);
 		variable->type=assignment->expr.type;
 		variable->value=assignment->expr.value;
+		///R:aici doar daca expresia e calculata deja (are tip value)
 		//oare se modifica varibila? cred ca da, pt ca returneaza pointer spre ea;
 		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
 	}
@@ -986,6 +993,8 @@ statement : declaration {
 		//trebuie implementata functia de cautat signatura unei functii sa vezi daca exista
 
 		//$$->func_call=std::shared_ptr<FunctionCall>(function_call);
+
+		///R:S-ar putea aici sa trebuiasca facuta o distinctie intre function call si valoarea de return a unei function call
 	}
   | EVAL '(' ')' '.' { 
 		$$=new Statement();
@@ -1025,6 +1034,7 @@ declaration : class_var {
 		$$->expr=$1->var_dec->expr;
 		$$->exprs=$1->var_dec->exprs;
 
+		///R:aici se copie pointerul efectiv, regula este redundanta
 	}
   ;
 
