@@ -1,7 +1,6 @@
 [TEST] Example Program:
 The tale begins.
 
-craft points life_points bestow 5.
 I summon thy name Link
 	craft points life_points bestow 5.
 	craft precise mana_points.
@@ -9,27 +8,7 @@ I summon thy name Link
 	craft absolute mortality.
 	craft tome allegiance bestow "Zelda".
 	
-	void spell attack sacrifice precise stamina, precise mana :
-		enchant stamina with stamina - 1.
-		enchant mana with mana - 2.
-	terminus
-	points spell fire sacrifice precise mana, rune equipment :
-		cast (mana*equipment).
-		enchant a with life_points of clone.//nu se poate enchant de variabila a obiectului. trebuie reparat
-		if (equipment > '\3') beginif
-			enchant life_points of clone with a.
-		endif
-		else beginelse
-			cast 0.
-		endelse
-	terminus
 and thy brethren.
-
-craft Link clone.
-
-enchant life_points of clone with 100.
-
-craft artifact points basic_attack bestow 3.
 
 [END]
 

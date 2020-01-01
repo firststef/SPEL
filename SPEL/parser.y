@@ -4,9 +4,13 @@
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
-VariableDeclaration* search_variable(std::string name);
+std::shared_ptr<VariableDeclaration> search_variable(std::string name);
 std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object);
-Expression* auxExpression;
+
+void pop_stack_context(ParseState* parse_state);
+#define POP_STACK_CONTEXT pop_stack_context(parse_state);
+
+#define THROW_ERROR(msg) yyerror (&yylloc, parse_state, scanner, msg); YYERROR;
 %}
 
 %code requires{
@@ -92,7 +96,7 @@ void print_rule(int num, char* s);
 %type <int_val> vector_size vector_position
 %type <expr> class_id_initialization  eval_expr expr
 %type <func_call> call_parameters
-%type <exprs> vector_initialization vector_body
+%type <exprs> vector_initialization vector_body f_parameters
 %type <stmt> statement
 %type <iter_sel_stmt> if_instr while_instr for_instr
 
@@ -129,6 +133,10 @@ sp
 				}
 			}
 		}*/
+
+		
+
+		auto x = 0;
 
 		//parse_state->rootNode = std::make_shared<Node>();
 		//parse_state->rootNode->c_unit = std::shared_ptr<CompileUnit>($2);
@@ -183,10 +191,12 @@ class_def
 		
 		$$ = $3;
 
+		//verificare ca nu mai este o data definita clasa cu acelasi ID
+
 		$3->name = $2->value; 
 		delete $2;
 
-		//verificare ca nu mai este o data definita clasa cu acelasi ID
+		POP_STACK_CONTEXT;
 	}
   ;
 
@@ -226,8 +236,8 @@ class_var
 		$$->var_dec = std::shared_ptr<VariableDeclaration>($3);
 		delete $2;
 
-		parse_state->variableStack.push_back($$->var_dec);
-		
+		//validare daca exista
+		parse_state->Stack.top().push_back($$->var_dec);
 	}
   | CRAFT CONST type const_class_id '.' {  
 
@@ -240,7 +250,8 @@ class_var
 		  $$->var_dec = std::shared_ptr<VariableDeclaration>($4);
 		  delete $3;
 
-		  parse_state->variableStack.push_back($$->var_dec);
+		  //validare daca exista
+		  parse_state->Stack.top().push_back($$->var_dec);
 	}
   ;
 
@@ -488,7 +499,7 @@ vector_position
   | CHNT ID SACRF call_parameters ':' { 
 		$$=new IntVal();
 
-		auxExpression = new Expression();
+		auto auxExpression = new Expression();
 		auxExpression->call = std::shared_ptr<FunctionCall>($4);
 		auxExpression->call->name = $2->value;
 		auxExpression->e_type = CALL;
@@ -497,14 +508,9 @@ vector_position
 		//if (auxExpression->call->return_type!=TYPE_INT) yyerror();
 	}
   | ID '[' vector_position ']' { 
-	  $$ = new Expression();
-	  $$->name = $1->value;
-	  $$->e_type = VECTOR_NAME;
-	  //intai trebuie evaluata aici poz
-	  $$->position = $3->value; 
-	  delete $3;
-	  //to be implemented - need type deduction
-	  //by searching for variable
+	  $$ = new IntVal();
+
+	  //to be implemented - search in vector
 	}
   ;
 
@@ -556,8 +562,8 @@ f_parameters : f_parameter {  }
 			 ;
 
 
-
-f_parameter : class_id_initialization {/*nu stiu daca aici este corect, dar eu presupun ca da*/  }
+  /*nu stiu daca aici este corect, dar eu presupun ca da*/
+f_parameter : class_id_initialization {  }
 			;
 
 
@@ -717,10 +723,10 @@ eval_expr : expr {  }
 
 var 
   : ID { 		
-		$$ = search_variable($1->value);
+		$$ = search_variable($1->value).get();
 	}
   | ID '[' vector_position ']' {
-		$$=search_variable($1->value);
+		$$=search_variable($1->value).get();
 		//validare gasire
 		$$->position_in_vector=$3->value;
 		//validare marime
@@ -1017,7 +1023,7 @@ statement : declaration {
 		assignment->name=$2->value;
 		assignment->expr=*$4;
 		VariableDeclaration* variable;
-		variable=search_variable($2->value);
+		variable=search_variable($2->value).get();
 		variable->type=assignment->expr.type;
 		variable->value=assignment->expr.value;
 		///R:aici doar daca expresia e calculata deja (are tip value)
@@ -1032,7 +1038,7 @@ statement : declaration {
 		assignment->position=$4->value;
 		assignment->expr=*$7;
 		VariableDeclaration* variable;
-		variable=search_variable($2->value);
+		variable=search_variable($2->value).get();
 		variable->type=assignment->expr.type;
 		variable->value=assignment->expr.value;
 		
@@ -1113,7 +1119,7 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 }
 
 //modificat pentru ca am nevoie sa fie tipul asta
-VariableDeclaration* search_variable
+std::shared_ptr<VariableDeclaration> search_variable
 (std::string name)
 {
 	return nullptr;
@@ -1123,4 +1129,9 @@ std::shared_ptr<VariableDeclaration> search_variable_in_class
 (std::string name, std::string class_object)
 {
 	return nullptr;
+}
+
+void pop_stack_context(ParseState* parse_state) {
+	if (! parse_state->Stack.empty())
+		parse_state->Stack.pop();
 }

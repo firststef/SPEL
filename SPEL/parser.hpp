@@ -44,7 +44,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 12 "parser.y"
+#line 16 "parser.y"
 
 
 #include "Memory.hpp"
@@ -153,7 +153,7 @@ void print_rule(int num, char* s);
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 99 "parser.y"
+#line 103 "parser.y"
 
 	Node* node;
 	DeclarationHolder* dec_holder;
