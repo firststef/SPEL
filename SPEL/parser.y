@@ -92,7 +92,7 @@ void print_rule(int num, char* s);
 %type <int_val> vector_size vector_position
 %type <expr> class_id_initialization  eval_expr expr
 %type <func_call> call_parameters
-%type <exprs> vector_initialization vector_body
+%type <exprs> vector_initialization vector_body f_parameters
 %type <stmt> statement
 %type <iter_sel_stmt> if_instr while_instr for_instr
 
@@ -497,14 +497,9 @@ vector_position
 		//if (auxExpression->call->return_type!=TYPE_INT) yyerror();
 	}
   | ID '[' vector_position ']' { 
-	  $$ = new Expression();
-	  $$->name = $1->value;
-	  $$->e_type = VECTOR_NAME;
-	  //intai trebuie evaluata aici poz
-	  $$->position = $3->value; 
-	  delete $3;
-	  //to be implemented - need type deduction
-	  //by searching for variable
+	  $$ = new IntVal();
+	 
+	  //to be implemented - cautare valoare in vector
 	}
   ;
 
@@ -543,7 +538,7 @@ const_class_id
 		//should do size validation
 		//should do vector_init to ex
 
-		//trebuie adaugat type TYPE_VECTOR
+		//trebuie adaugat type vector
 		$$->exprs = *$6;
 		delete $6;
 	}
