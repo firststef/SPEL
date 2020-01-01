@@ -659,6 +659,7 @@ eval_expr : expr {  }
 		//$2->value=$4->value; //asta daca calculam expr
 		$2->expr=std::shared_ptr<Expression>($4);
 		$$->e_type = VALUE;
+		///R:nu cred ca aici trebuie setat VALUE, asa orice vine de sus o sa devina VALUE si nu ai calculat-o daca era altceva
 	}
   ;
 
@@ -682,6 +683,7 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		$$=$2;
 		$$->e_type = VALUE;
+		///R:nici aici
 		//delete $2;
 	}
   | expr '+' expr { 
@@ -909,6 +911,7 @@ no_return_function_body : class_var no_return_function_body {
 		for (auto& holder : $2->function_body.statements){
 				$$->function_body.statements.push_back(holder);
 		}
+		///R:Cred ca trebuie pus statementul respectiv in vector (function_instruction e defapt nenecesara ca e practic statement fara return)
 	}
   | class_var { 
 		$$=new FunctionDeclaration();
@@ -925,6 +928,8 @@ no_return_function_body : class_var no_return_function_body {
 function_def : class_f { 
 		$$=new FunctionDeclaration();
 		//de facut legatura cu $1->func_dec;
+		
+		///R:Aici trebuie defapt dat pointerul mai departe, regula e inutila $$ = $1;
 	}
   ;
 
@@ -958,7 +963,7 @@ statement : declaration {
 		//oare se modifica varibila? cred ca da, pt ca returneaza pointer spre ea;
 		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
 	}
-  | ENCH ID '[' vector_position ']'WITH eval_expr '.' { 
+  | ENCH ID '[' vector_position ']' WITH eval_expr '.' { 
 		$$=new Statement();
 		Assignment* assignment=new Assignment();
 		assignment->name=$2->value;
@@ -994,6 +999,7 @@ statement : declaration {
 		$$=new Statement();
 		//validare ca ID este int
 		printf("Variable found: %s. Value: %d\n", $3->value, search_variable($3->value)->value.int_val->value);
+		///R:Daca ID are o valoare si nu altceva (o expresie -> function call etc), printam
 	}
   | RET eval_expr '.'  { 
 		$$=new Statement();

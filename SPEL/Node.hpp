@@ -155,6 +155,7 @@ struct VariableDeclaration
 	
 };
 
+//should be added type
 struct Statement 
 {
 	std::shared_ptr<VariableDeclaration> var_dec;
