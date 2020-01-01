@@ -86,13 +86,15 @@ void print_rule(int num, char* s);
 
 
 %type <class_def> class_def class_body
-%type <func_decl> function_def
+%type <func_decl> function_def no_return_function_body
 %type <dec_holder> class_var class_f
-%type <variable_dec> type class_id const_class_id var
+%type <variable_dec> type class_id const_class_id var declaration
 %type <int_val> vector_size vector_position
 %type <expr> class_id_initialization  eval_expr expr
 %type <func_call> call_parameters
 %type <exprs> vector_initialization
+%type <stmt> statement
+%type <iter_sel_stmt> if_instr while_instr for_instr
 
 %union {
 	Node* node;
@@ -105,6 +107,7 @@ void print_rule(int num, char* s);
 	BoolVal* bool_val;
 	VariableDeclaration* variable_dec;
 	ComposedStatement* comp_stmt;
+	Statement* stmt;
 	Expression* expr;
 	IterationSelectionStatement* iter_sel_stmt;
 	Assignment* asgmt;
@@ -655,12 +658,14 @@ eval_expr : expr {  }
 		$$=new Expression();
 		//$2->value=$4->value; //asta daca calculam expr
 		$2->expr=std::shared_ptr<Expression>($4);
+		$$->e_type = VALUE;
 	}
   ;
 
 var : ID { 
 		
 		$$=search_variable($1->value);
+		
 
 	}
   | ID '[' vector_position ']' {
@@ -676,12 +681,14 @@ var : ID {
 expr: '(' expr ')' { 
 		$$=new Expression();
 		$$=$2;
+		$$->e_type = VALUE;
 		//delete $2;
 	}
   | expr '+' expr { 
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
+		$$->e_type = VALUE;
 
 		switch($$->type){
 			case TYPE_INT:
@@ -711,6 +718,8 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
+		$$->e_type = VALUE;
+
 		switch($$->type){
 			case TYPE_INT:
 				$$->value.int_val->value=$1->value.int_val->value-$3->value.int_val->value;
@@ -737,6 +746,8 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
+		$$->e_type = VALUE;
+
 		switch($$->type){
 			case TYPE_INT:
 				$$->value.int_val->value=$1->value.int_val->value*$3->value.int_val->value;
@@ -763,6 +774,9 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
+		$$->e_type = VALUE;
+
+
 		switch($$->type){
 			case TYPE_INT:
 				$$->value.int_val->value=$1->value.int_val->value/$3->value.int_val->value;
@@ -784,6 +798,8 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
+		$$->e_type = VALUE;
+		
 		switch($$->type){
 			case TYPE_INT:
 				$$->value.int_val->value=$1->value.int_val->value%$3->value.int_val->value;
@@ -801,6 +817,8 @@ expr: '(' expr ')' {
   | '-' expr %prec UMINUS { 
 		$$=new Expression();
 		$$->type=$2->type;
+		$$->e_type = VALUE;
+
 		switch($$->type){
 			case TYPE_INT:
 				$$->value.int_val->value=-$2->value.int_val->value;
@@ -820,6 +838,8 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		$$->type=$1->type;
 		$$->value=$1->value;
+		$$->e_type = VALUE;
+
 		//delete $1;
 	}
   | CHNT ID SACRF call_parameters ':' { 
@@ -834,47 +854,179 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		$$->type=TYPE_INT;
 		$$->value.int_val->value=$1->value;
+		$$->e_type = VALUE;
+		delete $1;
 	}
-  | NRF {  }
-  | CHR {  }
-  | STR {  }
-  | TRUE {  }
-  | FALSE {  }
+  | NRF { 
+		$$=new Expression();
+		$$->type=TYPE_FLOAT;
+		$$->value.float_val->value=$1->value;
+		$$->e_type = VALUE;
+		delete $1;
+	}
+  | CHR { 
+		$$=new Expression();
+		$$->type=TYPE_CHAR;
+		$$->value.char_val->value=$1->value;
+		delete $1;
+	}
+  | STR { 
+		$$=new Expression();
+		$$->type=TYPE_STRING;
+		$$->value.string_val->value=$1->value;
+		$$->e_type = VALUE;
+		delete $1;
+	}
+  | TRUE { 
+		$$=new Expression();
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=true;//asa?
+		$$->e_type = VALUE;
+		delete $1;
+	}
+  | FALSE { 
+		$$=new Expression();
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;//asa?
+		$$->e_type = VALUE;
+		delete $1;
+	}
   ;
 
-no_return_function_body : class_var no_return_function_body {  }
-						| function_instruction no_return_function_body {  }
-						| class_var {  }
-						| function_instruction {  }
-						;
+no_return_function_body : class_var no_return_function_body { 
+		$$=new FunctionDeclaration();
+		Statement statement;
+		statement.var_dec=std::shared_ptr<VariableDeclaration>($1->var_dec);
+		$$->function_body.statements.push_back(statement);
+		//de creat contextul
+		for (auto& holder : $2->function_body.statements){
+				$$->function_body.statements.push_back(holder);
+		}
+			
+	}
+  | function_instruction no_return_function_body { /*aici nu cred ca trebuie scris nimic in afara de*/ 
+		$$=new FunctionDeclaration();
+		for (auto& holder : $2->function_body.statements){
+				$$->function_body.statements.push_back(holder);
+		}
+	}
+  | class_var { 
+		$$=new FunctionDeclaration();
+		Statement statement;
+		statement.var_dec=std::shared_ptr<VariableDeclaration>($1->var_dec);
+		$$->function_body.statements.push_back(statement);
+		//de creat contextul
+	}
+  | function_instruction {  }
+  ;
 
 
 
-function_def : class_f {  }
-			 ;
+function_def : class_f { 
+		$$=new FunctionDeclaration();
+		//de facut legatura cu $1->func_dec;
+	}
+  ;
 
 
 
-statement : declaration {  }
-		  | if_instr {  }
-		  | while_instr {  }
-		  | for_instr {  }
-		  | ENCH ID WITH eval_expr '.' {  }
-		  | ENCH ID '[' vector_position ']'WITH eval_expr '.' {  }
-		  | ENCH ID OF ID WITH eval_expr '.' {  }
-		  | CHNT ID SACRF call_parameters ':' '.' {  }
-		  | EVAL '(' ')' '.' {  }
-	      | EVAL '(' NR ')' '.' {  }
-		  | EVAL '(' ID ')' '.' {  }
-		  | RET eval_expr '.'  {  }
-		  ;
+statement : declaration { 
+		$$=new Statement();
+		$$->var_dec=std::shared_ptr<VariableDeclaration>($1);
+	}
+  | if_instr { 
+		$$=new Statement();
+		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
+	}
+  | while_instr { 
+		$$=new Statement();
+		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
+	}
+  | for_instr { 
+		$$=new Statement();
+		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
+	}
+  | ENCH ID WITH eval_expr '.' { 
+		$$=new Statement();
+		Assignment* assignment=new Assignment();
+		assignment->name=$2->value;
+		assignment->expr=*$4;
+		VariableDeclaration* variable;
+		variable=search_variable($2->value);
+		variable->type=assignment->expr.type;
+		variable->value=assignment->expr.value;
+		//oare se modifica varibila? cred ca da, pt ca returneaza pointer spre ea;
+		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
+	}
+  | ENCH ID '[' vector_position ']'WITH eval_expr '.' { 
+		$$=new Statement();
+		Assignment* assignment=new Assignment();
+		assignment->name=$2->value;
+		assignment->is_vector=true;
+		assignment->position=$4->value;
+		assignment->expr=*$7;
+		VariableDeclaration* variable;
+		variable=search_variable($2->value);
+		variable->type=assignment->expr.type;
+		variable->value=assignment->expr.value;
+		
+		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
+	}
+  | ENCH ID OF ID WITH eval_expr '.' { 
+		//asta nu mai exista la noi.
+	}
+  | CHNT ID SACRF call_parameters ':' '.' { 
+		$$=new Statement();
+		//FunctionCall* function_call=search_function($2->value, call_parameters);
+		//trebuie implementata functia de cautat signatura unei functii sa vezi daca exista
+
+		//$$->func_call=std::shared_ptr<FunctionCall>(function_call);
+	}
+  | EVAL '(' ')' '.' { 
+		$$=new Statement();
+		printf("statement vid\n");
+	}
+  | EVAL '(' NR ')' '.' { 
+		$$=new Statement();
+		printf("%d\n", $3->value);
+	}
+  | EVAL '(' ID ')' '.' { 
+		$$=new Statement();
+		//validare ca ID este int
+		printf("Variable found: %s. Value: %d\n", $3->value, search_variable($3->value)->value.int_val->value);
+	}
+  | RET eval_expr '.'  { 
+		$$=new Statement();
+		Return* return_val=new Return();
+		return_val->ret=std::shared_ptr<Expression>($2);
+		//aici ar trebuie verificat daca dam return la ce type trebuie (dar e destul de greu, ar trebuii sa stim contextul)
+		$$->ret_stmt=std::shared_ptr<Return>(return_val);
+	}
+  ;
 
 
 
-declaration : class_var {  }
-			;
+declaration : class_var { 
+		$$=new VariableDeclaration();
+		$$->name=$1->var_dec->name;
+		$$->is_const=$1->var_dec->is_const;
+		$$->type=$1->var_dec->type;
+		$$->value=$1->var_dec->value;
+		$$->values=$1->var_dec->values;
+		$$->size_of_vector=$1->var_dec->size_of_vector;
+		$$->context=$1->var_dec->context;
+		$$->class_name=$1->var_dec->class_name;
+		$$->expr=$1->var_dec->expr;
+		$$->exprs=$1->var_dec->exprs;
+
+	}
+  ;
 
 %%
+//putem sa facem toate verificarile de tipuri lacunar, sa dea eroare daca nu is int.
+
+
+
 
 //void print_rule(int num, char* s)
 //{

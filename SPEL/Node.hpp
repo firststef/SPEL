@@ -13,6 +13,7 @@ struct Assignment;
 struct DeclarationHolder;
 struct ClassDefinition;
 struct FunctionCall;
+struct Return;
 
 
 struct Context
@@ -159,6 +160,8 @@ struct Statement
 	std::shared_ptr<VariableDeclaration> var_dec;
 	std::shared_ptr<IterationSelectionStatement> iter_sel_stmt;
 	std::shared_ptr<Assignment> asgmt_stmt;
+	std::shared_ptr<FunctionCall> func_call;
+	std::shared_ptr<Return> ret_stmt;
 };
 
 struct ComposedStatement
