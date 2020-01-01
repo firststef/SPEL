@@ -92,7 +92,7 @@ void print_rule(int num, char* s);
 %type <int_val> vector_size vector_position
 %type <expr> class_id_initialization  eval_expr expr
 %type <func_call> call_parameters
-%type <exprs> vector_initialization
+%type <exprs> vector_initialization vector_body
 %type <stmt> statement
 %type <iter_sel_stmt> if_instr while_instr for_instr
 
@@ -417,9 +417,8 @@ class_id_initialization
 		//by searching for variable
 	}
   | eval_expr { 
-		$$=new Expression();
-		//$$->type = $1->type;
-		//$$->value = $1->value;
+		$$ = $1;
+		//asta nu am facut-o noi?
 	}
   ;
 
@@ -436,24 +435,46 @@ vector_size
   ;
 
 
-vector_initialization : '[' vector_body ']' {  }
-					  ;
+vector_initialization 
+  : '[' vector_body ']' {
+		$$ = $2;
+	}
+  ;
 
 
 
-vector_body : class_id_initialization {  }
-			| class_id_initialization ',' vector_body {  }
-			;
+vector_body 
+  : class_id_initialization { 
+		$$ = new std::vector< std::shared_ptr<Expression>>();
+		
+		$$->push_back(std::shared_ptr<Expression>($1));
+	}
+  | class_id_initialization ',' vector_body { 
+		$$ = new std::vector< std::shared_ptr<Expression>>(*$3);
+		delete $3;
+
+		$$->push_back(std::shared_ptr<Expression>($1));
+	}
+  ;
+
+
+  /*Call parameters ar putea fi eliminat*/
+call_parameters 
+  : TIME {
+		$$ = new FunctionCall();
+	}
+  | f_parameters { 
+		$$ = new FunctionCall();
+
+		$$->params = *$1;
+		delete $1;
+	}
+  ;
 
 
 
-call_parameters : TIME {  }
-				| f_parameters {  }
-				;
-
-
-
-vector_position : ID { 
+vector_position 
+  : ID { 
 		//asta e facut tot de mine, pentru ca am avut nevoie mai jos de unde am inceput
 
 		$$ = new IntVal();
@@ -461,9 +482,8 @@ vector_position : ID {
 		delete $1;
 	}
   | NR { 
-		$$=new IntVal();
-		$$=$1;
-		//delete $1;
+		$$ = new IntVal();
+		$$ = $1;
 	}
   | CHNT ID SACRF call_parameters ':' { 
 		$$=new IntVal();
@@ -476,28 +496,61 @@ vector_position : ID {
 		//verificare daca functia e INT
 		//if (auxExpression->call->return_type!=TYPE_INT) yyerror();
 	}
-  | ID '[' vector_position ']' {  }
+  | ID '[' vector_position ']' { 
+	  $$ = new Expression();
+	  $$->name = $1->value;
+	  $$->e_type = VECTOR_NAME;
+	  //intai trebuie evaluata aici poz
+	  $$->position = $3->value; 
+	  delete $3;
+	  //to be implemented - need type deduction
+	  //by searching for variable
+	}
   ;
 
 
-
+  /* to be removed */
 const_class_ids : const_class_id {  }
 				| const_class_id ',' const_class_ids {  }
 				;
 
 
+const_class_id 
+  : ID BSTOW class_id_initialization { 
+		$$ = new VariableDeclaration();
 
-const_class_id : ID BSTOW class_id_initialization {  }
-			   | ID '[' const_vector_size ']' BSTOW vector_initialization {  }
-			   ;
+		$$->name = $1->value;
+		delete $1;
+		$$->type = $3->type;
+		$$->value = $3->value;
+		$$->is_const = true;
+
+		//de verificat ca in class id_initialization toate 
+		//variabilele si constantele sunt type
+
+		//expresia trebuie musai sa aiba value, fiind const
+		//altfel, arunca exceptie
+		$$->expr = std::shared_ptr<Expression>($3);
+	}
+  | ID '[' NR ']' BSTOW vector_initialization {
+		$$ = new VariableDeclaration();
+		$$->name = $1->value;
+		delete $1;
+
+		$$->size_of_vector = $3->value;
+		delete $3;
+
+		//should do size validation
+		//should do vector_init to ex
+
+		//trebuie adaugat type TYPE_VECTOR
+		$$->exprs = *$6;
+		delete $6;
+	}
+  ;
 
 
-
-const_vector_size : NR {  }
-				  ;
-
-
-
+  /* f_parameters ar putea fi eliminat - lista de expr */
 f_parameters : f_parameter {  }
 			 | f_parameter ',' f_parameters {  }
 			 ;
@@ -654,7 +707,6 @@ eval_expr : expr {  }
   | ENCH var WITH expr {
 		//de aici in jos facut-am eu 
 
-
 		$$=new Expression();
 		//$2->value=$4->value; //asta daca calculam expr
 		$2->expr=std::shared_ptr<Expression>($4);
@@ -663,15 +715,17 @@ eval_expr : expr {  }
 	}
   ;
 
-var : ID { 
-		
-		$$=search_variable($1->value);
-		
-
+var 
+  : ID { 		
+		$$ = search_variable($1->value);
 	}
   | ID '[' vector_position ']' {
 		$$=search_variable($1->value);
+		//validare gasire
 		$$->position_in_vector=$3->value;
+		//validare marime
+
+		//vezi coment variable declaration
 	}
   | ID OF ID { /*cum asta nu mai e posibila la noi nu o mai facem, nici celelalte de mai jos*/ }
   | ID '[' vector_position ']' OF ID {  }
@@ -1021,7 +1075,8 @@ statement : declaration {
 
 
 
-declaration : class_var { 
+declaration 
+  : class_var { 
 		$$=new VariableDeclaration();
 		$$->name=$1->var_dec->name;
 		$$->is_const=$1->var_dec->is_const;
