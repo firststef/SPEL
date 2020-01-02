@@ -1,12 +1,21 @@
 [TEST] Example Program:
 The tale begins.
 
+points spell functie2 sacrifice time : 
+	craft points a .
+	cast 4.
+terminus
+
 I summon thy name Link
 	craft points life_points bestow 5.
 	craft precise mana_points.
 	craft rune armor_enchantments.
 	craft absolute mortality.
 	craft tome allegiance bestow "Zelda".
+
+	void spell functie2 sacrifice time : 
+		craft points a .
+	terminus
 	
 and thy brethren.
 

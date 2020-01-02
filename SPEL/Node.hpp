@@ -13,8 +13,6 @@ struct Assignment;
 struct DeclarationHolder;
 struct ClassDefinition;
 struct FunctionCall;
-struct Return;
-
 
 struct Context
 {
@@ -117,7 +115,13 @@ enum Type
 	TYPE_CHAR,
 	TYPE_STRING,
 	TYPE_BOOL,
-	TYPE_OBJECT
+	TYPE_OBJECT,
+	TYPE_INT_VECTOR,
+	TYPE_FLOAT_VECTOR,
+	TYPE_CHAR_VECTOR,
+	TYPE_STRING_VECTOR,
+	TYPE_BOOL_VECTOR,
+	TYPE_OBJECT_VECTOR
 };
 
 struct TypeValue
@@ -141,7 +145,7 @@ struct VariableDeclaration
 	//union sau cv
 	TypeValue value;
 	std::vector<TypeValue> values;
-	int size_of_vector = 0;
+	int size_of_vector = 0; //sizeul ar trebui pus in resize la initializare
 	int position_in_vector; //atunci cand accesam a[5]
 	//totusi eu spun sa mutam toata logica asta in expr,
 	//in expr avem o referinta catre variabila din vectorul respectiv
@@ -163,13 +167,10 @@ struct Statement
 	std::shared_ptr<IterationSelectionStatement> iter_sel_stmt;
 	std::shared_ptr<Assignment> asgmt_stmt;
 	std::shared_ptr<FunctionCall> func_call;
-	std::shared_ptr<Return> ret_stmt;
+	std::shared_ptr<Expression> ret_stmt;
 };
 
-struct ComposedStatement
-{
-	std::vector<Statement> statements;
-};
+using ComposedStatement = std::vector<Statement>;
 
 enum ExpressionType
 {
@@ -227,7 +228,7 @@ struct Assignment
 struct FunctionDeclaration : ContextUnit
 {
 	bool is_void = false;
-	Type return_val;
+	Type return_type;
 
 	Identifier name;
 
@@ -244,11 +245,6 @@ struct FunctionCall
 	TypeValue return_value;
 
 	std::vector<std::shared_ptr<Expression>> params;
-};
-
-struct Return
-{
-	std::shared_ptr<Expression> ret;
 };
 
 inline int get_unique_id()
@@ -271,37 +267,6 @@ inline int get_unique_id()
 
 //de scos class_ids
 
-/*
- %type <class_def> class_def class_body
-%type <func_decl> function_def no_return_function_body
-%type <dec_holder> class_var class_f
-%type <variable_dec> type class_id const_class_id var declaration
-%type <int_val> vector_size vector_position
-%type <expr> class_id_initialization  eval_expr expr
-%type <func_call> call_parameters
-%type <exprs> vector_initialization vector_body
-%type <stmt> statement
-%type <iter_sel_stmt> if_instr while_instr for_instr
+//ComposedStatement -> CompoundStatement
 
-%union {
-	Node* node;
-	DeclarationHolder* dec_holder;
-	ClassDefinition* class_def;
-	IntVal* int_val;
-	FloatVal* float_val;
-	CharVal* char_val;
-	StringVal* string_val;
-	BoolVal* bool_val;
-	VariableDeclaration* variable_dec;
-	ComposedStatement* comp_stmt;
-	Statement* stmt;
-	Expression* expr;
-	IterationSelectionStatement* iter_sel_stmt;
-	Assignment* asgmt;
-	FunctionDeclaration* func_decl;
-	FunctionCall* func_call;
-	Return* ret;
-
-	std::vector< std::shared_ptr<Expression>>* exprs;
-};
- */
+//propun sa scoatem eval -> declaram ca functie cand incepem
