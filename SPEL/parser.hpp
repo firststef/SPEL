@@ -151,7 +151,7 @@ void print_rule(int num, char* s);
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 104 "parser.y"
+#line 105 "parser.y"
 
 	Node* node;
 	DeclarationHolder* dec_holder;

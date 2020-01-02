@@ -94,12 +94,13 @@ void print_rule(int num, char* s);
 %type <dec_holder> class_var
 %type <variable_dec> type class_id const_class_id var declaration_parameter
 %type <int_val> vector_size vector_position
-%type <expr> class_id_initialization eval_expr expr boolean check
+%type <expr> class_id_initialization eval_expr expr check boolean
 %type <func_call> call_parameters
 %type <exprs> vector_initialization vector_body f_parameters
 %type <stmt> statement function_instruction
 %type <iter_sel_stmt> if_instr while_instr for_instr
 %type <comp_stmt> function_body
+
 
 %union {
 	Node* node;
@@ -773,7 +774,6 @@ function_instruction
   ;
 
 
-
 while_instr 
   : WHILE '(' boolean ')' function_body ENDWHILE { 
 		$$ = new IterationSelectionStatement();
@@ -788,25 +788,210 @@ while_instr
   ;
 
 
-boolean : check {  }
-		| check AND boolean {  }
-		| '(' check ')' AND boolean
-		| '(' check ')' OR boolean
-		| '(' check ')'
-		| check OR boolean {  }
-		;
+boolean : check { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		switch($1->type){
+			case TYPE_INT: if ($1->value.int_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($1->value.char_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($1->value.string_val->value!="") $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+	}
+  | check AND boolean { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		switch($1->type){
+			case TYPE_INT: if ($1->value.int_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($1->value.char_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($1->value.string_val->value!="") $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+		if ($$->value.bool_val->value==true)
+			$$=$3;
+	}
+  | '(' check ')' AND boolean { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		switch($2->type){
+			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($2->value.bool_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($2->value.char_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($2->value.string_val->value!="") $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+		if ($$->value.bool_val->value==true)
+			$$=$5;
+	}
+  | '(' check ')' OR boolean  { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		switch($2->type){
+			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($2->value.bool_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($2->value.char_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($2->value.string_val->value!="") $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+		if ($$->value.bool_val->value==false)
+			$$=$5;
+	}
+  | '(' check ')' { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		switch($2->type){
+			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($2->value.bool_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($2->value.char_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($2->value.string_val->value!="") $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+	}
+  | check OR boolean  { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		switch($1->type){
+			case TYPE_INT: if ($1->value.int_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($1->value.char_val->value!=0) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($1->value.string_val->value!="") $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+		if ($$->value.bool_val->value==false)
+			$$=$3;
+	}
+  ;
 
 
 
-check : NOT eval_expr {  }
-	  | eval_expr {  }
-   	  | expr '>' expr{  }
-	  | expr '<' expr{  }
-	  | expr NEQ expr{  }
-	  | expr EQ expr{  }
-	  | expr BEQ expr{  }
-	  | expr LEQ expr{  }
-	  ;
+check : NOT eval_expr { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=true;
+		switch($2->type){
+			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=false; break;
+			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=false; break;
+			case TYPE_BOOL: if ($2->value.bool_val->value!=0) $$->value.bool_val->value=false; break;
+			case TYPE_CHAR: if ($2->value.char_val->value!=0) $$->value.bool_val->value=false; break;
+			case TYPE_STRING: if ($2->value.string_val->value!="") $$->value.bool_val->value=false; break;
+			default : $$->value.bool_val->value=true; break;
+		}
+	}
+  | eval_expr { 
+		$$=$1;
+	}
+  | expr '>' expr { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=true;
+		//if ($1->type!=$1->type) yyerror();
+		switch($1->type) {
+			case TYPE_INT: if ($1->value.int_val->value<$3->value.int_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value<$3->value.float_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value<$3->value.bool_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_CHAR: if ($1->value.char_val->value<$3->value.char_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_STRING: if ($1->value.string_val->value<$3->value.string_val->value) $$->value.bool_val->value=false; break;
+			default : $$->value.bool_val->value=true; break;
+		}
+	}
+  | expr '<' expr { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		//if ($1->type!=$1->type) yyerror();
+		switch($1->type){
+			case TYPE_INT: if ($1->value.int_val->value<$3->value.int_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value<$3->value.float_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value<$3->value.bool_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($1->value.char_val->value<$3->value.char_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($1->value.string_val->value<$3->value.string_val->value) $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+	}
+  | expr NEQ expr { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=true;
+		//if ($1->type!=$1->type) yyerror();
+		switch($1->type) {
+			case TYPE_INT: if ($1->value.int_val->value==$3->value.int_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value==$3->value.float_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value==$3->value.bool_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_CHAR: if ($1->value.char_val->value==$3->value.char_val->value) $$->value.bool_val->value=false; break;
+			case TYPE_STRING: if ($1->value.string_val->value==$3->value.string_val->value) $$->value.bool_val->value=false; break;
+			default : $$->value.bool_val->value=true; break;
+		}
+	}
+  | expr EQ expr { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		//if ($1->type!=$1->type) yyerror();
+		switch($1->type) {
+			case TYPE_INT: if ($1->value.int_val->value==$3->value.int_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value==$3->value.float_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value==$3->value.bool_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($1->value.char_val->value==$3->value.char_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($1->value.string_val->value==$3->value.string_val->value) $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+	}
+  | expr BEQ expr { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		//if ($1->type!=$1->type) yyerror();
+		switch($1->type) {
+			case TYPE_INT: if ($1->value.int_val->value>=$3->value.int_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value>=$3->value.float_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value>=$3->value.bool_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($1->value.char_val->value>=$3->value.char_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($1->value.string_val->value>=$3->value.string_val->value) $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+	}
+  | expr LEQ expr { 
+		$$=new Expression();
+		$$->e_type=VALUE;
+		$$->type=TYPE_BOOL;
+		$$->value.bool_val->value=false;
+		//if ($1->type!=$1->type) yyerror();
+		switch($1->type) {
+			case TYPE_INT: if ($1->value.int_val->value<=$3->value.int_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_FLOAT: if ($1->value.float_val->value<=$3->value.float_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_BOOL: if ($1->value.bool_val->value<=$3->value.bool_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_CHAR: if ($1->value.char_val->value<=$3->value.char_val->value) $$->value.bool_val->value=true; break;
+			case TYPE_STRING: if ($1->value.string_val->value<=$3->value.string_val->value) $$->value.bool_val->value=true; break;
+			default : $$->value.bool_val->value=false; break;
+		}
+	}
+  ;
 
 
 
