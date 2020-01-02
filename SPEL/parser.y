@@ -1122,6 +1122,7 @@ expr: '(' expr ')' {
 		//delete $2;
 	}
   | expr '+' expr {
+		
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		// validare if cu VALUE de sus
@@ -1131,20 +1132,20 @@ expr: '(' expr ')' {
 
 		switch($$->type){
 			case TYPE_INT:
-				$$->value.int_val->value=$1->value.int_val->value+$3->value.int_val->value;
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value+$3->value.int_val->value }));
 				break;
 			case TYPE_FLOAT:
-				$$->value.float_val->value=$1->value.float_val->value+$3->value.float_val->value;
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value+$3->value.float_val->value }));
 				break;
 			case TYPE_CHAR:
-				$$->value.char_val->value=$1->value.char_val->value+$3->value.char_val->value;
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value+$3->value.char_val->value }));
 				break;
 			case TYPE_STRING:
-				$$->value.string_val->value=$1->value.string_val->value+$3->value.string_val->value;
+				$$->value.string_val = std::shared_ptr<StringVal>(new StringVal({ $1->value.string_val->value+$3->value.string_val->value }));
 				break;
 
 			case TYPE_BOOL:
-				$$->value.bool_val->value=$1->value.bool_val->value+$3->value.bool_val->value;
+				$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ $1->value.bool_val->value+$3->value.bool_val->value }));
 				break;
 			default:
 				//pt none si type_object(nu avem overloaded operators)
@@ -1161,22 +1162,23 @@ expr: '(' expr ')' {
 
 		switch($$->type){
 			case TYPE_INT:
-				$$->value.int_val->value=$1->value.int_val->value-$3->value.int_val->value;
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value-$3->value.int_val->value }));
 				break;
 			case TYPE_FLOAT:
-				$$->value.float_val->value=$1->value.float_val->value-$3->value.float_val->value;
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value-$3->value.float_val->value }));
 				break;
 			case TYPE_CHAR:
-				$$->value.char_val->value=$1->value.char_val->value-$3->value.char_val->value;
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value-$3->value.char_val->value }));
+				break;
+			case TYPE_STRING:
+				$$->value.string_val = std::shared_ptr<StringVal>(new StringVal({ $1->value.string_val->value-$3->value.string_val->value }));
 				break;
 
-
 			case TYPE_BOOL:
-				$$->value.bool_val->value=$1->value.bool_val->value-$3->value.bool_val->value;
+				$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ $1->value.bool_val->value-$3->value.bool_val->value }));
 				break;
 			default:
 				//pt none si type_object(nu avem overloaded operators)
-				//pt string nu are sens sa faci "-". Daca vrei putem pune.
 				//yyerror();
 				break;
 		}
@@ -1192,15 +1194,15 @@ expr: '(' expr ')' {
 				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
 				break;
 			case TYPE_FLOAT:
-				$$->value.float_val->value=$1->value.float_val->value*$3->value.float_val->value;
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value*$3->value.float_val->value }));
 				break;
 			case TYPE_CHAR:
-				$$->value.char_val->value=$1->value.char_val->value*$3->value.char_val->value;
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
 				break;
 
 
 			case TYPE_BOOL:
-				$$->value.bool_val->value=$1->value.bool_val->value*$3->value.bool_val->value;
+				$$->value.bool_val = std::shared_ptr<bool_val>(new BoolVal({ $1->value.bool_val->value*$3->value.bool_val->value }));
 				break;
 			default:
 				//pt none si type_object(nu avem overloaded operators)
@@ -1215,20 +1217,20 @@ expr: '(' expr ')' {
 		$$->type=$1->type;
 		$$->e_type = VALUE;
 
-
 		switch($$->type){
 			case TYPE_INT:
-				$$->value.int_val->value=$1->value.int_val->value/$3->value.int_val->value;
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
 				break;
 			case TYPE_FLOAT:
-				$$->value.float_val->value=$1->value.float_val->value/$3->value.float_val->value;
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value*$3->value.float_val->value }));
 				break;
 			case TYPE_CHAR:
-				$$->value.char_val->value=$1->value.char_val->value/$3->value.char_val->value;
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
 				break;
+
 			default:
 				//pt none si type_object(nu avem overloaded operators)
-				//nici string nici bool nu ii facut
+				//pt string nu are sens sa faci "*". Daca vrei putem pune.
 				//yyerror();
 				break;
 		}
@@ -1241,14 +1243,15 @@ expr: '(' expr ')' {
 
 		switch($$->type){
 			case TYPE_INT:
-				$$->value.int_val->value=$1->value.int_val->value%$3->value.int_val->value;
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
 				break;
 			case TYPE_CHAR:
-				$$->value.char_val->value=$1->value.char_val->value%$3->value.char_val->value;
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
 				break;
+
 			default:
 				//pt none si type_object(nu avem overloaded operators)
-				//nici string nici bool nu ii facut
+				//pt string nu are sens sa faci "*". Daca vrei putem pune.
 				//yyerror();
 				break;
 		}
@@ -1260,13 +1263,14 @@ expr: '(' expr ')' {
 
 		switch($$->type){
 			case TYPE_INT:
-				$$->value.int_val->value=-$2->value.int_val->value;
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ -$2->value.int_val->value }));
 				break;
 			case TYPE_FLOAT:
-				$$->value.float_val->value=-$2->value.float_val->value;
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ -$2->value.float_val->value }));
 				break;
 			case TYPE_CHAR:
-				$$->value.char_val->value=-$2->value.char_val->value;
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ -$2->value.char_val->value }));
+
 				break;
 			default:
 				//yyerror();
@@ -1274,6 +1278,7 @@ expr: '(' expr ')' {
 		}
 	}
   | var {
+		//aici nu stiu exact cum sa aloc si daca sa aloc sau nu.
 		$$=new Expression();
 		$$->type=$1->type;
 		$$->value=$1->value;
