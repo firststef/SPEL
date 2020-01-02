@@ -1105,7 +1105,7 @@ YY_RULE_SETUP
 case 23:
 YY_RULE_SETUP
 #line 68 "lexer.l"
-{return BGNF; }
+{ PUSH_STACK_CONTEXT; return BGNF; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP

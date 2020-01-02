@@ -4,8 +4,8 @@
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
-std::shared_ptr<VariableDeclaration> search_variable(std::string name);
-std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object);
+std::shared_ptr<VariableDeclaration> search_variable(std::string name, ParseState* parse_state);
+std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object, ParseState* parse_state);
 
 void pop_stack_context(ParseState* parse_state);
 #define POP_STACK_CONTEXT pop_stack_context(parse_state);
@@ -92,7 +92,7 @@ void print_rule(int num, char* s);
 %type <class_def> class_def class_body
 %type <func_decl> no_return_function_body f_declaration_parameters declaration_parameters class_f
 %type <dec_holder> class_var
-%type <variable_dec> type class_id const_class_id var declaration declaration_parameter
+%type <variable_dec> type class_id const_class_id var declaration_parameter
 %type <int_val> vector_size vector_position
 %type <expr> class_id_initialization eval_expr expr
 %type <func_call> call_parameters
@@ -404,7 +404,7 @@ class_id_initialization
   | ID OF ID { //ignore all OF statements
 		$$=new Expression();
 
-		$$->var = search_variable_in_class($1->value, $3->value); //if null, fail
+		$$->var = search_variable_in_class($1->value, $3->value, parse_state); //if null, fail
 		$$->e_type = REFERENCE;
 
 		//to be implemented - need type deduction
@@ -490,7 +490,7 @@ vector_position
 		//asta e facut tot de mine, pentru ca am avut nevoie mai jos de unde am inceput
 
 		$$ = new IntVal();
-		$$->value=search_variable($1->value)->value.int_val->value;
+		$$->value=search_variable($1->value, parse_state)->value.int_val->value;
 		delete $1;
 	}
   | NR {
@@ -582,6 +582,8 @@ class_f
 		delete $1;
 		$$->function_body = *$7;
 		delete $7;
+
+		POP_STACK_CONTEXT;
 	}
   | VOID BGNF ID SACRF f_declaration_parameters ':' no_return_function_body ENDF {
 		$$ = $5;
@@ -592,6 +594,8 @@ class_f
 		//is_void should be equivalent to NONE
 		$$->function_body = $7->function_body;
 		delete $7;
+
+		POP_STACK_CONTEXT;
 	}
   ;
 
@@ -753,6 +757,8 @@ function_instruction
 	}
   | while_instr {
 		$$ = new Statement();
+
+		
 	}
   | if_instr {
 		$$ = new Statement();
@@ -860,17 +866,17 @@ eval_expr : expr {  }
 		$$=new Expression();
 		//$2->value=$4->value; //asta daca calculam expr
 		$2->expr=std::shared_ptr<Expression>($4);
-		$$->e_type = VALUE;
+		//$$->e_type = VALUE;
 		///R:nu cred ca aici trebuie setat VALUE, asa orice vine de sus o sa devina VALUE si nu ai calculat-o daca era altceva
 	}
   ;
 
 var
   : ID {
-		$$ = search_variable($1->value).get();
+		$$ = search_variable($1->value, parse_state).get();
 	}
   | ID '[' vector_position ']' {
-		$$=search_variable($1->value).get();
+		$$=search_variable($1->value, parse_state).get();
 		//validare gasire
 		$$->position_in_vector=$3->value;
 		//validare marime
@@ -886,13 +892,14 @@ var
 expr: '(' expr ')' {
 		$$=new Expression();
 		$$=$2;
-		$$->e_type = VALUE;
+		//$$->e_type = VALUE;
 		///R:nici aici
 		//delete $2;
 	}
   | expr '+' expr {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
+		// validare if cu VALUE de sus
 		$$->type=$1->type;
 		$$->e_type = VALUE;
 		///R:aici da pentru ca o calculezi manual
@@ -1045,7 +1052,8 @@ expr: '(' expr ')' {
 		$$=new Expression();
 		$$->type=$1->type;
 		$$->value=$1->value;
-		$$->e_type = VALUE;
+		//value ar trebui sa fie implicit 0 daca nu o putem calcula
+		//$$->e_type = $1->e_type;
 		///R: pai aici variabila daca nu e calculata deja ar trebui calculata / sau daca nu se poate trebuie lasat tipul diferit de valoare
 
 		//delete $1;
@@ -1104,6 +1112,7 @@ expr: '(' expr ')' {
 	/* Aici ar trebui sa fie Compound Statement */
 no_return_function_body : class_var no_return_function_body {
 		$$=new FunctionDeclaration();
+		//modificat, copiat ptr
 		Statement statement;
 		statement.var_dec=std::shared_ptr<VariableDeclaration>($1->var_dec);
 		$$->function_body.push_back(statement);
@@ -1117,13 +1126,16 @@ no_return_function_body : class_var no_return_function_body {
 		EDIT: vad acum ca nu am facut un enum cu tipul statementului - intr-adevar nu ne trebuie momentan, dar ar putea fi facut
 		*/
 
-		//nu stergi ce ai alocat nou
+		//nu stergi ce ai alocat nou 
+		delete $1;
+		delete $2;
 	}
   | function_instruction no_return_function_body { /*aici nu cred ca trebuie scris nimic in afara de*/
 		$$=new FunctionDeclaration();
 		for (auto& holder : $2->function_body){
 				$$->function_body.push_back(holder);
 		}
+		//trebuie pus in vector
 		///R:Cred ca trebuie pus statementul respectiv in vector (function_instruction e defapt nenecesara ca e practic statement fara return)
 	}
   | class_var {
@@ -1131,16 +1143,17 @@ no_return_function_body : class_var no_return_function_body {
 		Statement statement;
 		statement.var_dec=std::shared_ptr<VariableDeclaration>($1->var_dec);
 		$$->function_body.push_back(statement);
-		//de creat contextul
+		delete $1; 
 	}
   | function_instruction {  }
   ;
 
 
 statement
-  : declaration {
+  : class_var {
 		$$=new Statement();
-		$$->var_dec=std::shared_ptr<VariableDeclaration>($1);
+		$$->var_dec=$1->var_dec;
+		delete $1;
 	}
   | if_instr {
 		$$=new Statement();
@@ -1160,7 +1173,7 @@ statement
 		assignment->name=$2->value;
 		assignment->expr=*$4;
 		VariableDeclaration* variable;
-		variable=search_variable($2->value).get();
+		variable=search_variable($2->value, parse_state).get();
 		variable->type=assignment->expr.type;
 		variable->value=assignment->expr.value;
 		///R:aici doar daca expresia e calculata deja (are tip value)
@@ -1175,7 +1188,7 @@ statement
 		assignment->position=$4->value;
 		assignment->expr=*$7;
 		VariableDeclaration* variable;
-		variable=search_variable($2->value).get();
+		variable=search_variable($2->value, parse_state).get();
 		variable->type=assignment->expr.type;
 		variable->value=assignment->expr.value;
 
@@ -1204,33 +1217,13 @@ statement
   | EVAL '(' ID ')' '.' {
 		$$=new Statement();
 		//validare ca ID este int
-		printf("Variable found: %s. Value: %d\n", $3->value, search_variable($3->value)->value.int_val->value);
+		printf("Variable found: %s. Value: %d\n", $3->value, search_variable($3->value, parse_state)->value.int_val->value);
 		///R:Daca ID are o valoare si nu altceva (o expresie -> function call etc), printam
 	}
   | RET eval_expr '.'  {
 		$$=new Statement();
 		//aici ar trebuie verificat daca dam return la ce type trebuie (dar e destul de greu, ar trebuii sa stim contextul)
 		$$->ret_stmt=std::shared_ptr<Expression>($2);
-	}
-  ;
-
-
-
-declaration
-  : class_var {
-		$$=new VariableDeclaration();
-		$$->name=$1->var_dec->name;
-		$$->is_const=$1->var_dec->is_const;
-		$$->type=$1->var_dec->type;
-		$$->value=$1->var_dec->value;
-		$$->values=$1->var_dec->values;
-		$$->size_of_vector=$1->var_dec->size_of_vector;
-		$$->context=$1->var_dec->context;
-		$$->class_name=$1->var_dec->class_name;
-		$$->expr=$1->var_dec->expr;
-		$$->exprs=$1->var_dec->exprs;
-
-		///R:aici se copie pointerul efectiv, regula este redundanta
 	}
   ;
 
@@ -1255,13 +1248,18 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 
 //modificat pentru ca am nevoie sa fie tipul asta
 std::shared_ptr<VariableDeclaration> search_variable
-(std::string name)
+(std::string name, ParseState* parse_state)
 {
+	for (auto& variable : parse_state->Stack.top()) {
+		if (variable->name == name)
+			return variable;
+	}
+
 	return nullptr;
 }
 
 std::shared_ptr<VariableDeclaration> search_variable_in_class
-(std::string name, std::string class_object)
+(std::string name, std::string class_object, ParseState* parse_state)
 {
 	return nullptr;
 }

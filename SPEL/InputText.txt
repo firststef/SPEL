@@ -13,7 +13,7 @@ I summon thy name Link
 	craft absolute mortality.
 	craft tome allegiance bestow "Zelda".
 
-	void spell functie2 sacrifice time : 
+	void spell functie3 sacrifice time : 
 		craft points a .
 	terminus
 	

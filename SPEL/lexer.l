@@ -65,7 +65,7 @@ void {return VOID;}
 
  /* Language specific*/
 of {return OF; }
-spell {return BGNF; }
+spell { PUSH_STACK_CONTEXT; return BGNF; }
 terminus {return ENDF; }
 cast {return RET; }
 sacrifice {return SACRF;}
@@ -80,14 +80,14 @@ with {return WITH; }
  /* Loops */
 if {return IF; }
 else {return ELSE; }
-while {return WHILE; }
-beginif {return BEGINIF; }
+while { PUSH_STACK_CONTEXT; return WHILE; }
+beginif { PUSH_STACK_CONTEXT; return BEGINIF; }
 endif {return ENDIF; }
-beginelse {return BEGINELSE;}
+beginelse { PUSH_STACK_CONTEXT; return BEGINELSE;}
 endelse {return ENDELSE; }
 endwhile {return ENDWHILE; }
 endfor {return ENDFOR; }
-for {return FOR; }
+for { PUSH_STACK_CONTEXT; return FOR; }
 
 EVAL {return EVAL; }
 

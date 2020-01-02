@@ -131,7 +131,7 @@ struct TypeValue
 	std::shared_ptr<CharVal> char_val;
 	std::shared_ptr<StringVal> string_val;
 	std::shared_ptr<BoolVal> bool_val;
-	std::shared_ptr<ClassDefinition> object_val;
+	std::shared_ptr<ClassDefinition> object_val;//ciudat, ar trebui VariableDeclaration
 };
 
 struct VariableDeclaration
@@ -263,10 +263,14 @@ inline int get_unique_id()
 
 //if there is time, delete vector_position to expression
 
-//something with ->name
+//something with ->name 
 
 //de scos class_ids
 
 //ComposedStatement -> CompoundStatement
 
 //propun sa scoatem eval -> declaram ca functie cand incepem
+
+//no_return_function_body -> comp_stmt change type
+
+//function_instruction remove -> function_body -> to statement
