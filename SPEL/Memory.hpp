@@ -8,7 +8,8 @@ struct ParseState
 {
 	std::shared_ptr<Node> rootNode;
 	
-	std::vector<std::shared_ptr<VariableDeclaration>> variableStack;
+	std::stack<std::vector<std::shared_ptr<VariableDeclaration>>> Stack;
+	
 	std::vector<std::shared_ptr<ClassDefinition>> classes;
 	std::vector<std::shared_ptr<FunctionDeclaration>> functions;
 	

@@ -4,9 +4,13 @@
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
-VariableDeclaration* search_variable(std::string name);
+std::shared_ptr<VariableDeclaration> search_variable(std::string name);
 std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object);
-Expression* auxExpression;
+
+void pop_stack_context(ParseState* parse_state);
+#define POP_STACK_CONTEXT pop_stack_context(parse_state);
+
+#define THROW_ERROR(msg) yyerror (&yylloc, parse_state, scanner, msg); YYERROR;
 %}
 
 %code requires{
@@ -86,15 +90,16 @@ void print_rule(int num, char* s);
 
 
 %type <class_def> class_def class_body
-%type <func_decl> function_def no_return_function_body
-%type <dec_holder> class_var class_f
-%type <variable_dec> type class_id const_class_id var declaration
+%type <func_decl> no_return_function_body f_declaration_parameters declaration_parameters class_f
+%type <dec_holder> class_var
+%type <variable_dec> type class_id const_class_id var declaration declaration_parameter
 %type <int_val> vector_size vector_position
-%type <expr> class_id_initialization  eval_expr expr
+%type <expr> class_id_initialization eval_expr expr
 %type <func_call> call_parameters
 %type <exprs> vector_initialization vector_body f_parameters
-%type <stmt> statement
+%type <stmt> statement function_instruction
 %type <iter_sel_stmt> if_instr while_instr for_instr
+%type <comp_stmt> function_body
 
 %union {
 	Node* node;
@@ -113,15 +118,14 @@ void print_rule(int num, char* s);
 	Assignment* asgmt;
 	FunctionDeclaration* func_decl;
 	FunctionCall* func_call;
-	Return* ret;
 
 	std::vector< std::shared_ptr<Expression>>* exprs;
 };
 
 %%
 
-sp 
-  : BGNP compile_unit { 
+sp
+  : BGNP compile_unit {
 		/*for (auto& holder : $2->block_holder) {
 			if (holder.type == DECLARATION_TYPE) {
 				if (holder->decl_dec->type == VAR_FUNC) {
@@ -130,22 +134,26 @@ sp
 			}
 		}*/
 
+
+
+		auto x = 0;
+
 		//parse_state->rootNode = std::make_shared<Node>();
 		//parse_state->rootNode->c_unit = std::shared_ptr<CompileUnit>($2);
 	}
   | BGNP {  }
   ;
 
-compile_unit 
+compile_unit
   : class_def compile_unit {
 		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>($1));
 
 		//$$ = new CompileUnit();
 		//$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
 	}
-  | function_def compile_unit{
+  | class_f compile_unit{
 		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($1));
-		
+
 		//$$ = new CompileUnit();
 		//$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
 	}
@@ -153,83 +161,86 @@ compile_unit
 		/*$$ = new CompileUnit();
 		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
 	}
-  | class_def { 
+  | class_def {
 		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>($1));
 
 		/*$$ = new CompileUnit();
 		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));  */
 	}
-  | function_def { 
+  | class_f {
 		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($1));
 
 		/*$$ = new CompileUnit();
 		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
 	}
-  | statement { 
+  | statement {
 		/*$$ = new CompileUnit();
 		$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));*/
 	}
   ;
 
-class_def 
-  : CLASS ID class_body ENDCLASS { 
-	  	/*$$ = new BlockHolder(); 
+class_def
+  : CLASS ID class_body ENDCLASS {
+	  	/*$$ = new BlockHolder();
 		$$->type=CLASS_TYPE;
 
 		$$->class_dec = std::shared_ptr<ClassDefinition>($3);
 
 		$$->class_dec->name = $2->value;
 		delete $2;*/
-		
+
 		$$ = $3;
 
-		$3->name = $2->value; 
+		//verificare ca nu mai este o data definita clasa cu acelasi ID
+
+		$3->name = $2->value;
 		delete $2;
 
-		//verificare ca nu mai este o data definita clasa cu acelasi ID
+		POP_STACK_CONTEXT;
 	}
   ;
 
-class_body 
-  : class_var { 
+class_body
+  : class_var {
 		$$ = new ClassDefinition();
 		$$->decl_holders.push_back(*$1);
 	}
-  | class_f { 
+  | class_f {
 		$$ = new ClassDefinition();
-		$$->decl_holders.push_back(*$1);
+
+		DeclarationHolder dh;
+		dh.func_dec = std::shared_ptr<FunctionDeclaration>($1);
+		$$->decl_holders.push_back(dh);
 	}
-  | class_var class_body { 
-		$$=new ClassDefinition();
+  | class_var class_body {
+		$$ = $2;
 		$$->decl_holders.push_back(*$1);
-		for (auto& holder : $2->decl_holders)
-			$$->decl_holders.push_back(holder);
   }
-  | class_f class_body { 
-		$$ = new ClassDefinition();
-		$$->decl_holders.push_back(*$1);
-		for (auto& holder : $2->decl_holders)
-			$$->decl_holders.push_back(holder);
+  | class_f class_body {
+		$$ = $2;
+		DeclarationHolder dh;
+		dh.func_dec = std::shared_ptr<FunctionDeclaration>($1);
+		$$->decl_holders.push_back(dh);
 	}
   ;
 
-class_var 
-  : CRAFT type class_id '.' { 
+class_var
+  : CRAFT type class_id '.' {
 		$$=new DeclarationHolder();
 		$$->type=VAR_DEC;
 
 		$3->type = $2->type;
 		//if($3->type!=NONE) if($3->type!=$2->type) yyerror();
 		//cateodata tipul $3 nu este setat (cand nu am initializat)
-		
+
 		$3->class_name = $2->class_name;
 		$$->var_dec = std::shared_ptr<VariableDeclaration>($3);
 		delete $2;
 
-		parse_state->variableStack.push_back($$->var_dec);
-		
+		//validare daca exista
+		parse_state->Stack.top().push_back($$->var_dec);
 	}
-  | CRAFT CONST type const_class_id '.' {  
+  | CRAFT CONST type const_class_id '.' {
 
 		  $$ = new DeclarationHolder();
 		  $$->type = VAR_DEC;
@@ -240,67 +251,68 @@ class_var
 		  $$->var_dec = std::shared_ptr<VariableDeclaration>($4);
 		  delete $3;
 
-		  parse_state->variableStack.push_back($$->var_dec);
+		  //validare daca exista
+		  parse_state->Stack.top().push_back($$->var_dec);
 	}
   ;
 
-type 
-  : ID { 
+type
+  : ID {
 		$$=new VariableDeclaration();
 		$$->type=TYPE_OBJECT;
 		$$->class_name = $1->value;
 		//verificare daca ID este in vectorul de clase
 		delete $1;
 	}
-  | INT { 
+  | INT {
 		$$=new VariableDeclaration();
 		$$->type=TYPE_INT;
 	}
-  | FLOAT { 
+  | FLOAT {
 		$$=new VariableDeclaration();
-		$$->type=TYPE_FLOAT;	 
+		$$->type=TYPE_FLOAT;
 	}
-  | CHAR { 
+  | CHAR {
 		$$=new VariableDeclaration();
 		$$->type=TYPE_CHAR;
 	}
-  | STRING { 
+  | STRING {
 		$$=new VariableDeclaration();
 		$$->type=TYPE_STRING;
 	}
-  | BOOL { 
+  | BOOL {
 		$$=new VariableDeclaration();
-		$$->type=TYPE_BOOL; 
+		$$->type=TYPE_BOOL;
 	}
   ;
 
 
   /* To be removed */
-class_ids 
+class_ids
   : class_id {  }
   | class_id ',' class_ids {  }
   ;
 
 
 
-class_id 
-  : ID { 
+class_id
+  : ID {
 		$$ = new VariableDeclaration();
 		$$->name = $1->value;
 		delete $1;
 	}
-  | ID BSTOW class_id_initialization { 
+  | ID BSTOW class_id_initialization {
 		$$=new VariableDeclaration();
 		$$->name = $1->value;
 		delete $1;
 		$$->type = $3->type;
 		$$->value = $3->value;
-		//de verificat ca in class id_initialization toate 
+		//de verificat ca in class id_initialization toate
 		//variabilele si constantele sunt type
 
 		$$->expr = std::shared_ptr<Expression>($3);
 	}
-  | ID '[' vector_size ']' { 
+  | ID '[' vector_size ']' {
 		$$=new VariableDeclaration();
 		$$->name= $1->value;
 		delete $1;
@@ -325,8 +337,8 @@ class_id
 
 
 
-class_id_initialization 
-  : ID { 
+class_id_initialization
+  : ID {
 		$$ = new Expression();
 		$$->name = $1->value;
 		$$->e_type = VARIABLE_NAME;
@@ -335,52 +347,52 @@ class_id_initialization
 
 		delete $1;
 	}
-  | NR { 
+  | NR {
 		$$=new Expression();
 		$$->type=TYPE_INT;
 		$$->value.int_val = std::shared_ptr<IntVal>($1);
 		$$->e_type = VALUE;
 	}
-  | NRF { 
+  | NRF {
 		$$=new Expression();
 		$$->type = TYPE_FLOAT;
 		$$->value.float_val = std::shared_ptr<FloatVal>($1);
 		$$->e_type = VALUE;
 	}
-  | CHR { 
+  | CHR {
 		$$=new Expression();
 		$$->type = TYPE_CHAR;
 		$$->value.char_val = std::shared_ptr<CharVal>($1);
 		$$->e_type = VALUE;
 	}
-  | STR { 
+  | STR {
 		$$=new Expression();
 		$$->type = TYPE_STRING;
 		$$->value.string_val = std::shared_ptr<StringVal>($1);
 		$$->e_type = VALUE;
 	}
-  | TRUE { 
+  | TRUE {
 		$$=new Expression();
 		$$->type = TYPE_BOOL;
 		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
 		$$->e_type = VALUE;
 	}
-  | FALSE { 
+  | FALSE {
 		$$=new Expression();
 		$$->type = TYPE_BOOL;
 		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
 		$$->e_type = VALUE;
 	}
-  | CHNT ID SACRF call_parameters ':' { 
+  | CHNT ID SACRF call_parameters ':' {
 		$$ = new Expression();
 
 		$$->call = std::shared_ptr<FunctionCall>($4);
 		$$->call->name = $2->value;
 		$$->e_type = CALL;
 		//search for function template - validate name and params
-		
+
 	}
-  | ID '[' vector_position ']' { 
+  | ID '[' vector_position ']' {
 		$$=new Expression();
 		$$->name = $1->value;
 		$$->e_type = VECTOR_NAME;
@@ -394,29 +406,29 @@ class_id_initialization
 
 		$$->var = search_variable_in_class($1->value, $3->value); //if null, fail
 		$$->e_type = REFERENCE;
-		
+
 		//to be implemented - need type deduction
 		//by searching for variable
 	}
-  | ID '[' vector_position ']' OF ID { 
+  | ID '[' vector_position ']' OF ID {
 		$$=new Expression();
 
 		//to be implemented - need type deduction
 		//by searching for variable
 	}
-  | ID OF ID '[' vector_position ']' { 
-		$$=new Expression(); 
-
-		//to be implemented - need type deduction
-		//by searching for variable
-	}
-  | ID '[' vector_position ']' OF ID '[' vector_position ']' { 
+  | ID OF ID '[' vector_position ']' {
 		$$=new Expression();
 
 		//to be implemented - need type deduction
 		//by searching for variable
 	}
-  | eval_expr { 
+  | ID '[' vector_position ']' OF ID '[' vector_position ']' {
+		$$=new Expression();
+
+		//to be implemented - need type deduction
+		//by searching for variable
+	}
+  | eval_expr {
 		$$ = $1;
 		//asta nu am facut-o noi?
 	}
@@ -424,7 +436,7 @@ class_id_initialization
 
 
 
-vector_size 
+vector_size
   : {
 	  $$ = new IntVal({ 0 });
 	}
@@ -435,7 +447,7 @@ vector_size
   ;
 
 
-vector_initialization 
+vector_initialization
   : '[' vector_body ']' {
 		$$ = $2;
 	}
@@ -443,13 +455,13 @@ vector_initialization
 
 
 
-vector_body 
-  : class_id_initialization { 
+vector_body
+  : class_id_initialization {
 		$$ = new std::vector< std::shared_ptr<Expression>>();
-		
+
 		$$->push_back(std::shared_ptr<Expression>($1));
 	}
-  | class_id_initialization ',' vector_body { 
+  | class_id_initialization ',' vector_body {
 		$$ = new std::vector< std::shared_ptr<Expression>>(*$3);
 		delete $3;
 
@@ -459,11 +471,11 @@ vector_body
 
 
   /*Call parameters ar putea fi eliminat*/
-call_parameters 
+call_parameters
   : TIME {
 		$$ = new FunctionCall();
 	}
-  | f_parameters { 
+  | f_parameters {
 		$$ = new FunctionCall();
 
 		$$->params = *$1;
@@ -473,33 +485,33 @@ call_parameters
 
 
 
-vector_position 
-  : ID { 
+vector_position
+  : ID {
 		//asta e facut tot de mine, pentru ca am avut nevoie mai jos de unde am inceput
 
 		$$ = new IntVal();
 		$$->value=search_variable($1->value)->value.int_val->value;
 		delete $1;
 	}
-  | NR { 
+  | NR {
 		$$ = new IntVal();
 		$$ = $1;
 	}
-  | CHNT ID SACRF call_parameters ':' { 
+  | CHNT ID SACRF call_parameters ':' {
 		$$=new IntVal();
 
-		auxExpression = new Expression();
+		auto auxExpression = new Expression();
 		auxExpression->call = std::shared_ptr<FunctionCall>($4);
 		auxExpression->call->name = $2->value;
 		auxExpression->e_type = CALL;
-		
+
 		//verificare daca functia e INT
 		//if (auxExpression->call->return_type!=TYPE_INT) yyerror();
 	}
-  | ID '[' vector_position ']' { 
+  | ID '[' vector_position ']' {
 	  $$ = new IntVal();
-	 
-	  //to be implemented - cautare valoare in vector
+
+	  //to be implemented - search in vector
 	}
   ;
 
@@ -510,8 +522,8 @@ const_class_ids : const_class_id {  }
 				;
 
 
-const_class_id 
-  : ID BSTOW class_id_initialization { 
+const_class_id
+  : ID BSTOW class_id_initialization {
 		$$ = new VariableDeclaration();
 
 		$$->name = $1->value;
@@ -520,7 +532,7 @@ const_class_id
 		$$->value = $3->value;
 		$$->is_const = true;
 
-		//de verificat ca in class id_initialization toate 
+		//de verificat ca in class id_initialization toate
 		//variabilele si constantele sunt type
 
 		//expresia trebuie musai sa aiba value, fiind const
@@ -545,67 +557,210 @@ const_class_id
   ;
 
 
-  /* f_parameters ar putea fi eliminat - lista de expr */
-f_parameters : f_parameter {  }
-			 | f_parameter ',' f_parameters {  }
-			 ;
+  /* f_parameters ar putea fi eliminat - duplicat vector_body - lista de expr */
+f_parameters
+  : class_id_initialization {
+		$$ = new std::vector< std::shared_ptr<Expression>>();
+
+		$$->push_back(std::shared_ptr<Expression>($1));
+	}
+  | class_id_initialization ',' f_parameters {
+		$$ = new std::vector< std::shared_ptr<Expression>>(*$3);
+		delete $3;
+
+		$$->push_back(std::shared_ptr<Expression>($1));
+  }
+  ;
+
+
+class_f
+  : type BGNF ID SACRF f_declaration_parameters ':' function_body ENDF {
+		$$ = $5;
+		$$->name = $3->value;
+		delete $3;
+		$$->return_type = $1->type;
+		delete $1;
+		$$->function_body = *$7;
+		delete $7;
+	}
+  | VOID BGNF ID SACRF f_declaration_parameters ':' no_return_function_body ENDF {
+		$$ = $5;
+		$$->name = $3->value;
+		delete $3;
+		$$->return_type = NONE;
+		$$->is_void = true;
+		//is_void should be equivalent to NONE
+		$$->function_body = $7->function_body;
+		delete $7;
+	}
+  ;
+
+
+f_declaration_parameters
+  : TIME {
+		$$ = new FunctionDeclaration();
+	}
+  | declaration_parameters {
+		$$ = $1;
+	}
+  ;
+
+
+declaration_parameters
+  : declaration_parameter {
+		$$ = new FunctionDeclaration();
+		$$->params.push_back(*$1);
+		delete $1;
+	}
+  | declaration_parameter ',' declaration_parameters {
+		$$ = $3;
+		$$->params.push_back(*$1);
+		delete $1;
+	}
+  ;
 
 
 
-f_parameter : class_id_initialization {/*nu stiu daca aici este corect, dar eu presupun ca da*/  }
-			;
+declaration_parameter
+  : type ID {
+		$$ = new VariableDeclaration();
+		$$->type = $1->type;
+		delete $1;
+		$$->name = $2->value;
+		delete $2;
+	}
+  | type ID '[' ']' {
+		$$ = new VariableDeclaration();
+		$$->type = Type($1->type + 6); //din TYPE_INT -> TYPE_INT_VECTOR
+		delete $1;
+		$$->name = $2->value;
+		delete $2;
+	}
+  | CONST type ID {
+		$$ = new VariableDeclaration();
+		$$->type = $2->type;
+		delete $2;
+		$$->name = $3->value;
+		delete $3;
+		$$->is_const = true;
+	}
+  | CONST type ID '[' ']' {
+		$$ = new VariableDeclaration();
+		$$->type = Type($2->type + 6);
+		delete $2;
+		$$->name = $3->value;
+		delete $3;
+		$$->is_const = true;
+	}
+  ;
 
 
 
-class_f : type BGNF ID SACRF f_declaration_parameters ':' function_body ENDF {  }
-		| VOID BGNF ID SACRF f_declaration_parameters ':' no_return_function_body ENDF {  }
-		;
+function_body
+  : class_var function_body {
+		$$ = $2;
+
+		Statement st;
+		st.var_dec = $1->var_dec;
+
+		$$->push_back(st);
+	}
+  | class_var {
+		$$ = new ComposedStatement();
+
+		Statement st;
+		st.var_dec = $1->var_dec;
+
+		$$->push_back(st);
+	}
+  | RET class_id_initialization '.' function_body {
+		$$ = $4;
+
+		Statement st;
+		st.ret_stmt = std::shared_ptr<Expression>($2);
+
+		$$->push_back(st);
+	}
+  | RET eval_expr '.' function_body {
+		//redundanta eval_expr class_id_initialization
+		$$ = $4;
+
+		Statement st;
+		st.ret_stmt = std::shared_ptr<Expression>($2);
+
+		$$->push_back(st);
+	}
+  | RET class_id_initialization '.' {
+		$$ = new ComposedStatement();
+
+		Statement st;
+		st.ret_stmt = std::shared_ptr<Expression>($2);
+
+		$$->push_back(st);
+	}
+  | RET eval_expr '.' {
+		$$ = new ComposedStatement();
+
+		Statement st;
+		st.ret_stmt = std::shared_ptr<Expression>($2);
+
+		$$->push_back(st);
+    }
+  | function_instruction function_body {
+		$$ = $2;
+
+		$$->push_back(*$1);
+		delete $1;
+	}
+  | function_instruction {
+		$$ = new ComposedStatement();
+
+		$$->push_back(*$1);
+		delete $1;
+	}
+  | EVAL '(' ')' '.' {  }
+  | EVAL '(' NR ')' '.' {  }
+  | EVAL '(' ID ')' '.' {  }
+  ;
 
 
 
-f_declaration_parameters : TIME {  }
-						 | declaration_parameters {  }
-						 ;
+function_instruction
+  : ENCH ID WITH eval_expr '.' {
+		$$ = new Statement();
 
+		$$->asgmt_stmt = std::make_shared<Assignment>(Assignment{ $2->value, false, -1, *$4 });
+		delete $2;
+		delete $4;
+	}
+  | ENCH ID '[' vector_position ']' WITH eval_expr '.' {
+		$$ = new Statement();
 
+		$$->asgmt_stmt = std::make_shared<Assignment>(Assignment{ $2->value, true, $4->value, *$7 });
+		delete $2;
+		delete $4;
+		delete $7;
+	}
+  | ENCH ID OF ID WITH eval_expr '.' {
+	  //no longer supported
+	}
+  | CHNT ID SACRF call_parameters ':' '.' {
+		$$ = new Statement();
 
-declaration_parameters : declaration_parameter {  }
-					   | declaration_parameter ',' declaration_parameters {  }
-					   ;
-
-
-
-declaration_parameter : type ID {  }
-					  | type ID '[' ']' {  }
-					  | CONST type ID {  }
-					  | CONST type ID '[' ']' {  }
-					  ;
-
-
-
-function_body : class_var function_body {  }
-			  | RET class_id_initialization '.' function_body {  }
-			  | RET eval_expr '.' function_body {  }
-			  | function_instruction function_body {  }
-			  | class_var {  }
-			  | RET class_id_initialization '.' {  }
-			  | RET eval_expr '.' {  }
-			  | function_instruction {  }
-		      | EVAL '(' ')' '.' {  }
-			  | EVAL '(' NR ')' '.' {  }
-			  | EVAL '(' ID ')' '.' {  }
-			  ;
-
-
-
-function_instruction : ENCH ID WITH eval_expr '.' {  }
-					 | ENCH ID '[' vector_position ']' WITH eval_expr '.' {  }
-					 | ENCH ID OF ID WITH eval_expr '.' {  }
-					 | CHNT ID SACRF call_parameters ':' '.' {  }
-					 | while_instr {  }
-					 | if_instr {  }
-					 | for_instr {  }
-					 ;
+		$4->name = $2->value;
+		//trebuie cautata functia si intors tipul
+		$$->func_call = std::shared_ptr<FunctionCall>($4);
+	}
+  | while_instr {
+		$$ = new Statement();
+	}
+  | if_instr {
+		$$ = new Statement();
+	}
+  | for_instr {
+		$$ = new Statement();
+	}
+  ;
 
 
 
@@ -640,8 +795,8 @@ check : NOT eval_expr {  }
 	  ;
 
 
-
-while_body : function_body {/*de asemenea nu stiu daca este ok ce fac aicea*/  }
+  /*de asemenea nu stiu daca este ok ce fac aicea*/
+while_body : function_body {  }
 		   ;
 
 
@@ -700,7 +855,7 @@ for_body : function_body {  }
 
 eval_expr : expr {  }
   | ENCH var WITH expr {
-		//de aici in jos facut-am eu 
+		//de aici in jos facut-am eu
 
 		$$=new Expression();
 		//$2->value=$4->value; //asta daca calculam expr
@@ -710,12 +865,12 @@ eval_expr : expr {  }
 	}
   ;
 
-var 
-  : ID { 		
-		$$ = search_variable($1->value);
+var
+  : ID {
+		$$ = search_variable($1->value).get();
 	}
   | ID '[' vector_position ']' {
-		$$=search_variable($1->value);
+		$$=search_variable($1->value).get();
 		//validare gasire
 		$$->position_in_vector=$3->value;
 		//validare marime
@@ -728,14 +883,14 @@ var
   | ID '[' vector_position ']' OF ID '[' vector_position ']' {  }
   ;
 
-expr: '(' expr ')' { 
+expr: '(' expr ')' {
 		$$=new Expression();
 		$$=$2;
 		$$->e_type = VALUE;
 		///R:nici aici
 		//delete $2;
 	}
-  | expr '+' expr { 
+  | expr '+' expr {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
@@ -759,14 +914,14 @@ expr: '(' expr ')' {
 			case TYPE_BOOL:
 				$$->value.bool_val->value=$1->value.bool_val->value+$3->value.bool_val->value;
 				break;
-			default: 
+			default:
 				//pt none si type_object(nu avem overloaded operators)
 				//yyerror();
 				break;
 		}
-		
+
 	}
-  | expr '-' expr { 
+  | expr '-' expr {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
@@ -787,14 +942,14 @@ expr: '(' expr ')' {
 			case TYPE_BOOL:
 				$$->value.bool_val->value=$1->value.bool_val->value-$3->value.bool_val->value;
 				break;
-			default: 
+			default:
 				//pt none si type_object(nu avem overloaded operators)
 				//pt string nu are sens sa faci "-". Daca vrei putem pune.
 				//yyerror();
 				break;
 		}
 	}
-  | expr '*' expr { 
+  | expr '*' expr {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
@@ -815,14 +970,14 @@ expr: '(' expr ')' {
 			case TYPE_BOOL:
 				$$->value.bool_val->value=$1->value.bool_val->value*$3->value.bool_val->value;
 				break;
-			default: 
+			default:
 				//pt none si type_object(nu avem overloaded operators)
 				//pt string nu are sens sa faci "*". Daca vrei putem pune.
 				//yyerror();
 				break;
 		}
 	}
-  | expr '/' expr { 
+  | expr '/' expr {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
@@ -839,19 +994,19 @@ expr: '(' expr ')' {
 			case TYPE_CHAR:
 				$$->value.char_val->value=$1->value.char_val->value/$3->value.char_val->value;
 				break;
-			default: 
+			default:
 				//pt none si type_object(nu avem overloaded operators)
 				//nici string nici bool nu ii facut
 				//yyerror();
 				break;
 		}
 	}
-  | expr '%' expr { 
+  | expr '%' expr {
 		$$=new Expression();
 		//if ($1->type!=$3->type) yyerror();
 		$$->type=$1->type;
 		$$->e_type = VALUE;
-		
+
 		switch($$->type){
 			case TYPE_INT:
 				$$->value.int_val->value=$1->value.int_val->value%$3->value.int_val->value;
@@ -859,14 +1014,14 @@ expr: '(' expr ')' {
 			case TYPE_CHAR:
 				$$->value.char_val->value=$1->value.char_val->value%$3->value.char_val->value;
 				break;
-			default: 
+			default:
 				//pt none si type_object(nu avem overloaded operators)
 				//nici string nici bool nu ii facut
 				//yyerror();
 				break;
 		}
 	}
-  | '-' expr %prec UMINUS { 
+  | '-' expr %prec UMINUS {
 		$$=new Expression();
 		$$->type=$2->type;
 		$$->e_type = VALUE;
@@ -881,12 +1036,12 @@ expr: '(' expr ')' {
 			case TYPE_CHAR:
 				$$->value.char_val->value=-$2->value.char_val->value;
 				break;
-			default: 
+			default:
 				//yyerror();
 				break;
 		}
 	}
-  | var { 
+  | var {
 		$$=new Expression();
 		$$->type=$1->type;
 		$$->value=$1->value;
@@ -895,7 +1050,7 @@ expr: '(' expr ')' {
 
 		//delete $1;
 	}
-  | CHNT ID SACRF call_parameters ':' { 
+  | CHNT ID SACRF call_parameters ':' {
 		$$=new Expression();
 		$$->call=std::shared_ptr<FunctionCall>($4);
 		$$->call->name = $2->value;
@@ -903,41 +1058,41 @@ expr: '(' expr ')' {
 		$$->type=$$->call->return_type;
 		$$->value=$$->call->return_value;
 	}
-  | NR { 
+  | NR {
 		$$=new Expression();
 		$$->type=TYPE_INT;
 		$$->value.int_val->value=$1->value;
 		$$->e_type = VALUE;
 		delete $1;
 	}
-  | NRF { 
+  | NRF {
 		$$=new Expression();
 		$$->type=TYPE_FLOAT;
 		$$->value.float_val->value=$1->value;
 		$$->e_type = VALUE;
 		delete $1;
 	}
-  | CHR { 
+  | CHR {
 		$$=new Expression();
 		$$->type=TYPE_CHAR;
 		$$->value.char_val->value=$1->value;
 		delete $1;
 	}
-  | STR { 
+  | STR {
 		$$=new Expression();
 		$$->type=TYPE_STRING;
 		$$->value.string_val->value=$1->value;
 		$$->e_type = VALUE;
 		delete $1;
 	}
-  | TRUE { 
+  | TRUE {
 		$$=new Expression();
 		$$->type=TYPE_BOOL;
 		$$->value.bool_val->value=true;//asa?
 		$$->e_type = VALUE;
 		delete $1;
 	}
-  | FALSE { 
+  | FALSE {
 		$$=new Expression();
 		$$->type=TYPE_BOOL;
 		$$->value.bool_val->value=false;//asa?
@@ -946,80 +1101,73 @@ expr: '(' expr ')' {
 	}
   ;
 
-no_return_function_body : class_var no_return_function_body { 
+	/* Aici ar trebui sa fie Compound Statement */
+no_return_function_body : class_var no_return_function_body {
 		$$=new FunctionDeclaration();
 		Statement statement;
 		statement.var_dec=std::shared_ptr<VariableDeclaration>($1->var_dec);
-		$$->function_body.statements.push_back(statement);
+		$$->function_body.push_back(statement);
 		//de creat contextul
-		for (auto& holder : $2->function_body.statements){
-				$$->function_body.statements.push_back(holder);
+		for (auto& holder : $2->function_body){
+				$$->function_body.push_back(holder);
 		}
 		/*
 		nu trebuie pus tipul statementului aici?
 
 		EDIT: vad acum ca nu am facut un enum cu tipul statementului - intr-adevar nu ne trebuie momentan, dar ar putea fi facut
 		*/
+
+		//nu stergi ce ai alocat nou
 	}
-  | function_instruction no_return_function_body { /*aici nu cred ca trebuie scris nimic in afara de*/ 
+  | function_instruction no_return_function_body { /*aici nu cred ca trebuie scris nimic in afara de*/
 		$$=new FunctionDeclaration();
-		for (auto& holder : $2->function_body.statements){
-				$$->function_body.statements.push_back(holder);
+		for (auto& holder : $2->function_body){
+				$$->function_body.push_back(holder);
 		}
 		///R:Cred ca trebuie pus statementul respectiv in vector (function_instruction e defapt nenecesara ca e practic statement fara return)
 	}
-  | class_var { 
+  | class_var {
 		$$=new FunctionDeclaration();
 		Statement statement;
 		statement.var_dec=std::shared_ptr<VariableDeclaration>($1->var_dec);
-		$$->function_body.statements.push_back(statement);
+		$$->function_body.push_back(statement);
 		//de creat contextul
 	}
   | function_instruction {  }
   ;
 
 
-
-function_def : class_f { 
-		$$=new FunctionDeclaration();
-		//de facut legatura cu $1->func_dec;
-		
-		///R:Aici trebuie defapt dat pointerul mai departe, regula e inutila $$ = $1;
-	}
-  ;
-
-
-
-statement : declaration { 
+statement
+  : declaration {
 		$$=new Statement();
 		$$->var_dec=std::shared_ptr<VariableDeclaration>($1);
 	}
-  | if_instr { 
+  | if_instr {
 		$$=new Statement();
 		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
 	}
-  | while_instr { 
+  | while_instr {
 		$$=new Statement();
 		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
 	}
-  | for_instr { 
+  | for_instr {
 		$$=new Statement();
 		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
 	}
-  | ENCH ID WITH eval_expr '.' { 
+  | ENCH ID WITH eval_expr '.' {
 		$$=new Statement();
 		Assignment* assignment=new Assignment();
 		assignment->name=$2->value;
 		assignment->expr=*$4;
 		VariableDeclaration* variable;
-		variable=search_variable($2->value);
+		variable=search_variable($2->value).get();
 		variable->type=assignment->expr.type;
 		variable->value=assignment->expr.value;
 		///R:aici doar daca expresia e calculata deja (are tip value)
 		//oare se modifica varibila? cred ca da, pt ca returneaza pointer spre ea;
 		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
 	}
-  | ENCH ID '[' vector_position ']' WITH eval_expr '.' { 
+  | ENCH ID '[' vector_position ']' WITH eval_expr '.' {
 		$$=new Statement();
 		Assignment* assignment=new Assignment();
 		assignment->name=$2->value;
@@ -1027,16 +1175,16 @@ statement : declaration {
 		assignment->position=$4->value;
 		assignment->expr=*$7;
 		VariableDeclaration* variable;
-		variable=search_variable($2->value);
+		variable=search_variable($2->value).get();
 		variable->type=assignment->expr.type;
 		variable->value=assignment->expr.value;
-		
+
 		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
 	}
-  | ENCH ID OF ID WITH eval_expr '.' { 
+  | ENCH ID OF ID WITH eval_expr '.' {
 		//asta nu mai exista la noi.
 	}
-  | CHNT ID SACRF call_parameters ':' '.' { 
+  | CHNT ID SACRF call_parameters ':' '.' {
 		$$=new Statement();
 		//FunctionCall* function_call=search_function($2->value, call_parameters);
 		//trebuie implementata functia de cautat signatura unei functii sa vezi daca exista
@@ -1045,33 +1193,31 @@ statement : declaration {
 
 		///R:S-ar putea aici sa trebuiasca facuta o distinctie intre function call si valoarea de return a unei function call
 	}
-  | EVAL '(' ')' '.' { 
+  | EVAL '(' ')' '.' {
 		$$=new Statement();
 		printf("statement vid\n");
 	}
-  | EVAL '(' NR ')' '.' { 
+  | EVAL '(' NR ')' '.' {
 		$$=new Statement();
 		printf("%d\n", $3->value);
 	}
-  | EVAL '(' ID ')' '.' { 
+  | EVAL '(' ID ')' '.' {
 		$$=new Statement();
 		//validare ca ID este int
 		printf("Variable found: %s. Value: %d\n", $3->value, search_variable($3->value)->value.int_val->value);
 		///R:Daca ID are o valoare si nu altceva (o expresie -> function call etc), printam
 	}
-  | RET eval_expr '.'  { 
+  | RET eval_expr '.'  {
 		$$=new Statement();
-		Return* return_val=new Return();
-		return_val->ret=std::shared_ptr<Expression>($2);
 		//aici ar trebuie verificat daca dam return la ce type trebuie (dar e destul de greu, ar trebuii sa stim contextul)
-		$$->ret_stmt=std::shared_ptr<Return>(return_val);
+		$$->ret_stmt=std::shared_ptr<Expression>($2);
 	}
   ;
 
 
 
-declaration 
-  : class_var { 
+declaration
+  : class_var {
 		$$=new VariableDeclaration();
 		$$->name=$1->var_dec->name;
 		$$->is_const=$1->var_dec->is_const;
@@ -1108,7 +1254,7 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 }
 
 //modificat pentru ca am nevoie sa fie tipul asta
-VariableDeclaration* search_variable
+std::shared_ptr<VariableDeclaration> search_variable
 (std::string name)
 {
 	return nullptr;
@@ -1118,4 +1264,9 @@ std::shared_ptr<VariableDeclaration> search_variable_in_class
 (std::string name, std::string class_object)
 {
 	return nullptr;
+}
+
+void pop_stack_context(ParseState* parse_state) {
+	if (! parse_state->Stack.empty())
+		parse_state->Stack.pop();
 }

@@ -7,6 +7,9 @@ void update_loc(yyscan_t scanner);
 int lineno;
 int column;
 #define YY_USER_INIT lineno = 1; column = 1;
+
+void push_stack_context(yyscan_t scanner);
+#define PUSH_STACK_CONTEXT push_stack_context(yyscanner);
 %}
 
 %option yylineno reentrant noyywrap nounistd bison-bridge bison-locations
@@ -29,7 +32,7 @@ MULTICOMMENT	"/*"(.|\n)*"*/"
 
 %%
 
-"The tale begins." {return BGNP; }
+"The tale begins." { PUSH_STACK_CONTEXT;  return BGNP; }
 
  /* Default Types */
 points {return INT; }
@@ -57,8 +60,8 @@ not {return NOT; }
 
  /* Functions and classes */
 void {return VOID;}
-"I summon thy name" {return CLASS; }
-"and thy brethren." {return ENDCLASS; }
+"I summon thy name" { PUSH_STACK_CONTEXT; return CLASS; }
+"and thy brethren." { return ENDCLASS; }
 
  /* Language specific*/
 of {return OF; }
@@ -134,4 +137,13 @@ void update_loc(yyscan_t scanner) {
 	static std::string saved_token;
 	saved_token = yytext;
 	yylloc->last_token = saved_token.c_str();
+}
+
+void push_stack_context(yyscan_t scanner) {
+	struct yyguts_t * yyg = (struct yyguts_t*)scanner;
+
+	if (yyextra->Stack.empty())
+		yyextra->Stack.push(std::vector<std::shared_ptr<VariableDeclaration>>());
+	else
+		yyextra->Stack.push(yyextra->Stack.top());
 }

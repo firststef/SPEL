@@ -44,7 +44,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 12 "parser.y"
+#line 16 "parser.y"
 
 
 #include "Memory.hpp"
@@ -153,7 +153,7 @@ void print_rule(int num, char* s);
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 99 "parser.y"
+#line 104 "parser.y"
 
 	Node* node;
 	DeclarationHolder* dec_holder;
@@ -171,11 +171,10 @@ union YYSTYPE
 	Assignment* asgmt;
 	FunctionDeclaration* func_decl;
 	FunctionCall* func_call;
-	Return* ret;
 
 	std::vector< std::shared_ptr<Expression>>* exprs;
 
-#line 179 "parser.hpp"
+#line 178 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
