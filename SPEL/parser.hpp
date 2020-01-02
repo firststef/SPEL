@@ -119,33 +119,31 @@ void print_rule(int num, char* s);
     FOR = 278,
     WHILE = 279,
     ENDWHILE = 280,
-    BEGINIF = 281,
-    BEGINELSE = 282,
-    ENDELSE = 283,
-    ENDIF = 284,
-    ENDFOR = 285,
-    VOID = 286,
-    IN = 287,
-    EVAL = 288,
-    BG = 289,
-    BGNP = 290,
-    ENDCLASS = 291,
-    CRAFT = 292,
-    BSTOW = 293,
-    ENCH = 294,
-    WITH = 295,
-    SACRF = 296,
-    TIME = 297,
-    CHNT = 298,
-    ID = 299,
-    STR = 300,
-    NR = 301,
-    NRF = 302,
-    CHR = 303,
-    TRUE = 304,
-    FALSE = 305,
-    IFX = 306,
-    UMINUS = 307
+    ENDELSE = 281,
+    ENDIF = 282,
+    ENDFOR = 283,
+    VOID = 284,
+    IN = 285,
+    EVAL = 286,
+    BG = 287,
+    BGNP = 288,
+    ENDCLASS = 289,
+    CRAFT = 290,
+    BSTOW = 291,
+    ENCH = 292,
+    WITH = 293,
+    SACRF = 294,
+    TIME = 295,
+    CHNT = 296,
+    ID = 297,
+    STR = 298,
+    NR = 299,
+    NRF = 300,
+    CHR = 301,
+    TRUE = 302,
+    FALSE = 303,
+    IFX = 304,
+    UMINUS = 305
   };
 #endif
 
@@ -174,7 +172,7 @@ union YYSTYPE
 
 	std::vector< std::shared_ptr<Expression>>* exprs;
 
-#line 178 "parser.hpp"
+#line 176 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

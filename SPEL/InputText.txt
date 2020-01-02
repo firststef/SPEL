@@ -109,7 +109,7 @@ terminus
 
 [TEST] Return in main:
 The tale begins.
-if (true) beginif
+if (true) 
 	cast 0.
 endif
 cast 1.
@@ -158,10 +158,10 @@ craft clasa1 obj.
 
 [TEST] Conditionals & Arithmetic:
 The tale begins.
-if (a && (b != 0)) beginif
+if (a && (b != 0)) 
 	chant functie sacrifice 1:.
 endif
-else beginelse
+else 
 	chant functie sacrifice 1:.
 endelse
 [END] 
@@ -207,7 +207,7 @@ craft tome str bestow "string1"+"string2","asas".
 
 [TEST][SHOULD FAIL] Arithmetic operations vs boolean operations:
 The tale begins.
-if (2 + 3) beginif
+if (2 + 3) 
 	craft artifact points ii bestow 0.
 endif
 [END]

@@ -69,7 +69,7 @@ void print_rule(int num, char* s);
 
 %token LEQ BEQ EQ NEQ INT OF FLOAT CHAR STRING NOT
 %token BGNF ENDF AND OR RET CLASS CONST BOOL ELSE IF
-%token FOR WHILE ENDWHILE BEGINIF BEGINELSE ENDELSE ENDIF ENDFOR VOID
+%token FOR WHILE ENDWHILE ENDELSE ENDIF ENDFOR VOID
 %token IN EVAL BG BGNP ENDCLASS CRAFT BSTOW ENCH WITH SACRF TIME CHNT
 
 %token <string_val> ID STR
@@ -94,7 +94,7 @@ void print_rule(int num, char* s);
 %type <dec_holder> class_var
 %type <variable_dec> type class_id const_class_id var declaration_parameter
 %type <int_val> vector_size vector_position
-%type <expr> class_id_initialization eval_expr expr
+%type <expr> class_id_initialization eval_expr expr boolean check
 %type <func_call> call_parameters
 %type <exprs> vector_initialization vector_body f_parameters
 %type <stmt> statement function_instruction
@@ -758,20 +758,34 @@ function_instruction
   | while_instr {
 		$$ = new Statement();
 
-		
+		$$->iter_sel_stmt = std::shared_ptr<IterationSelectionStatement>($1);
 	}
   | if_instr {
 		$$ = new Statement();
+
+		$$->iter_sel_stmt = std::shared_ptr<IterationSelectionStatement>($1);
 	}
   | for_instr {
 		$$ = new Statement();
+
+		$$->iter_sel_stmt = std::shared_ptr<IterationSelectionStatement>($1);
 	}
   ;
 
 
 
-while_instr : WHILE '(' boolean ')' function_body ENDWHILE {  }
-			;
+while_instr 
+  : WHILE '(' boolean ')' function_body ENDWHILE { 
+		$$ = new IterationSelectionStatement();
+		$$->type = TYPE_WHILE;
+		
+		$$->expr = *$3;
+		delete $3;
+
+		$$->primary_body = *$5;
+		delete $5;
+	}
+  ;
 
 
 boolean : check {  }
@@ -796,37 +810,49 @@ check : NOT eval_expr {  }
 
 
 
-if_instr : IF '(' boolean ')' if_body %prec IFX {  }
-		 | IF '(' boolean ')' if_body ELSE elif_body {  }
-		 ;
+if_instr 
+  : IF '(' boolean ')' function_body ENDIF %prec IFX {
+		$$ = new IterationSelectionStatement();
+		$$->type = TYPE_IF;
+
+		$$->expr = *$3;
+		delete $3;
+
+		$$->primary_body = *$5;
+		delete $5;
+	}
+  | IF '(' boolean ')' function_body ENDIF ELSE function_body ENDELSE {
+		$$ = new IterationSelectionStatement();
+		$$->type = TYPE_IF_ELSE;
+
+		$$->expr = *$3;
+		delete $3;
+
+		$$->primary_body = *$5;
+		delete $5;
+
+		$$->secondary_body = *$8;
+		delete $8;
+	}
+  ;
 
 
+for_instr 
+  : FOR '(' ID IN ID ')' function_body ENDFOR {
+		$$ = new IterationSelectionStatement();
+		$$->type = TYPE_FOR;
 
-if_body : BEGINIF function_body ENDIF {  }
-		;
+		$$->primary_body = *$7;
+		delete $7;
+	}
+  | FOR '(' ID IN for_1 ':' for_1 ')' function_body ENDFOR {
+		$$ = new IterationSelectionStatement();
+		$$->type = TYPE_FOR;
 
-
-
-elif_body : BEGINELSE function_body ENDELSE {  }
-		  ;
-
-
-
-for_instr : FOR for_sintax ENDFOR {  }
-		  ;
-
-
-
-for_sintax : '(' ID IN for_iterator ')' function_body {  }
-		   ;
-
-
-
-for_iterator : ID {  }
-			| for_1 ':' for_1 {  }
-			;
-
-
+		$$->primary_body = *$9;
+		delete $9;
+	}
+  ;
 
 for_1 : ID {  }
 	  | NR {  }

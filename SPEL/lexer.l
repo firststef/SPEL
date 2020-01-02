@@ -78,12 +78,10 @@ chant {return CHNT; }
 with {return WITH; }
 
  /* Loops */
-if {return IF; }
-else {return ELSE; }
+if { PUSH_STACK_CONTEXT; return IF; }
+else { PUSH_STACK_CONTEXT; return ELSE; }
 while { PUSH_STACK_CONTEXT; return WHILE; }
-beginif { PUSH_STACK_CONTEXT; return BEGINIF; }
 endif {return ENDIF; }
-beginelse { PUSH_STACK_CONTEXT; return BEGINELSE;}
 endelse {return ENDELSE; }
 endwhile {return ENDWHILE; }
 endfor {return ENDFOR; }

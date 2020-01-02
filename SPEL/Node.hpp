@@ -274,3 +274,5 @@ inline int get_unique_id()
 //no_return_function_body -> comp_stmt change type
 
 //function_instruction remove -> function_body -> to statement
+
+//if beginif ar trebui scos
