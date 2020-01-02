@@ -355,3 +355,5 @@ Tester\ -\ Releases
 SPEL/x64/
 SPEL/Tester\ -\ Debug/
 SPEL/Tester\ -\ Releases
+SPEL/parser.cpp
+SPEL/lexer.cpp

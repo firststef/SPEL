@@ -770,14 +770,8 @@ function_instruction
 
 
 
-while_instr : WHILE '(' while_condition ')' while_body ENDWHILE {  }
+while_instr : WHILE '(' boolean ')' function_body ENDWHILE {  }
 			;
-
-
-
-while_condition : boolean {  }
-				;
-
 
 
 boolean : check {  }
@@ -801,20 +795,10 @@ check : NOT eval_expr {  }
 	  ;
 
 
-  /*de asemenea nu stiu daca este ok ce fac aicea*/
-while_body : function_body {  }
-		   ;
 
-
-
-if_instr : IF '(' if_condition ')' if_body %prec IFX {  }
-		 | IF '(' if_condition ')' if_body ELSE elif_body {  }
+if_instr : IF '(' boolean ')' if_body %prec IFX {  }
+		 | IF '(' boolean ')' if_body ELSE elif_body {  }
 		 ;
-
-
-
-if_condition : boolean {  }
-			 ;
 
 
 
@@ -833,7 +817,7 @@ for_instr : FOR for_sintax ENDFOR {  }
 
 
 
-for_sintax : '(' ID IN for_iterator ')' for_body {  }
+for_sintax : '(' ID IN for_iterator ')' function_body {  }
 		   ;
 
 
@@ -851,12 +835,6 @@ for_1 : ID {  }
 	  | CHNT  ID SACRF call_parameters ':' {  }
 	  | ID '[' vector_position ']' {  }
 	  ;
-
-
-
-for_body : function_body {  }
-		 ;
-
 
 
 eval_expr : expr {  }
