@@ -1,3 +1,77 @@
+[TEST][SHOULD FAIL] Illegal return function error - type:
+The tale begins.
+
+points spell functie2 sacrifice time : 
+	craft points a .
+	cast "a".
+terminus
+[END]
+
+[TEST][SHOULD FAIL] Illegal return function error - void:
+The tale begins.
+
+void spell functie2 sacrifice time : 
+	if (true) 
+		cast 0.
+	endif
+	
+	craft points a .
+	cast "a".
+terminus
+[END]
+
+[TEST][SHOULD FAIL] Illegal return function error - inside statement:
+The tale begins.
+
+void spell functie2 sacrifice time : 
+	if (true) 
+		if (true) 
+			cast 0.
+		endif
+	endif
+terminus
+[END]
+
+[TEST] Illegal return function - inside statement:
+The tale begins.
+
+void spell functie2 sacrifice time : 
+	if (true) 
+		if (true) 
+			cast time.
+		endif
+	endif
+terminus
+[END]
+
+[TEST][SHOULD FAIL] Duplicate function error - same signature :
+The tale begins.
+
+points spell functie2 sacrifice time : 
+	craft points a .
+	cast 4.
+terminus
+
+points spell functie2 sacrifice time : 
+	craft points a .
+	cast 4.
+terminus
+[END]
+
+[TEST] Duplicate function - different signature :
+The tale begins.
+
+points spell functie2 sacrifice precise mana : 
+	craft points a .
+	cast 4.
+terminus
+
+points spell functie2 sacrifice time : 
+	craft points a .
+	cast 4.
+terminus
+[END]
+
 [TEST] Example Program:
 The tale begins.
 
@@ -5,6 +79,14 @@ points spell functie2 sacrifice time :
 	craft points a .
 	cast 4.
 terminus
+
+I summon thy name Link
+	craft points life_points bestow 5.
+and thy brethren.
+
+I summon thy name Link
+	craft points life_points bestow 5.
+and thy brethren.
 
 I summon thy name Link
 	craft points life_points bestow 5.
@@ -240,14 +322,14 @@ The tale begins.
 EVAL(enchant 1 with 2).
 [END]
 
+[TEST][SHOULD FAIL] Duplicate class error
+The tale begins.
 
+I summon thy name Link
+	craft points life_points bestow 5.
+and thy brethren.
 
-
-///////////////////////////////////////////////////////////////////////////////////////////
-//Testele de aici vor fi facute cand facem testing pentru semantic
-points a. //trebuie sa dea eroare
-enchant a with "4". //eroare
-
-points man sacrifice points a, points b : {cast 4.}//eroare, definita cu aceeasi signatura
-man(b, 4).//eroare
-Eval(4.5). //eroare
+I summon thy name Link
+	craft points life_points bestow 5.
+and thy brethren.
+[END]

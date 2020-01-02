@@ -104,7 +104,7 @@ struct StringVal
 
 struct BoolVal
 {
-	char value;
+	bool value;
 };
 
 enum Type
@@ -131,7 +131,7 @@ struct TypeValue
 	std::shared_ptr<CharVal> char_val;
 	std::shared_ptr<StringVal> string_val;
 	std::shared_ptr<BoolVal> bool_val;
-	std::shared_ptr<ClassDefinition> object_val;//ciudat, ar trebui VariableDeclaration
+	std::shared_ptr<ClassDefinition> object_val;
 };
 
 struct VariableDeclaration
@@ -160,13 +160,24 @@ struct VariableDeclaration
 	
 };
 
-//should be added type
+enum StatementType
+{
+	NO_STMT,
+	VAR_DEC_STMT,
+	ITER_SEL_STMT,
+	ASGMT_STMT,
+	FUNC_CALL_STMT,
+	RET_STMT
+};
+
 struct Statement 
 {
-	std::shared_ptr<VariableDeclaration> var_dec;
+	StatementType st_type;
+	
+	std::shared_ptr<VariableDeclaration> var_dec; //should be renamed with _stmt
 	std::shared_ptr<IterationSelectionStatement> iter_sel_stmt;
-	std::shared_ptr<Assignment> asgmt_stmt;
-	std::shared_ptr<FunctionCall> func_call;
+	std::shared_ptr<Assignment> asgmt_stmt; 
+	std::shared_ptr<FunctionCall> func_call; //should be renamed with _stmt
 	std::shared_ptr<Expression> ret_stmt;
 };
 
@@ -227,7 +238,6 @@ struct Assignment
 
 struct FunctionDeclaration : ContextUnit
 {
-	bool is_void = false;
 	Type return_type;
 
 	Identifier name;

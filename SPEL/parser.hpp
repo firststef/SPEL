@@ -44,12 +44,13 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 16 "parser.y"
+#line 21 "parser.y"
 
 
 #include "Memory.hpp"
 
 #include <string>
+#include <sstream>
 
 #define YY_NO_UNISTD_H 1
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -89,7 +90,7 @@ struct YYLTYPE
 void print_rule(int num, char* s);
 #define  print_rule(__LINE__, nullptr);
 
-#line 93 "parser.hpp"
+#line 94 "parser.hpp"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -151,7 +152,7 @@ void print_rule(int num, char* s);
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 105 "parser.y"
+#line 110 "parser.y"
 
 	Node* node;
 	DeclarationHolder* dec_holder;
@@ -172,7 +173,7 @@ union YYSTYPE
 
 	std::vector< std::shared_ptr<Expression>>* exprs;
 
-#line 176 "parser.hpp"
+#line 177 "parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -83,11 +83,11 @@ void output_result(ParseState& parse_state, std::string test_description = "", i
 
 	auto fail = [&](const char* str)
 	{
-		if (enable_grammar_debug)
+		/*if (enable_grammar_debug)
 		{
 			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
 			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
-		}
+		}*/
 		set_console_color(12);
 		std::cout << str;
 		set_console_color(7);
@@ -96,11 +96,11 @@ void output_result(ParseState& parse_state, std::string test_description = "", i
 
 	auto warn = [&](const char* str)
 	{
-		if (enable_grammar_debug)
+		/*if (enable_grammar_debug)
 		{
 			std::cout << "===\nRULE STACK\n===\n" << last_calls_stream.str() << std::endl;
 			std::cout << "===\nNON-TERMINAL STACK\n===\n" << parents_stream.str() << std::endl;
-		}
+		}*/
 		set_console_color(14);
 		std::cout << str;
 		set_console_color(7);
