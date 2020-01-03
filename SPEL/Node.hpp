@@ -121,7 +121,8 @@ enum Type
 	TYPE_CHAR_VECTOR,
 	TYPE_STRING_VECTOR,
 	TYPE_BOOL_VECTOR,
-	TYPE_OBJECT_VECTOR
+	TYPE_OBJECT_VECTOR,
+	EXPRESSION
 };
 
 struct TypeValue
@@ -147,8 +148,6 @@ struct VariableDeclaration
 	std::vector<TypeValue> values;
 	int size_of_vector = 0; //sizeul ar trebui pus in resize la initializare
 	int position_in_vector; //atunci cand accesam a[5]
-	//totusi eu spun sa mutam toata logica asta in expr,
-	//in expr avem o referinta catre variabila din vectorul respectiv
 	
 	std::string context;
 	
@@ -185,6 +184,7 @@ using ComposedStatement = std::vector<Statement>;
 
 enum ExpressionType
 {
+	UNKNOWN,
 	VALUE,
 	VECTOR_NAME,
 	VARIABLE_NAME,
@@ -286,3 +286,9 @@ inline int get_unique_id()
 //function_instruction remove -> function_body -> to statement
 
 //if beginif ar trebui scos
+
+//expresiile din vector ar trebui calculate la init (scapat de ele)
+//si pus valoare default daca nu se pot calcula -> values
+
+//ar fi mai putea fi facut ca vectorul sa fie defapt un vector 
+//de variabile si astfel se rezolva si enchnt de v[5]

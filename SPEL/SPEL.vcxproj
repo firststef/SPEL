@@ -318,32 +318,32 @@
     </CustomBuild>
     <CustomBuild Include="parser.y">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">win_bison %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">win_bison %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">win_bison %(Identity) --debug -Wother</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">win_bison %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">win_bison %(Identity) --debug -Wother</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|Win32'">%(Filename).cpp; %(Filename).h</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_bison %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">win_bison %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">win_bison %(Identity) --debug -Wother</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Grammar - Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Tester - Debug|x64'">%(Filename).cpp; %(Filename).h</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">win_bison -o %(Filename).cpp %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_bison %(Identity) --debug -Wother</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">win_bison %(Identity) --debug -Wother</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating parser</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Tester - Releases|x64'">Generating parser</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cpp; %(Filename).h</Outputs>

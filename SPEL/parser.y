@@ -294,40 +294,155 @@ class_ids
 
 class_id
   : ID {
+		auto val = search_variable($1->value, parse_state).get();
+
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " already exists";
+		auto string = stream.str();
+
+		if (val != nullptr)
+			THROW_ERROR(string.c_str());
+
 		$$ = new VariableDeclaration();
 		$$->name = $1->value;
 		delete $1;
 	}
   | ID BSTOW class_id_initialization {
+		auto val = search_variable($1->value, parse_state).get();
+
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " already exists";
+		auto string = stream.str();
+
+		if (val != nullptr)
+			THROW_ERROR(string.c_str());
+
 		$$=new VariableDeclaration();
 		$$->name = $1->value;
-		delete $1;
 		$$->type = $3->type;
-		$$->value = $3->value;
-		//de verificat ca in class id_initialization toate
-		//variabilele si constantele sunt type
 
-		$$->expr = std::shared_ptr<Expression>($3);
+		if ($3->e_type == VALUE) {
+			$$->value = $3->value;
+		}
+		else {
+			std::ostringstream stream;
+			stream << "Variable with name " << $1->value << " could not be assigned ";
+			auto string = stream.str();
+
+			switch ($3->type) {
+			case TYPE_INT:
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ 0 }));
+				break;
+			case TYPE_FLOAT:
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ 0.0f }));
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ 'a' }));
+				break;
+			case TYPE_STRING:
+				$$->value.string_val = std::shared_ptr<StringVal>(new StringVal({ "default" }));
+				break;
+			case TYPE_BOOL:
+				$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
+				break;
+			default:
+				THROW_ERROR(string.c_str());
+				break;
+			}
+		}
+
+		delete $1;
 	}
   | ID '[' vector_size ']' {
+		auto val = search_variable($1->value, parse_state).get();
+
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " already exists";
+		auto string = stream.str();
+
+		if (val != nullptr)
+			THROW_ERROR(string.c_str());
+
 		$$=new VariableDeclaration();
 		$$->name= $1->value;
 		delete $1;
 
 		$$->size_of_vector = $3->value;
+		$$->values.resize($3->value);
 		delete $3;
 	}
   | ID '[' vector_size ']' BSTOW vector_initialization {
+		auto val = search_variable($1->value, parse_state).get();
+
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " already exists";
+		auto string = stream.str();
+
+		if (val != nullptr)
+			THROW_ERROR(string.c_str());
+
 		$$=new VariableDeclaration();
 		$$->name = $1->value;
-		delete $1;
+		
+		if ($3->value != $6->size()) {
+			std::ostringstream stream;
+			stream << "Vector with name " << $1->value << " is not initialized with correct number of params ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
 
 		$$->size_of_vector=$3->value;
-		delete $3;
+		$$->values.resize($3->value);
 
-		//should do size validation
-		//should do vector_init to ex
-		$$->exprs = *$6;
+		auto expr_type = (*$6)[0]->type;
+		int count = 0;
+		for (auto& exp : *$6) {
+			if (exp->type != expr_type) {
+				std::ostringstream stream;
+				stream << "Vector with name " << $1->value << " is not initialized with correct type of params ";
+				auto string = stream.str();
+
+				THROW_ERROR(string.c_str());
+			}
+
+			if (exp->e_type == VALUE) {
+				$$->values[count] = exp->value;
+			}
+			else {
+				//warning
+
+				std::ostringstream stream;
+				stream << "Vector with name " << $1->value << " could not initialized with correct type of params ";
+				auto string = stream.str();
+
+				switch (expr_type) {
+					case TYPE_INT:
+						$$->values[count].int_val = std::shared_ptr<IntVal>(new IntVal({ 0 }));
+						break;
+					case TYPE_FLOAT:
+						$$->values[count].float_val = std::shared_ptr<FloatVal>(new FloatVal({ 0.0f }));
+						break;
+					case TYPE_CHAR:
+						$$->values[count].char_val = std::shared_ptr<CharVal>(new CharVal({ 'a' }));
+						break;
+					case TYPE_STRING:
+						$$->values[count].string_val = std::shared_ptr<StringVal>(new StringVal({ "default" }));
+						break;
+					case TYPE_BOOL:
+						$$->values[count].bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
+						break;
+					default:
+						THROW_ERROR(string.c_str());
+						break;
+				}
+			}
+
+			count++;
+		}
+
+		delete $3;
+		delete $1;
 		delete $6;
 	}
   ;
@@ -337,10 +452,19 @@ class_id
 class_id_initialization
   : ID {
 		$$ = new Expression();
-		$$->name = $1->value;
-		$$->e_type = VARIABLE_NAME;
 
-		//$$->value = search($$->name)->value;
+		auto var = search_variable($1->value, parse_state).get();
+
+		if (var == nullptr) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $1->value << " not found ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		$$->type = var->type;
+		$$->value = var->value;
 
 		delete $1;
 	}
@@ -382,21 +506,53 @@ class_id_initialization
 	}
   | CHNT ID SACRF call_parameters ':' {
 		$$ = new Expression();
-
 		$$->call = std::shared_ptr<FunctionCall>($4);
 		$$->call->name = $2->value;
 		$$->e_type = CALL;
-		//search for function template - validate name and params
+
+		std::vector<VariableDeclaration> typed_params;
+
+		for (auto& expr : $4->params) {
+			VariableDeclaration var;
+			var.type = expr->type;
+			typed_params.push_back(var);
+		}
+
+		auto func = search_function($2->value, typed_params, parse_state);
+
+		if (func == nullptr) {
+			std::ostringstream stream;
+			stream << "Function with name " << $2->value << " and specified signature does not exist ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		//we could get the type, but the value cannot be computed
+		$$->e_type = UNKNOWN;
+
+		delete $2;
 
 	}
   | ID '[' vector_position ']' {
 		$$=new Expression();
-		$$->name = $1->value;
-		$$->e_type = VECTOR_NAME;
-		$$->position = $3->value; //trebuie evaluata aici poz
+
+		auto val = search_variable($1->value, parse_state).get();
+
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " does not exists";
+		auto string = stream.str();
+
+		if (val == nullptr)
+			THROW_ERROR(string.c_str());
+
+		//$$->size_of_vector = $3->value;
+		//$$->values.resize($3->value);
+
+		//todo get position
+
 		delete $3;
-		//to be implemented - need type deduction
-		//by searching for variable
+		delete $1;
 	}
   | ID OF ID { //ignore all OF statements
 		$$=new Expression();
@@ -427,7 +583,6 @@ class_id_initialization
 	}
   | eval_expr {
 		$$ = $1;
-		//asta nu am facut-o noi?
 	}
   ;
 
@@ -484,10 +639,29 @@ call_parameters
 
 vector_position
   : ID {
-		//asta e facut tot de mine, pentru ca am avut nevoie mai jos de unde am inceput
-
 		$$ = new IntVal();
-		$$->value=search_variable($1->value, parse_state)->value.int_val->value;
+		
+		auto var = search_variable($1->value, parse_state).get();
+
+		if (var != nullptr) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $1->value << " not found ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if (var->type != TYPE_INT)
+		{
+			std::ostringstream stream;
+			stream << "Variable with name " << $1->value << " is not of type int";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		$$->value = var->value.int_val->value;
+
 		delete $1;
 	}
   | NR {
@@ -497,13 +671,27 @@ vector_position
   | CHNT ID SACRF call_parameters ':' {
 		$$=new IntVal();
 
-		auto auxExpression = new Expression();
-		auxExpression->call = std::shared_ptr<FunctionCall>($4);
-		auxExpression->call->name = $2->value;
-		auxExpression->e_type = CALL;
+		std::vector<VariableDeclaration> typed_params;
 
-		//verificare daca functia e INT
-		//if (auxExpression->call->return_type!=TYPE_INT) yyerror();
+		for (auto& expr : $4->params) {
+			VariableDeclaration var;
+			var.type = expr->type;
+			typed_params.push_back(var);
+		}
+
+		auto func = search_function($2->value, typed_params, parse_state);
+
+		if (func == nullptr) {
+			std::ostringstream stream;
+			stream << "Function with name " << $2->value << " and specified signature does not exist ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		$$->value = 0;
+
+		delete $2;
 	}
   | ID '[' vector_position ']' {
 	  $$ = new IntVal();
@@ -521,34 +709,124 @@ const_class_ids : const_class_id {  }
 
 const_class_id
   : ID BSTOW class_id_initialization {
-		$$ = new VariableDeclaration();
+		auto val = search_variable($1->value, parse_state).get();
 
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " already exists";
+		auto string = stream.str();
+
+		if (val != nullptr)
+			THROW_ERROR(string.c_str());
+
+		$$ = new VariableDeclaration();
 		$$->name = $1->value;
-		delete $1;
 		$$->type = $3->type;
-		$$->value = $3->value;
 		$$->is_const = true;
 
-		//de verificat ca in class id_initialization toate
-		//variabilele si constantele sunt type
+		if ($3->e_type == VALUE) {
+			$$->value = $3->value;
+		}
+		else {
+			std::ostringstream stream;
+			stream << "Variable with name " << $1->value << " could not be assigned ";
+			auto string = stream.str();
 
-		//expresia trebuie musai sa aiba value, fiind const
-		//altfel, arunca exceptie
-		$$->expr = std::shared_ptr<Expression>($3);
+			switch ($3->type) {
+			case TYPE_INT:
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ 0 }));
+				break;
+			case TYPE_FLOAT:
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ 0.0f }));
+				break;
+			case TYPE_CHAR:
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ 'a' }));
+				break;
+			case TYPE_STRING:
+				$$->value.string_val = std::shared_ptr<StringVal>(new StringVal({ "default" }));
+				break;
+			case TYPE_BOOL:
+				$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
+				break;
+			default:
+				THROW_ERROR(string.c_str());
+				break;
+			}
+		}
+
+		delete $1;
 	}
   | ID '[' NR ']' BSTOW vector_initialization {
+		auto val = search_variable($1->value, parse_state).get();
+
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " already exists";
+		auto string = stream.str();
+
+		if (val != nullptr)
+			THROW_ERROR(string.c_str());
+
 		$$ = new VariableDeclaration();
 		$$->name = $1->value;
-		delete $1;
+
+		if ($3->value != $6->size()) {
+			std::ostringstream stream;
+			stream << "Const vector with name " << $1->value << " is not initialized with correct number of params ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
 
 		$$->size_of_vector = $3->value;
+		$$->values.resize($3->value);
+
+		auto expr_type = (*$6)[0]->type;
+		int count = 0;
+		for (auto& exp : *$6) {
+			if (exp->type != expr_type) {
+				std::ostringstream stream;
+				stream << "Const vector with name " << $1->value << " is not initialized with correct type of params ";
+				auto string = stream.str();
+
+				THROW_ERROR(string.c_str());
+			}
+
+			if (exp->e_type == VALUE) {
+				$$->values[count] = exp->value;
+			}
+			else {
+				//warning
+
+				std::ostringstream stream;
+				stream << "Const vector with name " << $1->value << " could not initialized with correct type of params ";
+				auto string = stream.str();
+
+				switch (expr_type) {
+				case TYPE_INT:
+					$$->values[count].int_val = std::shared_ptr<IntVal>(new IntVal({ 0 }));
+					break;
+				case TYPE_FLOAT:
+					$$->values[count].float_val = std::shared_ptr<FloatVal>(new FloatVal({ 0.0f }));
+					break;
+				case TYPE_CHAR:
+					$$->values[count].char_val = std::shared_ptr<CharVal>(new CharVal({ 'a' }));
+					break;
+				case TYPE_STRING:
+					$$->values[count].string_val = std::shared_ptr<StringVal>(new StringVal({ "default" }));
+					break;
+				case TYPE_BOOL:
+					$$->values[count].bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
+					break;
+				default:
+					THROW_ERROR(string.c_str());
+					break;
+				}
+			}
+
+			count++;
+		}
+
 		delete $3;
-
-		//should do size validation
-		//should do vector_init to ex
-
-		//trebuie adaugat type vector
-		$$->exprs = *$6;
+		delete $1;
 		delete $6;
 	}
   ;
@@ -744,6 +1022,15 @@ function_body
 
 		$$->push_back(st);
     }
+  | RET TIME '.' {
+	  $$ = new ComposedStatement();
+
+	  Statement st;
+	  st.st_type = RET_STMT;
+	  st.ret_stmt = std::shared_ptr<Expression>(new Expression());
+
+	  $$->push_back(st);
+	}
   | function_instruction function_body {
 		$$ = $2;
 
@@ -764,22 +1051,57 @@ function_body
 
 
 function_instruction
-  : ENCH ID WITH eval_expr '.' {
+  : ENCH var WITH eval_expr '.' {
 		$$ = new Statement();
 		$$->st_type = ASGMT_STMT;
 
-		$$->asgmt_stmt = std::make_shared<Assignment>(Assignment{ $2->value, false, -1, *$4 });
-		delete $2;
-		delete $4;
-	}
-  | ENCH ID '[' vector_position ']' WITH eval_expr '.' {
-		$$ = new Statement();
-		$$->st_type = ASGMT_STMT;
+		auto assignment = new Assignment();
+		assignment->name = $2->name;
+		assignment->expr = *$4;
 
-		$$->asgmt_stmt = std::make_shared<Assignment>(Assignment{ $2->value, true, $4->value, *$7 });
+		if ($2->type != $4->type) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " is not assigned correctly";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($4->e_type == VALUE) {
+
+			$2->value = $4->value;
+		}
+		else {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " could not be assigned ";
+			auto string = stream.str();
+
+			switch ($4->type) {
+			case TYPE_INT:
+				$2->value.int_val = std::shared_ptr<IntVal>(new IntVal({ 0 }));
+				break;
+			case TYPE_FLOAT:
+				$2->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ 0.0f }));
+				break;
+			case TYPE_CHAR:
+				$2->value.char_val = std::shared_ptr<CharVal>(new CharVal({ 'a' }));
+				break;
+			case TYPE_STRING:
+				$2->value.string_val = std::shared_ptr<StringVal>(new StringVal({ "default" }));
+				break;
+			case TYPE_BOOL:
+				$2->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
+				break;
+			default:
+				THROW_ERROR(string.c_str());
+				break;
+			}
+		}
+
+		$$->asgmt_stmt = std::shared_ptr<Assignment>(assignment);
+
 		delete $2;
 		delete $4;
-		delete $7;
 	}
   | ENCH ID OF ID WITH eval_expr '.' {
 	  //no longer supported
@@ -787,10 +1109,27 @@ function_instruction
   | CHNT ID SACRF call_parameters ':' '.' {
 		$$ = new Statement();
 		$$->st_type = FUNC_CALL_STMT;
-
-		$4->name = $2->value;
-		//trebuie cautata functia si intors tipul
 		$$->func_call = std::shared_ptr<FunctionCall>($4);
+
+		std::vector<VariableDeclaration> typed_params;
+
+		for (auto& expr : $4->params) {
+			VariableDeclaration var;
+			var.type = expr->type;
+			typed_params.push_back(var);
+		}
+
+		auto func = search_function($2->value, typed_params, parse_state);
+
+		if (func == nullptr) {
+			std::ostringstream stream;
+			stream << "Function with name " << $2->value << " and specified signature does not exist ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		delete $2;
 	}
   | while_instr {
 		$$ = new Statement();
@@ -824,25 +1163,15 @@ while_instr
   ;
 
 
-boolean : check { 
-		$$=new Expression();
-		$$->e_type=VALUE;
-		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
-		switch($1->type){
-			case TYPE_INT: if ($1->value.int_val->value!=0) $$->value.bool_val->value=true; break;
-			case TYPE_FLOAT: if ($1->value.float_val->value!=0) $$->value.bool_val->value=true; break;
-			case TYPE_BOOL: if ($1->value.bool_val->value!=0) $$->value.bool_val->value=true; break;
-			case TYPE_CHAR: if ($1->value.char_val->value!=0) $$->value.bool_val->value=true; break;
-			case TYPE_STRING: if ($1->value.string_val->value!="") $$->value.bool_val->value=true; break;
-			default : $$->value.bool_val->value=false; break;
-		}
+boolean 
+  : check { 
+		$$ = $1;
 	}
   | check AND boolean { 
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		switch($1->type){
 			case TYPE_INT: if ($1->value.int_val->value!=0) $$->value.bool_val->value=true; break;
 			case TYPE_FLOAT: if ($1->value.float_val->value!=0) $$->value.bool_val->value=true; break;
@@ -852,13 +1181,13 @@ boolean : check {
 			default : $$->value.bool_val->value=false; break;
 		}
 		if ($$->value.bool_val->value==true)
-			$$=$3;
+			$$ = $3;
 	}
   | '(' check ')' AND boolean { 
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		switch($2->type){
 			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=true; break;
 			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=true; break;
@@ -874,7 +1203,7 @@ boolean : check {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		switch($2->type){
 			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=true; break;
 			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=true; break;
@@ -890,7 +1219,7 @@ boolean : check {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		switch($2->type){
 			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=true; break;
 			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=true; break;
@@ -904,7 +1233,7 @@ boolean : check {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		switch($1->type){
 			case TYPE_INT: if ($1->value.int_val->value!=0) $$->value.bool_val->value=true; break;
 			case TYPE_FLOAT: if ($1->value.float_val->value!=0) $$->value.bool_val->value=true; break;
@@ -920,11 +1249,12 @@ boolean : check {
 
 
 
-check : NOT eval_expr { 
+check 
+  : NOT eval_expr { 
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=true;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		switch($2->type){
 			case TYPE_INT: if ($2->value.int_val->value!=0) $$->value.bool_val->value=false; break;
 			case TYPE_FLOAT: if ($2->value.float_val->value!=0) $$->value.bool_val->value=false; break;
@@ -939,10 +1269,12 @@ check : NOT eval_expr {
 	}
   | expr '>' expr { 
 		$$=new Expression();
+		/*if (($1->type != $3->type) || ($1->type == UNKNOWN) || ()) {
+			yyerror();
+		}*/
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=true;
-		//if ($1->type!=$1->type) yyerror();
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		switch($1->type) {
 			case TYPE_INT: if ($1->value.int_val->value<$3->value.int_val->value) $$->value.bool_val->value=false; break;
 			case TYPE_FLOAT: if ($1->value.float_val->value<$3->value.float_val->value) $$->value.bool_val->value=false; break;
@@ -956,7 +1288,7 @@ check : NOT eval_expr {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		//if ($1->type!=$1->type) yyerror();
 		switch($1->type){
 			case TYPE_INT: if ($1->value.int_val->value<$3->value.int_val->value) $$->value.bool_val->value=true; break;
@@ -971,7 +1303,7 @@ check : NOT eval_expr {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=true;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		//if ($1->type!=$1->type) yyerror();
 		switch($1->type) {
 			case TYPE_INT: if ($1->value.int_val->value==$3->value.int_val->value) $$->value.bool_val->value=false; break;
@@ -986,7 +1318,7 @@ check : NOT eval_expr {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		//if ($1->type!=$1->type) yyerror();
 		switch($1->type) {
 			case TYPE_INT: if ($1->value.int_val->value==$3->value.int_val->value) $$->value.bool_val->value=true; break;
@@ -1001,7 +1333,7 @@ check : NOT eval_expr {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		//if ($1->type!=$1->type) yyerror();
 		switch($1->type) {
 			case TYPE_INT: if ($1->value.int_val->value>=$3->value.int_val->value) $$->value.bool_val->value=true; break;
@@ -1016,7 +1348,7 @@ check : NOT eval_expr {
 		$$=new Expression();
 		$$->e_type=VALUE;
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;
+		$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
 		//if ($1->type!=$1->type) yyerror();
 		switch($1->type) {
 			case TYPE_INT: if ($1->value.int_val->value<=$3->value.int_val->value) $$->value.bool_val->value=true; break;
@@ -1075,191 +1407,279 @@ for_instr
 	}
   ;
 
-for_1 : ID {  }
-	  | NR {  }
-	  | NRF {  }
-	  | CHR {  }
-	  | CHNT  ID SACRF call_parameters ':' {  }
-	  | ID '[' vector_position ']' {  }
-	  ;
+for_1 
+  : ID {  }
+  | NR {  }
+  | NRF {  }
+  | CHR {  }
+  | CHNT ID SACRF call_parameters ':' {  }
+  | ID '[' vector_position ']' {  }
+  ;
 
 
-eval_expr : expr {  }
+eval_expr 
+  : expr { 
+		$$ = $1;
+	}
   | ENCH var WITH expr {
-		//de aici in jos facut-am eu
-
 		$$=new Expression();
-		//$2->value=$4->value; //asta daca calculam expr
-		$2->expr=std::shared_ptr<Expression>($4);
-		//$$->e_type = VALUE;
-		///R:nu cred ca aici trebuie setat VALUE, asa orice vine de sus o sa devina VALUE si nu ai calculat-o daca era altceva
+		
+		if ($2->type != $4->type) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " is not assigned correctly";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($4->e_type == VALUE) {
+			$$->e_type = VALUE;
+			$$->type = $2->type;
+			$$->value = $4->value;
+			
+			$2->value = $4->value;
+		}
+		else {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " could not be assigned ";
+			auto string = stream.str();
+
+			switch ($4->type) {
+			case TYPE_INT:
+				$2->value.int_val = std::shared_ptr<IntVal>(new IntVal({ 0 }));
+				break;
+			case TYPE_FLOAT:
+				$2->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ 0.0f }));
+				break;
+			case TYPE_CHAR:
+				$2->value.char_val = std::shared_ptr<CharVal>(new CharVal({ 'a' }));
+				break;
+			case TYPE_STRING:
+				$2->value.string_val = std::shared_ptr<StringVal>(new StringVal({ "default" }));
+				break;
+			case TYPE_BOOL:
+				$2->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
+				break;
+			default:
+				THROW_ERROR(string.c_str());
+				break;
+			}
+		}
+
+		$$->e_type = VALUE;
+		$$->type = $2->type;
+		$$->value = $2->value;
 	}
   ;
 
 var
   : ID {
 		$$ = search_variable($1->value, parse_state).get();
+
+		std::ostringstream stream;
+		stream << "Variable with name " << $1->value << " does not exist";
+		auto string = stream.str();
+
+		if ($$ == nullptr)
+			THROW_ERROR(string.c_str());
+
+		delete $1;
 	}
   | ID '[' vector_position ']' {
-		$$=search_variable($1->value, parse_state).get();
-		//validare gasire
-		$$->position_in_vector=$3->value;
-		//validare marime
+		auto vec = search_variable($1->value, parse_state).get();
+		
+		if (vec == nullptr) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $1->value << " does not exist";
+			auto string = stream.str();
 
-		//vezi coment variable declaration
+			THROW_ERROR(string.c_str());
+		}
+
+		if (vec->type != TYPE_INT_VECTOR &&
+			vec->type != TYPE_FLOAT_VECTOR &&
+			vec->type != TYPE_CHAR_VECTOR &&
+			vec->type != TYPE_STRING_VECTOR &&
+			vec->type != TYPE_BOOL_VECTOR &&
+			vec->type != TYPE_OBJECT_VECTOR)
+		{
+			std::ostringstream stream;
+			stream << "Variable with name " << $1->value << " is not a vector";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if (vec->values.size() <= $3->value) {
+			std::ostringstream stream;
+			stream << "Position " << $3->value << " in vector " << $1->value << " does not exist";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		$$ = new VariableDeclaration(*vec);
+		$$->type = Type($$->type - 6);
+		$$->value = vec->values[$3->value];
+		$$->values.clear();
+
+		delete $1;
+		delete $3;
 	}
-  | ID OF ID { /*cum asta nu mai e posibila la noi nu o mai facem, nici celelalte de mai jos*/ }
+  | ID OF ID { }
   | ID '[' vector_position ']' OF ID {  }
   | ID OF ID '[' vector_position ']' {  }
   | ID '[' vector_position ']' OF ID '[' vector_position ']' {  }
   ;
 
 expr: '(' expr ')' {
-		$$=new Expression();
-		$$=$2;
-		//$$->e_type = VALUE;
-		///R:nici aici
-		//delete $2;
+		$$ = $2;
 	}
   | expr '+' expr {
 		
 		$$=new Expression();
-		//if ($1->type!=$3->type) yyerror();
-		// validare if cu VALUE de sus
-		$$->type=$1->type;
-		$$->e_type = VALUE;
-		///R:aici da pentru ca o calculezi manual
 
-		switch($$->type){
+		if ($1->type == $3->type && $1->e_type == VALUE && $3->e_type == VALUE) {
+
+			$$->type = $1->type;
+			$$->e_type = VALUE;
+
+			switch ($$->type) {
 			case TYPE_INT:
-				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value+$3->value.int_val->value }));
+				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value + $3->value.int_val->value }));
 				break;
 			case TYPE_FLOAT:
-				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value+$3->value.float_val->value }));
+				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value + $3->value.float_val->value }));
 				break;
 			case TYPE_CHAR:
-				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value+$3->value.char_val->value }));
+				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value + $3->value.char_val->value }));
 				break;
 			case TYPE_STRING:
-				$$->value.string_val = std::shared_ptr<StringVal>(new StringVal({ $1->value.string_val->value+$3->value.string_val->value }));
+				$$->value.string_val = std::shared_ptr<StringVal>(new StringVal({ $1->value.string_val->value + $3->value.string_val->value }));
 				break;
-
 			case TYPE_BOOL:
-				$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ $1->value.bool_val->value+$3->value.bool_val->value }));
+				$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ bool($1->value.bool_val->value + $3->value.bool_val->value) }));
 				break;
 			default:
-				//pt none si type_object(nu avem overloaded operators)
-				//yyerror();
+				$$->e_type = UNKNOWN;
 				break;
+			}
 		}
-
+		else {
+			$$->e_type = UNKNOWN;
+		}
 	}
   | expr '-' expr {
 		$$=new Expression();
-		//if ($1->type!=$3->type) yyerror();
-		$$->type=$1->type;
-		$$->e_type = VALUE;
+		
+		if ($1->type == $3->type && $1->e_type == VALUE && $3->e_type == VALUE) {
 
-		switch($$->type){
-			case TYPE_INT:
-				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value-$3->value.int_val->value }));
-				break;
-			case TYPE_FLOAT:
-				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value-$3->value.float_val->value }));
-				break;
-			case TYPE_CHAR:
-				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value-$3->value.char_val->value }));
-				break;
-			case TYPE_STRING:
-				$$->value.string_val = std::shared_ptr<StringVal>(new StringVal({ $1->value.string_val->value-$3->value.string_val->value }));
-				break;
+			$$->type=$1->type;
+			$$->e_type = VALUE;
 
-			case TYPE_BOOL:
-				$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ $1->value.bool_val->value-$3->value.bool_val->value }));
-				break;
-			default:
-				//pt none si type_object(nu avem overloaded operators)
-				//yyerror();
-				break;
+			switch($$->type){
+				case TYPE_INT:
+					$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value-$3->value.int_val->value }));
+					break;
+				case TYPE_FLOAT:
+					$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value-$3->value.float_val->value }));
+					break;
+				case TYPE_CHAR:
+					$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value-$3->value.char_val->value }));
+					break;
+				case TYPE_BOOL:
+					$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ bool($1->value.bool_val->value-$3->value.bool_val->value) }));
+					break;
+				default:
+					$$->e_type = UNKNOWN;
+					break;
+			}
+		}
+		else {
+			$$->e_type = UNKNOWN;
 		}
 	}
   | expr '*' expr {
 		$$=new Expression();
-		//if ($1->type!=$3->type) yyerror();
-		$$->type=$1->type;
-		$$->e_type = VALUE;
+		if ($1->type == $3->type && $1->e_type == VALUE && $3->e_type == VALUE) {
+			$$->type=$1->type;
+			$$->e_type = VALUE;
 
-		switch($$->type){
-			case TYPE_INT:
-				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
-				break;
-			case TYPE_FLOAT:
-				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value*$3->value.float_val->value }));
-				break;
-			case TYPE_CHAR:
-				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
-				break;
+			switch($$->type){
+				case TYPE_INT:
+					$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
+					break;
+				case TYPE_FLOAT:
+					$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value*$3->value.float_val->value }));
+					break;
+				case TYPE_CHAR:
+					$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
+					break;
 
 
-			case TYPE_BOOL:
-				$$->value.bool_val = std::shared_ptr<bool_val>(new BoolVal({ $1->value.bool_val->value*$3->value.bool_val->value }));
-				break;
-			default:
-				//pt none si type_object(nu avem overloaded operators)
-				//pt string nu are sens sa faci "*". Daca vrei putem pune.
-				//yyerror();
-				break;
+				case TYPE_BOOL:
+					$$->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ bool($1->value.bool_val->value*$3->value.bool_val->value) }));
+					break;
+				default:
+					$$->e_type = UNKNOWN;
+					break;
+			}
+		}
+		else {
+			$$->e_type = UNKNOWN;
 		}
 	}
   | expr '/' expr {
 		$$=new Expression();
-		//if ($1->type!=$3->type) yyerror();
-		$$->type=$1->type;
-		$$->e_type = VALUE;
+		if ($1->type == $3->type && $1->e_type == VALUE && $3->e_type == VALUE) {
+			$$->type=$1->type;
+			$$->e_type = VALUE;
 
-		switch($$->type){
-			case TYPE_INT:
-				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
-				break;
-			case TYPE_FLOAT:
-				$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value*$3->value.float_val->value }));
-				break;
-			case TYPE_CHAR:
-				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
-				break;
-
-			default:
-				//pt none si type_object(nu avem overloaded operators)
-				//pt string nu are sens sa faci "*". Daca vrei putem pune.
-				//yyerror();
-				break;
+			switch($$->type){
+				case TYPE_INT:
+					$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
+					break;
+				case TYPE_FLOAT:
+					$$->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ $1->value.float_val->value*$3->value.float_val->value }));
+					break;
+				case TYPE_CHAR:
+					$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
+					break;
+				default:
+					$$->e_type = UNKNOWN;
+					break;
+			}
+		}
+		else {
+			$$->e_type = UNKNOWN;
 		}
 	}
   | expr '%' expr {
 		$$=new Expression();
-		//if ($1->type!=$3->type) yyerror();
-		$$->type=$1->type;
-		$$->e_type = VALUE;
+		if ($1->type == $3->type && $1->e_type == VALUE && $3->e_type == VALUE) {
+			$$->type=$1->type;
+			$$->e_type = VALUE;
 
-		switch($$->type){
-			case TYPE_INT:
-				$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
-				break;
-			case TYPE_CHAR:
-				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
-				break;
-
-			default:
-				//pt none si type_object(nu avem overloaded operators)
-				//pt string nu are sens sa faci "*". Daca vrei putem pune.
-				//yyerror();
-				break;
+			switch($$->type){
+				case TYPE_INT:
+					$$->value.int_val = std::shared_ptr<IntVal>(new IntVal({ $1->value.int_val->value*$3->value.int_val->value }));
+					break;
+				case TYPE_CHAR:
+					$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ $1->value.char_val->value*$3->value.char_val->value }));
+					break;
+				default:
+					$$->e_type = UNKNOWN;
+					break;
+			}
+		}
+		else {
+			$$->e_type = UNKNOWN;
 		}
 	}
   | '-' expr %prec UMINUS {
 		$$=new Expression();
 		$$->type=$2->type;
-		$$->e_type = VALUE;
+		$$->e_type = $2->e_type;
 
 		switch($$->type){
 			case TYPE_INT:
@@ -1270,72 +1690,88 @@ expr: '(' expr ')' {
 				break;
 			case TYPE_CHAR:
 				$$->value.char_val = std::shared_ptr<CharVal>(new CharVal({ -$2->value.char_val->value }));
-
 				break;
 			default:
-				//yyerror();
+				$$->e_type = UNKNOWN;
 				break;
 		}
 	}
   | var {
-		//aici nu stiu exact cum sa aloc si daca sa aloc sau nu.
 		$$=new Expression();
+
+		$$->e_type = VALUE;
+
 		$$->type=$1->type;
 		$$->value=$1->value;
-		//value ar trebui sa fie implicit 0 daca nu o putem calcula
-		//$$->e_type = $1->e_type;
-		///R: pai aici variabila daca nu e calculata deja ar trebui calculata / sau daca nu se poate trebuie lasat tipul diferit de valoare
-
-		//delete $1;
+		
+		delete $1;
 	}
   | CHNT ID SACRF call_parameters ':' {
-		$$=new Expression();
+		$$ = new Expression();
 		$$->call=std::shared_ptr<FunctionCall>($4);
+
+		std::vector<VariableDeclaration> typed_params;
+
+		for (auto& expr : $4->params) {
+			VariableDeclaration var;
+			var.type = expr->type;
+			typed_params.push_back(var);
+		}
+
+		auto func = search_function($2->value, typed_params, parse_state);
+
+		if (func == nullptr) {
+			std::ostringstream stream;
+			stream << "Function with name " << $2->value << " and specified signature does not exist ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
 		$$->call->name = $2->value;
 		$$->e_type = CALL;
-		$$->type=$$->call->return_type;
-		$$->value=$$->call->return_value;
+
+		//we could get the type, but the value cannot be computed
+		$$->e_type = UNKNOWN;
+
+		delete $2;
 	}
   | NR {
 		$$=new Expression();
+
 		$$->type=TYPE_INT;
-		$$->value.int_val->value=$1->value;
+		$$->value.int_val = std::shared_ptr<IntVal>($1);
 		$$->e_type = VALUE;
-		delete $1;
 	}
   | NRF {
 		$$=new Expression();
 		$$->type=TYPE_FLOAT;
-		$$->value.float_val->value=$1->value;
+		$$->value.float_val = std::shared_ptr<FloatVal>($1);
 		$$->e_type = VALUE;
-		delete $1;
 	}
   | CHR {
 		$$=new Expression();
 		$$->type=TYPE_CHAR;
-		$$->value.char_val->value=$1->value;
-		delete $1;
+		$$->value.char_val = std::shared_ptr<CharVal>($1);
+		$$->e_type = VALUE;
 	}
   | STR {
 		$$=new Expression();
 		$$->type=TYPE_STRING;
-		$$->value.string_val->value=$1->value;
+		$$->value.string_val = std::shared_ptr<StringVal>($1);
 		$$->e_type = VALUE;
-		delete $1;
 	}
   | TRUE {
 		$$=new Expression();
 		$$->type=TYPE_BOOL;
 		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
 		$$->e_type = VALUE;
-		delete $1;
 	}
   | FALSE {
 		$$=new Expression();
 		$$->type=TYPE_BOOL;
-		$$->value.bool_val->value=false;//asa?
+		$$->value.bool_val = std::shared_ptr<BoolVal>($1);
 		$$->e_type = VALUE;
-		delete $1;
 	}
   ;
 
@@ -1396,34 +1832,55 @@ statement
 		$$->st_type = ITER_SEL_STMT;
 		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
 	}
-  | ENCH ID WITH eval_expr '.' {
-		$$=new Statement();
+  | ENCH var WITH eval_expr '.' {
+		$$ = new Statement();
 		$$->st_type = ASGMT_STMT;
-		Assignment* assignment=new Assignment();
-		assignment->name=$2->value;
-		assignment->expr=*$4;
-		VariableDeclaration* variable;
-		variable=search_variable($2->value, parse_state).get();
-		variable->type=assignment->expr.type;
-		variable->value=assignment->expr.value;
-		///R:aici doar daca expresia e calculata deja (are tip value)
-		//oare se modifica varibila? cred ca da, pt ca returneaza pointer spre ea;
-		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
-	}
-  | ENCH ID '[' vector_position ']' WITH eval_expr '.' {
-		$$=new Statement();
-		$$->st_type = ASGMT_STMT;
-		Assignment* assignment=new Assignment();
-		assignment->name=$2->value;
-		assignment->is_vector=true;
-		assignment->position=$4->value;
-		assignment->expr=*$7;
-		VariableDeclaration* variable;
-		variable=search_variable($2->value, parse_state).get();
-		variable->type=assignment->expr.type;
-		variable->value=assignment->expr.value;
 
-		$$->asgmt_stmt=std::shared_ptr<Assignment>(assignment);
+		auto assignment = new Assignment();
+		assignment->name = $2->name;
+		//assignment->is_vector = true;
+		//assignment->position = $4->value;
+		assignment->expr = *$4;
+
+		if ($2->type != $4->type) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " is not assigned correctly";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($4->e_type == VALUE) {
+			$2->value = $4->value;
+		}
+		else {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " could not be assigned ";
+			auto string = stream.str();
+
+			switch ($4->type) {
+			case TYPE_INT:
+				$2->value.int_val = std::shared_ptr<IntVal>(new IntVal({ 0 }));
+				break;
+			case TYPE_FLOAT:
+				$2->value.float_val = std::shared_ptr<FloatVal>(new FloatVal({ 0.0f }));
+				break;
+			case TYPE_CHAR:
+				$2->value.char_val = std::shared_ptr<CharVal>(new CharVal({ 'a' }));
+				break;
+			case TYPE_STRING:
+				$2->value.string_val = std::shared_ptr<StringVal>(new StringVal({ "default" }));
+				break;
+			case TYPE_BOOL:
+				$2->value.bool_val = std::shared_ptr<BoolVal>(new BoolVal({ false }));
+				break;
+			default:
+				THROW_ERROR(string.c_str());
+				break;
+			}
+		}
+
+		$$->asgmt_stmt = std::shared_ptr<Assignment>(assignment);
 	}
   | ENCH ID OF ID WITH eval_expr '.' {
 		//asta nu mai exista la noi.
@@ -1431,12 +1888,27 @@ statement
   | CHNT ID SACRF call_parameters ':' '.' {
 		$$=new Statement();
 		$$->st_type = FUNC_CALL_STMT;
-		//FunctionCall* function_call=search_function($2->value, call_parameters);
-		//trebuie implementata functia de cautat signatura unei functii sa vezi daca exista
+		$$->func_call = std::shared_ptr<FunctionCall>($4);
 
-		//$$->func_call=std::shared_ptr<FunctionCall>(function_call);
+		std::vector<VariableDeclaration> typed_params;
 
-		///R:S-ar putea aici sa trebuiasca facuta o distinctie intre function call si valoarea de return a unei function call
+		for (auto& expr : $4->params) {
+			VariableDeclaration var;
+			var.type = expr->type;
+			typed_params.push_back(var);
+		}
+
+		auto func = search_function($2->value, typed_params, parse_state);
+
+		if (func == nullptr) {
+			std::ostringstream stream;
+			stream << "Function with name " << $2->value << " and specified signature does not exist ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		delete $2;
 	}
   | EVAL '(' ')' '.' {
 		$$=new Statement();
@@ -1451,14 +1923,30 @@ statement
   | EVAL '(' ID ')' '.' {
 		$$=new Statement();
 		$$->st_type = FUNC_CALL_STMT;
-		//validare ca ID este int
-		printf("Variable found: %s. Value: %d\n", $3->value, search_variable($3->value, parse_state)->value.int_val->value);
-		///R:Daca ID are o valoare si nu altceva (o expresie -> function call etc), printam
+		
+		auto val = search_variable($3->value, parse_state).get();
+
+		if (val == nullptr) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $3->value << " does not exists";
+			auto string = stream.str();
+			
+			THROW_ERROR(string.c_str());
+		}
+
+		if (val->type != TYPE_INT) {
+			std::ostringstream stream;
+			stream << "EVAL parameter is not of type int";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		printf("Variable found: %s. Value: %d\n", $3->value.c_str(), val->value.int_val->value);
 	}
   | RET eval_expr '.'  {
 		$$=new Statement();
-		$$->st_type = RET_STMT;
-		//aici ar trebuie verificat daca dam return la ce type trebuie (dar e destul de greu, ar trebuii sa stim contextul)
+		$$->st_type = RET_STMT;		
 		$$->ret_stmt=std::shared_ptr<Expression>($2);
 	}
   ;
@@ -1557,7 +2045,7 @@ bool is_return_type_correct(Type ret_type, TypeValue value, IterationSelectionSt
 					return false;
 				break;
 			case ITER_SEL_STMT:
-				if (!is_return_type_correct(ret_type, value, *st.ret_stmt))
+				if (!is_return_type_correct(ret_type, value, *st.iter_sel_stmt))
 					return false;
 				break;
 			default:
@@ -1572,7 +2060,7 @@ bool is_return_type_correct(Type ret_type, TypeValue value, IterationSelectionSt
 				return false;
 			break;
 		case ITER_SEL_STMT:
-			if (!is_return_type_correct(ret_type, value, *st.ret_stmt))
+			if (!is_return_type_correct(ret_type, value, *st.iter_sel_stmt))
 				return false;
 			break;
 		default:
@@ -1591,7 +2079,7 @@ bool is_return_type_correct(Type ret_type, TypeValue value, ComposedStatement st
 				return false;
 			break;
 		case ITER_SEL_STMT:
-			if (!is_return_type_correct(ret_type, value, *st.ret_stmt))
+			if (!is_return_type_correct(ret_type, value, *st.iter_sel_stmt))
 				return false;
 			break;
 		default:

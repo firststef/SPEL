@@ -1,122 +1,3 @@
-[TEST][SHOULD FAIL] Illegal return function error - type:
-The tale begins.
-
-points spell functie2 sacrifice time : 
-	craft points a .
-	cast "a".
-terminus
-[END]
-
-[TEST][SHOULD FAIL] Illegal return function error - void:
-The tale begins.
-
-void spell functie2 sacrifice time : 
-	if (true) 
-		cast 0.
-	endif
-	
-	craft points a .
-	cast "a".
-terminus
-[END]
-
-[TEST][SHOULD FAIL] Illegal return function error - inside statement:
-The tale begins.
-
-void spell functie2 sacrifice time : 
-	if (true) 
-		if (true) 
-			cast 0.
-		endif
-	endif
-terminus
-[END]
-
-[TEST] Illegal return function - inside statement:
-The tale begins.
-
-void spell functie2 sacrifice time : 
-	if (true) 
-		if (true) 
-			cast time.
-		endif
-	endif
-terminus
-[END]
-
-[TEST][SHOULD FAIL] Duplicate function error - same signature :
-The tale begins.
-
-points spell functie2 sacrifice time : 
-	craft points a .
-	cast 4.
-terminus
-
-points spell functie2 sacrifice time : 
-	craft points a .
-	cast 4.
-terminus
-[END]
-
-[TEST] Duplicate function - different signature :
-The tale begins.
-
-points spell functie2 sacrifice precise mana : 
-	craft points a .
-	cast 4.
-terminus
-
-points spell functie2 sacrifice time : 
-	craft points a .
-	cast 4.
-terminus
-[END]
-
-[TEST] Example Program:
-The tale begins.
-
-points spell functie2 sacrifice time : 
-	craft points a .
-	cast 4.
-terminus
-
-I summon thy name Link
-	craft points life_points bestow 5.
-and thy brethren.
-
-I summon thy name Link
-	craft points life_points bestow 5.
-and thy brethren.
-
-I summon thy name Link
-	craft points life_points bestow 5.
-	craft precise mana_points.
-	craft rune armor_enchantments.
-	craft absolute mortality.
-	craft tome allegiance bestow "Zelda".
-
-	void spell functie3 sacrifice time : 
-		craft points a .
-	terminus
-	
-and thy brethren.
-
-[END]
-
-[TEST] Null program:
-The tale begins.
-[END]
-
-
-[TEST] Comentarii:
-The tale begins.
-/* comentariu cu text intern
-pe mai multe 
-linii*/
-/**/
-//
-[END]
-
 [TEST] Predefined types variable declarations:
 The tale begins.
 craft points a.
@@ -129,6 +10,7 @@ craft absolute bolean.
 [TEST] Variable init:
 The tale begins.
 craft points a bestow 1.
+craft precise c.
 craft precise b bestow c.
 craft precise d bestow 1.0.
 craft rune v bestow 'a'.
@@ -207,7 +89,7 @@ I summon thy name clasa2
 //	points spell functie_clasa2 sacrfice time : terminus.
 //	functia vida da eroare
 	void spell functie2 sacrifice time : 
-		craft rune sir[] bestow ['1', 'a', 2, '\4'].
+		craft rune sir[4] bestow ['1', 'a', 2, '\4'].
 		craft points a bestow health of hero.
 	terminus
 	void spell functie_void_cu_return sacrifice time :
@@ -302,6 +184,7 @@ endif
 [TEST] Eval function:
 The tale begins.
 EVAL().
+craft points a.
 EVAL(a).
 EVAL(3).
 [END]
