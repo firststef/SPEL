@@ -985,6 +985,19 @@ f_declaration_parameters
 	}
   | declaration_parameters {
 		$$ = $1;
+
+		for (auto& param : $$->params) {
+			auto val = search_variable(param.name, parse_state).get();
+
+			std::ostringstream stream;
+			stream << "Variable with name " << param.name << " already exists";
+			auto string = stream.str();
+
+			if (val != nullptr)
+				THROW_ERROR(string.c_str());
+
+			parse_state->stack.back().push_back(std::make_shared<VariableDeclaration>(param));
+		}
 	}
   ;
 
