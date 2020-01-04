@@ -140,8 +140,13 @@ void update_loc(yyscan_t scanner) {
 void push_stack_context(yyscan_t scanner) {
 	struct yyguts_t * yyg = (struct yyguts_t*)scanner;
 
-	if (yyextra->Stack.empty())
-		yyextra->Stack.push(std::vector<std::shared_ptr<VariableDeclaration>>());
-	else
-		yyextra->Stack.push(yyextra->Stack.top());
+	yyextra->stack.push_back(std::vector<std::shared_ptr<VariableDeclaration>>());
+
+	int last_idx = -1;
+	if (! yyextra->contextStack.empty()) {
+		last_idx = yyextra->contextStack.top();
+	}
+
+	yyextra->contexts.push_back(Context{ "", last_idx, yyextra->contexts });
+	yyextra->contextStack.push(yyextra->contexts.size() - 1);
 }

@@ -1,3 +1,40 @@
+[TEST] Example Program:
+The tale begins.
+
+points spell functie2 sacrifice time :
+	craft points a .
+	cast 4.
+terminus
+
+I summon thy name Link
+	craft points life_points bestow 5.
+	craft precise mana_points.
+	craft rune armor_enchantments.
+	craft absolute mortality.
+	craft tome allegiance bestow "Zelda".
+
+	void spell functie3 sacrifice time :
+		craft points a .
+		craft points a .
+	terminus
+
+and thy brethren.
+
+[END]
+
+[TEST] Null program:
+The tale begins.
+[END]
+
+[TEST] Comentarii:
+The tale begins.
+/* comentariu cu text intern
+pe mai multe
+linii*/
+/**/
+//
+[END]
+
 [TEST] Predefined types variable declarations:
 The tale begins.
 craft points a.
@@ -24,8 +61,7 @@ craft artifact points kst1 bestow 1.
 craft artifact precise kst2 bestow 1.1.
 craft artifact rune kst3 bestow 5.
 craft artifact tome kst4 bestow "kst4".
-craft artifact points vkst[3] bestow [1, 3, 1]. //declarare size la const? 
-//craft artifact points _a bestow 1. - _ID will no longer be allowed
+craft artifact points vkst[3] bestow [1, 3, 1].
 [END]
 
 [TEST] Vector declarations:
@@ -38,73 +74,190 @@ craft absolute bol1[].
 craft clasa1 obj1[].
 [END]
 
+[TEST][SHOULD FAIL] Variables must be defined before:
+The tale begins.
+craft points b bestow a.
+[END]
+
+[TEST][SHOULD FAIL] Duplicate variable error:
+The tale begins.
+craft points a.
+craft points a bestow 1.
+[END]
+
+[TEST][SHOULD FAIL] Variables must be intialized before:
+The tale begins.
+craft points a.
+craft points b bestow a.
+[END]
+
 [TEST] Functions declaration:
 The tale begins.
-points spell man sacrifice points a, points b: 
-	cast a+b*3.
+
+points spell man sacrifice points a, points b:
+	cast a + b * 3.
 terminus
+
 points spell functie sacrifice time :
 	enchant b with 55*3/2.
 	enchant str with "string1"+"string2".
+	cast 0.
+terminus
+
+[END]
+
+[TEST][SHOULD FAIL] Duplicate function error - same signature :
+The tale begins.
+
+points spell functie2 sacrifice time :
+	craft points a .
+	cast 4.
+terminus
+
+points spell functie2 sacrifice time :
+	craft points a .
+	cast 4.
+terminus
+[END]
+
+[TEST] Duplicate function - same name, different signature :
+The tale begins.
+
+points spell functie2 sacrifice precise mana :
+	craft points a .
+	cast 4.
+terminus
+
+points spell functie2 sacrifice time :
+	craft points a .
+	cast 4.
+terminus
+[END]
+
+
+[TEST][SHOULD FAIL] Illegal return function error - type:
+The tale begins.
+
+points spell functie2 sacrifice time :
+	craft points a .
+	cast "a".
+terminus
+[END]
+
+[TEST][SHOULD FAIL] Illegal return function error - void:
+The tale begins.
+
+void spell functie2 sacrifice time :
+	if (true)
+		cast 0.
+	endif
+
+	cast "a". //cast not allowed in void f
+terminus
+[END]
+
+[TEST][SHOULD FAIL] Illegal return function error - inside statement:
+The tale begins.
+
+void spell functie2 sacrifice time :
+	if (true)
+		if (true)
+			cast 0.
+		endif
+	endif
+terminus
+[END]
+
+[TEST] Illegal return function - inside statement:
+The tale begins.
+
+void spell functie2 sacrifice time :
+	if (true)
+		if (true)
+			cast time.
+		endif
+	endif
+	//cast time.
 terminus
 [END]
 
 [TEST] Function calls:
 The tale begins.
-chant functie sacrifice a + a of obj:.
+
+craft points a bestow 3.
+
+points spell functie sacrifice points p :
+	cast 3.
+terminus
+
+points spell man sacrifice points life :
+	cast life.
+terminus
+
 chant functie sacrifice chant man sacrifice 1+3 :: .
 chant functie sacrifice 45 :.
 chant functie sacrifice 3+4, "7":.
 chant functie sacrifice kst1 :.
 chant functie sacrifice a:.
-enchant id with chant functie sacrifice time:.
+chant functie sacrifice a + a of obj:.
 [END]
 
-[TEST] Cast return:
+[TEST][SHOULD FAIL] Functions must be defined before use:
+
+craft points a bestow chant functie sacrifice 3:.
+
+[END]
+
+[TEST][SHOULD FAIL] Assignment should have the same type error :
 The tale begins.
-points spell functie sacrifice time :
-	cast 0.
+
+craft points a bestow "a".
+[END]
+
+[TEST][SHOULD FAIL] Functions call parameters should have the same type :
+The tale begins.
+
+points spell functie sacrifice points p :
+	cast 3.
 terminus
-void spell functie sacrifice time :
-	craft points a bestow 100.
-	//cast 0. nu merge cu cast intro functie void
-terminus
+
+chant functie sacrifice "a" :.
+
 [END]
 
 [TEST] Return in main:
 The tale begins.
-if (true) 
+if (true)
 	cast 0.
 endif
 cast 1.
 [END]
 
+[TEST][SHOULD FAIL] Empty class:
+The tale begins.
+I summon thy name clasa1
+and thy brethren.
+[END]
+
 [TEST] Class Declarations:
 The tale begins.
-//aceasta trebuie sa dea eroare daca este documentata
-//I summon thy name clasa1 
-//and thy brethren.
 
 I summon thy name clasa2
-//	points spell functie_clasa2 sacrfice time : terminus.
-//	functia vida da eroare
-	void spell functie2 sacrifice time : 
+	void spell functie2 sacrifice time :
 		craft rune sir[4] bestow ['1', 'a', 2, '\4'].
 		craft points a bestow health of hero.
 	terminus
 	void spell functie_void_cu_return sacrifice time :
-//		cast 4.
 		craft precise c bestow 1.1.
 	terminus
 	//in declaratii la functii const nu trebuie sa fie initializat
 	tome spell functie_cu_return sacrifice tome a, artifact rune b[]:
 		cast b[3].
-//		craft artifact precise vec[] bestow [1,4.5].
 		craft artifact precise vec[5] bestow [1,4.5].
 	terminus
 and thy brethren.
 I summon thy name clasa3
-	void spell functie2 sacrifice time: 
+	void spell functie2 sacrifice time:
 		craft rune sir[] bestow ['1', 'a', 2, '\4'].
 	terminus
 	craft points x.
@@ -117,20 +270,37 @@ and thy brethren.
 
 [TEST] Class instantiation:
 The tale begins.
+
+I summon thy name clasa1
+	craft points a bestow 1.
+and thy brethren.
+
 craft clasa1 obj.
+[END]
+
+[TEST][SHOULD FAIL] Duplicate class error:
+The tale begins.
+
+I summon thy name Link
+	craft points life_points bestow 5.
+and thy brethren.
+
+I summon thy name Link
+	craft points life_points bestow 5.
+and thy brethren.
 [END]
 
 [TEST] Conditionals & Arithmetic:
 The tale begins.
-if (a && (b != 0)) 
+if (a && (b != 0))
 	chant functie sacrifice 1:.
 endif
-else 
+else
 	chant functie sacrifice 1:.
 endelse
-[END] 
+[END]
 
-[TEST] Loops:
+[TEST] While Loops:
 The tale begins.
 while (c >= 0 && (b!=0))
 	craft points a bestow health of hero.
@@ -141,17 +311,21 @@ endwhile
 
 [TEST] For loops:
 The tale begins.
+
 for (x in 1:30) //for (points x=1. x<=30. x++)
 	craft points b.
 endfor
+
 craft points x bestow chant functie sacrifice 3 : .
-for (x in str1) //for (auto:x in str1) - 
+
+for (x in str1) //for (auto:x in str1) -
 	craft points a bestow health[3] of hero.
 	craft points a bestow health of hero[4].
 	craft rune f bestow 4.
 	chant functie sacrifice 4 : .
 	enchant b with 3/(health of hero[3]).
 endfor
+
 [END]
 
 [TEST] Array element assign:
@@ -171,22 +345,30 @@ craft tome str bestow "string1"+"string2","asas".
 
 [TEST][SHOULD FAIL] Arithmetic operations vs boolean operations:
 The tale begins.
-if (2 + 3) 
+if (2 + 3)
 	craft artifact points ii bestow 0.
 endif
 [END]
 
 
 
+[TEST][SHOULD FAIL] Const variables cannot be assigned to:
+The tale begins.
+craft artifact points a bestow 3.
+enchant a with 4.
 
+[END]
 
 
 [TEST] Eval function:
 The tale begins.
 EVAL().
-craft points a.
+craft points a bestow 3 * 2.
 EVAL(a).
 EVAL(3).
+craft points b[2] bestow [1,2].
+craft points aux bestow b[0].
+EVAL(aux).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function float:
 The tale begins.
@@ -203,16 +385,4 @@ EVAL(1, 2).
 [TEST][SHOULD FAIL] Non-int eval function expression:
 The tale begins.
 EVAL(enchant 1 with 2).
-[END]
-
-[TEST][SHOULD FAIL] Duplicate class error
-The tale begins.
-
-I summon thy name Link
-	craft points life_points bestow 5.
-and thy brethren.
-
-I summon thy name Link
-	craft points life_points bestow 5.
-and thy brethren.
 [END]

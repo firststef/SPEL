@@ -14,32 +14,6 @@ struct DeclarationHolder;
 struct ClassDefinition;
 struct FunctionCall;
 
-struct Context
-{
-	std::string name;
-
-	Context* parent = nullptr;
-
-	std::string get_context()
-	{
-		Context* current = this;
-		std::string full_context;
-		
-		while(current != nullptr)
-		{
-			full_context = current->name + "." + full_context;
-			current = current->parent;
-		}
-
-		return full_context;
-	}
-};
-
-struct ContextUnit
-{
-	Context context;
-};
-
 struct Node{
 
 	std::shared_ptr<CompileUnit> c_unit;
@@ -121,8 +95,7 @@ enum Type
 	TYPE_CHAR_VECTOR,
 	TYPE_STRING_VECTOR,
 	TYPE_BOOL_VECTOR,
-	TYPE_OBJECT_VECTOR,
-	EXPRESSION
+	TYPE_OBJECT_VECTOR
 };
 
 struct TypeValue
@@ -151,8 +124,7 @@ struct VariableDeclaration
 	
 	std::string context;
 	
-	//numele clasei daca ii tip obiect
-	Identifier class_name = "if";
+	Identifier class_name;
 
 	std::shared_ptr<Expression> expr;
 	std::vector<std::shared_ptr<Expression>> exprs;
@@ -166,7 +138,8 @@ enum StatementType
 	ITER_SEL_STMT,
 	ASGMT_STMT,
 	FUNC_CALL_STMT,
-	RET_STMT
+	RET_STMT,
+	EVAL_STMT
 };
 
 struct Statement 
@@ -214,7 +187,7 @@ enum IterationSelectionType
 	TYPE_FOR
 };
 
-struct IterationSelectionStatement : ContextUnit
+struct IterationSelectionStatement 
 {
 	IterationSelectionType type;
 	
@@ -236,11 +209,12 @@ struct Assignment
 	Expression expr;
 };
 
-struct FunctionDeclaration : ContextUnit
+struct FunctionDeclaration
 {
 	Type return_type;
 
 	Identifier name;
+	std::string class_name;
 
 	std::vector<VariableDeclaration> params;
 
@@ -292,3 +266,5 @@ inline int get_unique_id()
 
 //ar fi mai putea fi facut ca vectorul sa fie defapt un vector 
 //de variabile si astfel se rezolva si enchnt de v[5]
+
+//cast time in functie void care nu e in return statement nu se poate

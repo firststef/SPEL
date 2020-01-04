@@ -12,8 +12,8 @@ bool is_return_type_correct(Type ret_type, TypeValue value, Expression statement
 bool is_return_type_correct(Type ret_type, TypeValue value, IterationSelectionStatement statement);
 bool is_return_type_correct(Type ret_type, TypeValue value, ComposedStatement statements);
 
-void pop_stack_context(ParseState* parse_state);
-#define POP_STACK_CONTEXT pop_stack_context(parse_state);
+void pop_stack_context(std::string name, ParseState* parse_state);
+#define POP_STACK_CONTEXT(context) pop_stack_context(context, parse_state);
 
 #define THROW_ERROR(msg) { yyerror (&yylloc, parse_state, scanner, msg); YYERROR; }
 %}
@@ -104,7 +104,7 @@ void print_rule(int num, char* s);
 %type <func_call> call_parameters
 %type <exprs> vector_initialization vector_body f_parameters
 %type <stmt> statement function_instruction
-%type <iter_sel_stmt> if_instr while_instr for_instr
+%type <iter_sel_stmt> if_instr while_instr for_instr else_instr
 %type <comp_stmt> function_body
 
 %union {
@@ -133,7 +133,7 @@ void print_rule(int num, char* s);
 sp
   : BGNP compile_unit {
 
-		auto x = 0;
+		POP_STACK_CONTEXT("global");
 
 		//parse_state->rootNode = std::make_shared<Node>();
 		//parse_state->rootNode->c_unit = std::shared_ptr<CompileUnit>($2);
@@ -143,7 +143,6 @@ sp
 
 compile_unit
   : class_def compile_unit {
-		
 
 		//$$ = new CompileUnit();
 		//$$->block_holder.push_back(std::shared_ptr<BlockHolder>($1));
@@ -178,7 +177,6 @@ class_def
 		$$ = $3;
 
 		$$->name = $2->value;
-		delete $2;
 
 		std::ostringstream stream;
 		stream << "Class with name " << $$->name << " already exists";
@@ -187,8 +185,21 @@ class_def
 		if (search_class($$->name, parse_state).get() != nullptr)
 			THROW_ERROR(string.c_str());
 
+		for (auto& dec : $$->decl_holders) {
+			switch (dec.type) {
+			case VAR_DEC:
+				dec.var_dec->class_name = $$->name;
+				break;
+			case FUNC_DEC:
+				dec.func_dec->class_name = $$->name;
+				break;
+			}
+		}
+
+		delete $2;
+
 		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>($$));
-		POP_STACK_CONTEXT;
+		POP_STACK_CONTEXT("class->" + $$->name);
 	}
   ;
 
@@ -201,7 +212,12 @@ class_body
 		$$ = new ClassDefinition();
 
 		DeclarationHolder dh;
-		dh.func_dec = std::shared_ptr<FunctionDeclaration>($1);
+
+		for (auto& f : parse_state->functions) {
+			if (f.get() == $1)
+				dh.func_dec = f;
+		}
+
 		$$->decl_holders.push_back(dh);
 	}
   | class_var class_body {
@@ -222,31 +238,62 @@ class_var
 		$$->type=VAR_DEC;
 
 		$3->type = $2->type;
-		//aici cauti tipe - ul
 
-		//if($3->type!=NONE) if($3->type!=$2->type) yyerror();
-		//cateodata tipul $3 nu este setat (cand nu am initializat)
+		if ($2->type == TYPE_OBJECT || $2->type == TYPE_OBJECT_VECTOR) {
+			bool found = false;
+			for (auto& class_dec : parse_state->classes) {
+				if ($2->value.object_val->name == class_dec->name)
+					found = true;
+			}
 
-		$3->class_name = $2->class_name;
+			if (!found) {
+				std::ostringstream stream;
+				stream << "Type " << $2->value.object_val->name << " does not exist";
+				auto string = stream.str();
+
+				THROW_ERROR(string.c_str());
+			}
+
+			$3->class_name = $2->value.object_val->name;
+		}
+
+		
 		$$->var_dec = std::shared_ptr<VariableDeclaration>($3);
 		delete $2;
 
 		//validare daca exista
-		parse_state->Stack.top().push_back($$->var_dec);
+		parse_state->stack.back().push_back($$->var_dec);
 	}
   | CRAFT CONST type const_class_id '.' {
 
-		  $$ = new DeclarationHolder();
-		  $$->type = VAR_DEC;
+		$$ = new DeclarationHolder();
+		$$->type = VAR_DEC;
 
-		  $4->type = $3->type;
-		  $4->class_name = $3->class_name;
-		  $4->is_const = true;
-		  $$->var_dec = std::shared_ptr<VariableDeclaration>($4);
-		  delete $3;
+		$4->type = $3->type;
 
-		  //validare daca exista
-		  parse_state->Stack.top().push_back($$->var_dec);
+		if ($3->type == TYPE_OBJECT || $3->type == TYPE_OBJECT_VECTOR) {
+			bool found = false;
+			for (auto& class_dec : parse_state->classes) {
+				if ($3->value.object_val->name == class_dec->name)
+					found = true;
+			}
+
+			if (!found) {
+				std::ostringstream stream;
+				stream << "Type " << $3->value.object_val->name << " does not exist";
+				auto string = stream.str();
+
+				THROW_ERROR(string.c_str());
+			}
+
+			$4->class_name = $3->value.object_val->name;
+		}
+		
+		$4->is_const = true;
+		$$->var_dec = std::shared_ptr<VariableDeclaration>($4);
+		delete $3;
+
+		parse_state->stack.back().push_back($$->var_dec);
 	}
   ;
 
@@ -463,6 +510,19 @@ class_id_initialization
 			THROW_ERROR(string.c_str());
 		}
 
+		if (!var->value.int_val &&
+			!var->value.float_val &&
+			!var->value.char_val &&
+			!var->value.string_val &&
+			!var->value.bool_val) {
+
+			std::ostringstream stream;
+			stream << "Variable with name " << var->name << " is used but not initialized ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
 		$$->type = var->type;
 		$$->value = var->value;
 
@@ -655,6 +715,19 @@ vector_position
 		{
 			std::ostringstream stream;
 			stream << "Variable with name " << $1->value << " is not of type int";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if (!var->value.int_val &&
+			!var->value.float_val &&
+			!var->value.char_val &&
+			!var->value.string_val &&
+			!var->value.bool_val) {
+
+			std::ostringstream stream;
+			stream << "Variable with name " << var->name << " is used but not initialized ";
 			auto string = stream.str();
 
 			THROW_ERROR(string.c_str());
@@ -874,7 +947,7 @@ class_f
 		delete $7;
 		
 		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($$));
-		POP_STACK_CONTEXT;
+		POP_STACK_CONTEXT("function->" + $$->name);
 	}
   | VOID BGNF ID SACRF f_declaration_parameters ':' no_return_function_body ENDF {
 		$$ = $5;
@@ -901,7 +974,7 @@ class_f
 		delete $7;
 
 		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($$));
-		POP_STACK_CONTEXT;
+		POP_STACK_CONTEXT("function->" + $$->name);
 	}
   ;
 
@@ -1043,9 +1116,118 @@ function_body
 		$$->push_back(*$1);
 		delete $1;
 	}
-  | EVAL '(' ')' '.' {  }
-  | EVAL '(' NR ')' '.' {  }
-  | EVAL '(' ID ')' '.' {  }
+  | EVAL '(' ')' '.' function_body {
+		$$ = $5;
+
+		Statement st;
+		st.st_type = EVAL_STMT;
+		$$->push_back(st);
+		printf("EVAL: empty statement\n");
+	}
+  | EVAL '(' NR ')' '.' function_body {
+		$$ = $6;
+
+		Statement st;
+		st.st_type = EVAL_STMT;
+		$$->push_back(st);
+		printf("EVAL: %d\n", $3->value);
+	}
+  | EVAL '(' ID ')' '.' function_body {
+		$$ = $6;
+
+		Statement st;
+		st.st_type = EVAL_STMT;
+		$$->push_back(st);
+		
+		auto val = search_variable($3->value, parse_state).get();
+
+		if (val == nullptr) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $3->value << " does not exists";
+			auto string = stream.str();
+			
+			THROW_ERROR(string.c_str());
+		}
+
+		if (val->type != TYPE_INT) {
+			std::ostringstream stream;
+			stream << "EVAL parameter is not of type int";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if (!val->value.int_val &&
+			!val->value.float_val &&
+			!val->value.char_val &&
+			!val->value.string_val &&
+			!val->value.bool_val) {
+
+			std::ostringstream stream;
+			stream << "Variable with name " << val->name << " is used but not initialized ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		printf("EVAL: Variable found: %s. Value: %d\n", $3->value.c_str(), val->value.int_val->value);
+	}
+  | EVAL '(' ')' '.' {
+		$$ = new ComposedStatement();
+
+		Statement st;
+		st.st_type = EVAL_STMT;
+		$$->push_back(st);
+		printf("EVAL: empty statement\n");
+	}
+  | EVAL '(' NR ')' '.' {
+		$$ = new ComposedStatement();
+
+		Statement st;
+		st.st_type = EVAL_STMT;
+		$$->push_back(st);
+		printf("EVAL: %d\n", $3->value);
+	}
+  | EVAL '(' ID ')' '.' {
+		$$ = new ComposedStatement();
+
+		Statement st;
+		st.st_type = EVAL_STMT;
+		$$->push_back(st);
+		
+		auto val = search_variable($3->value, parse_state).get();
+
+		if (val == nullptr) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $3->value << " does not exists";
+			auto string = stream.str();
+			
+			THROW_ERROR(string.c_str());
+		}
+
+		if (val->type != TYPE_INT) {
+			std::ostringstream stream;
+			stream << "EVAL parameter is not of type int";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if (!val->value.int_val &&
+			!val->value.float_val &&
+			!val->value.char_val &&
+			!val->value.string_val &&
+			!val->value.bool_val) {
+
+			std::ostringstream stream;
+			stream << "Variable with name " << val->name << " is used but not initialized ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		printf("EVAL: Variable found: %s. Value: %d\n", $3->value.c_str(), val->value.int_val->value);
+	}
   ;
 
 
@@ -1062,6 +1244,14 @@ function_instruction
 		if ($2->type != $4->type) {
 			std::ostringstream stream;
 			stream << "Variable with name " << $2->name << " is not assigned correctly";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($2->is_const) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " is const ";
 			auto string = stream.str();
 
 			THROW_ERROR(string.c_str());
@@ -1141,6 +1331,14 @@ function_instruction
 		$$->st_type = ITER_SEL_STMT;
 		$$->iter_sel_stmt = std::shared_ptr<IterationSelectionStatement>($1);
 	}
+  | if_instr else_instr {
+		$$=new Statement();
+		$$->st_type = ITER_SEL_STMT;
+
+		$1->secondary_body = $2->secondary_body;
+		delete $2;
+		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
+	}
   | for_instr {
 		$$ = new Statement();
 		$$->st_type = ITER_SEL_STMT;
@@ -1159,6 +1357,8 @@ while_instr
 
 		$$->primary_body = *$5;
 		delete $5;
+
+		POP_STACK_CONTEXT("while");
 	}
   ;
 
@@ -1373,22 +1573,23 @@ if_instr
 
 		$$->primary_body = *$5;
 		delete $5;
-	}
-  | IF '(' boolean ')' function_body ENDIF ELSE function_body ENDELSE {
-		$$ = new IterationSelectionStatement();
-		$$->type = TYPE_IF_ELSE;
 
-		$$->expr = *$3;
-		delete $3;
-
-		$$->primary_body = *$5;
-		delete $5;
-
-		$$->secondary_body = *$8;
-		delete $8;
+		POP_STACK_CONTEXT("if");
 	}
   ;
 
+
+else_instr
+  : ELSE function_body ENDELSE {	
+		$$ = new IterationSelectionStatement();
+		$$->type = TYPE_IF_ELSE;
+
+		$$->secondary_body = *$2;
+		delete $2;
+
+		POP_STACK_CONTEXT("else");
+	}
+  ;
 
 for_instr 
   : FOR '(' ID IN ID ')' function_body ENDFOR {
@@ -1397,6 +1598,8 @@ for_instr
 
 		$$->primary_body = *$7;
 		delete $7;
+
+		POP_STACK_CONTEXT("for");
 	}
   | FOR '(' ID IN for_1 ':' for_1 ')' function_body ENDFOR {
 		$$ = new IterationSelectionStatement();
@@ -1404,6 +1607,8 @@ for_instr
 
 		$$->primary_body = *$9;
 		delete $9;
+
+		POP_STACK_CONTEXT("for");
 	}
   ;
 
@@ -1427,6 +1632,14 @@ eval_expr
 		if ($2->type != $4->type) {
 			std::ostringstream stream;
 			stream << "Variable with name " << $2->name << " is not assigned correctly";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($2->is_const) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " is const ";
 			auto string = stream.str();
 
 			THROW_ERROR(string.c_str());
@@ -1482,6 +1695,19 @@ var
 
 		if ($$ == nullptr)
 			THROW_ERROR(string.c_str());
+
+		if (!$$->value.int_val &&
+			!$$->value.float_val &&
+			!$$->value.char_val &&
+			!$$->value.string_val &&
+			!$$->value.bool_val) {
+
+			std::ostringstream stream;
+			stream << "Variable with name " << $$->name << " is used but not initialized ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
 
 		delete $1;
 	}
@@ -1822,6 +2048,14 @@ statement
 		$$->st_type = ITER_SEL_STMT;
 		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
 	}
+  | if_instr else_instr {
+		$$=new Statement();
+		$$->st_type = ITER_SEL_STMT;
+
+		$1->secondary_body = $2->secondary_body;
+		delete $2;
+		$$->iter_sel_stmt=std::shared_ptr<IterationSelectionStatement>($1);
+	}
   | while_instr {
 		$$=new Statement();
 		$$->st_type = ITER_SEL_STMT;
@@ -1842,9 +2076,19 @@ statement
 		//assignment->position = $4->value;
 		assignment->expr = *$4;
 
+		auto x = $4->type;
+
 		if ($2->type != $4->type) {
 			std::ostringstream stream;
 			stream << "Variable with name " << $2->name << " is not assigned correctly";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($2->is_const) {
+			std::ostringstream stream;
+			stream << "Variable with name " << $2->name << " is const ";
 			auto string = stream.str();
 
 			THROW_ERROR(string.c_str());
@@ -1912,17 +2156,17 @@ statement
 	}
   | EVAL '(' ')' '.' {
 		$$=new Statement();
-		$$->st_type = FUNC_CALL_STMT;
-		printf("statement vid\n");
+		$$->st_type = EVAL_STMT;
+		printf("EVAL: empty statement\n");
 	}
   | EVAL '(' NR ')' '.' {
 		$$=new Statement();
-		$$->st_type = FUNC_CALL_STMT;
-		printf("%d\n", $3->value);
+		$$->st_type = EVAL_STMT;
+		printf("EVAL: %d\n", $3->value);
 	}
   | EVAL '(' ID ')' '.' {
 		$$=new Statement();
-		$$->st_type = FUNC_CALL_STMT;
+		$$->st_type = EVAL_STMT;
 		
 		auto val = search_variable($3->value, parse_state).get();
 
@@ -1942,7 +2186,20 @@ statement
 			THROW_ERROR(string.c_str());
 		}
 
-		printf("Variable found: %s. Value: %d\n", $3->value.c_str(), val->value.int_val->value);
+		if (!val->value.int_val &&
+			!val->value.float_val &&
+			!val->value.char_val &&
+			!val->value.string_val &&
+			!val->value.bool_val) {
+
+			std::ostringstream stream;
+			stream << "Variable with name " << val->name << " is used but not initialized ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		printf("EVAL: Variable found: %s. Value: %d\n", $3->value.c_str(), val->value.int_val->value);
 	}
   | RET eval_expr '.'  {
 		$$=new Statement();
@@ -1972,9 +2229,11 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 std::shared_ptr<VariableDeclaration> search_variable
 (std::string name, ParseState* parse_state)
 {
-	for (auto& variable : parse_state->Stack.top()) {
-		if (variable->name == name)
-			return variable;
+	for (auto& level : parse_state->stack) {
+		for (auto& variable : level) {
+			if (variable->name == name)
+				return variable;
+		}
 	}
 
 	return nullptr;
@@ -2022,9 +2281,20 @@ std::shared_ptr<FunctionDeclaration> search_function(std::string name, std::vect
 	return nullptr;
 }
 
-void pop_stack_context(ParseState* parse_state) {
-	if (! parse_state->Stack.empty())
-		parse_state->Stack.pop();
+void pop_stack_context(std::string name, ParseState* parse_state) {
+	parse_state->contexts[parse_state->contextStack.top()].name = name;
+
+	if (!parse_state->stack.empty()) {
+		for (auto& var : parse_state->stack.back()) {
+			VariableRegister vr{ parse_state->contextStack.top(), var->name, var->type , var->class_name};
+			parse_state->varRegister.push_back(vr);
+		}
+	}
+
+	parse_state->contextStack.pop();
+
+	if (! parse_state->stack.empty())
+		parse_state->stack.pop_back();
 }
 
 bool is_return_type_correct(Type ret_type, TypeValue value, Expression statement) {

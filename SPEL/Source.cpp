@@ -5,6 +5,8 @@
 #include "lexer.hpp"
 #include <iostream>
 #include <sstream>
+#include <iomanip>
+#include <fstream>
 
 bool enable_grammar_debug = false;
 bool enable_testing = false;
@@ -71,6 +73,89 @@ void fcompile(ParseState* parseState, FILE* source) {
 	yylex_destroy(scanner);
 }
 
+void dump_variable_contexts(ParseState& parse_state)
+{
+	std::ofstream out;
+	out.open("symbol_table.txt", std::ios::out);
+	
+	std::stringstream ss;
+	
+	ss << "Variable table:" << std::endl;
+
+	struct Row
+	{
+		std::string context;
+		std::string name;
+		std::string type;
+	};
+
+	std::vector<Row> rows;
+	
+	for (auto& reg : parse_state.varRegister)
+	{
+		Row row;
+		
+		row.context =  parse_state.contexts[reg.index_in_vector].get_context();
+
+		row.name = reg.name;
+
+		switch(reg.type)
+		{
+		case TYPE_INT:
+			row.type =  "int";
+			break;
+		case TYPE_FLOAT:
+			row.type =  "float";
+			break;
+		case TYPE_CHAR:
+			row.type =  "char";
+			break;
+		case TYPE_STRING:
+			row.type =  "string";
+			break;
+		case TYPE_BOOL:
+			row.type =  "bool";
+			break;
+		case TYPE_OBJECT:
+			row.type =  "object";
+			row.type += " " + reg.class_name;
+			break;
+		case TYPE_INT_VECTOR:
+			row.type =  "int vector";
+			break;
+		case TYPE_FLOAT_VECTOR:
+			row.type =  "float vector";
+			break;
+		case TYPE_CHAR_VECTOR:
+			row.type =  "char vector";
+			break;
+		case TYPE_STRING_VECTOR:
+			row.type =  "string vector";
+			break;
+		case TYPE_BOOL_VECTOR:
+			row.type =  "bool vector";
+			break;
+		case TYPE_OBJECT_VECTOR:
+			row.type =  "object vector";
+			row.type += " " + reg.class_name;
+			break;
+		default:
+			break;
+		}
+
+		rows.push_back(row);
+	}
+
+	ss << std::left << std::setw(40) << "Context" << std::left << std::setw(40) << "Name" << std::left << std::setw(40) << "Type" << std::endl;
+	for (auto& row : rows)
+	{
+		ss << std::left << std::setw(40) << row.context << std::left << std::setw(40) << row.name << std::left << std::setw(40) << row.type << std::endl;
+	}
+
+	out << ss.str();
+	out.close();
+}
+
 void output_result(ParseState& parse_state, std::string test_description = "", int entry_line = 0, bool should_fail = false)
 {
 	auto pass = [&](const char* str)
@@ -112,6 +197,8 @@ void output_result(ParseState& parse_state, std::string test_description = "", i
 		if (parse_state.hasError == 0)
 		{
 			fail("[PASSES]");
+
+			dump_variable_contexts(parse_state);
 		}
 		else
 		{
@@ -132,6 +219,8 @@ void output_result(ParseState& parse_state, std::string test_description = "", i
 		if (parse_state.hasError == 0)
 		{
 			pass("[PASS]");
+
+			dump_variable_contexts(parse_state);
 		}
 		else
 		{
@@ -147,6 +236,8 @@ void output_result(ParseState& parse_state, std::string test_description = "", i
 			std::cout << "Error: " << parse_state.errorMessage << " line " << entry_line + parse_state.errorLine << " column " << parse_state.errorColumn << " : " << parse_state.errorToken << std::endl;
 		}
 	}
+
+	std::cout << std::endl;
 }
 
 int main(int argc, char** argv){
