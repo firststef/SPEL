@@ -212,6 +212,7 @@ struct Assignment
 struct FunctionDeclaration
 {
 	Type return_type;
+	TypeValue value;
 
 	Identifier name;
 	std::string class_name;

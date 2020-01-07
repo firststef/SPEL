@@ -77,9 +77,9 @@ void dump_variable_contexts(ParseState& parse_state)
 {
 	std::ofstream out;
 	out.open("symbol_table.txt", std::ios::out);
-	
+
 	std::stringstream ss;
-	
+
 	ss << "Variable table:" << std::endl;
 
 	struct Row
@@ -90,55 +90,57 @@ void dump_variable_contexts(ParseState& parse_state)
 	};
 
 	std::vector<Row> rows;
-	
+
 	for (auto& reg : parse_state.varRegister)
 	{
 		Row row;
-		
-		row.context =  parse_state.contexts[reg.index_in_vector].get_context();
+
+		row.context = parse_state.contexts[reg.index_in_vector].get_context();
 
 		row.name = reg.name;
 
-		switch(reg.type)
+		switch (reg.type)
 		{
 		case TYPE_INT:
-			row.type =  "int";
+			row.type = "int";
 			break;
 		case TYPE_FLOAT:
-			row.type =  "float";
+			row.type = "float";
 			break;
 		case TYPE_CHAR:
-			row.type =  "char";
+			row.type = "char";
 			break;
 		case TYPE_STRING:
-			row.type =  "string";
+			row.type = "string";
 			break;
 		case TYPE_BOOL:
-			row.type =  "bool";
+			row.type = "bool";
 			break;
 		case TYPE_OBJECT:
-			row.type =  "object";
+			row.type = "object";
 			row.type += " " + reg.class_name;
 			break;
 		case TYPE_INT_VECTOR:
-			row.type =  "int vector";
+			row.type = "int vector";
 			break;
 		case TYPE_FLOAT_VECTOR:
-			row.type =  "float vector";
+			row.type = "float vector";
 			break;
 		case TYPE_CHAR_VECTOR:
-			row.type =  "char vector";
+			row.type = "char vector";
 			break;
 		case TYPE_STRING_VECTOR:
-			row.type =  "string vector";
+			row.type = "string vector";
 			break;
 		case TYPE_BOOL_VECTOR:
-			row.type =  "bool vector";
+			row.type = "bool vector";
 			break;
 		case TYPE_OBJECT_VECTOR:
-			row.type =  "object vector";
+			row.type = "object vector";
 			row.type += " " + reg.class_name;
 			break;
+		case NONE:
+			row.type = "void";
 		default:
 			break;
 		}
@@ -146,10 +148,115 @@ void dump_variable_contexts(ParseState& parse_state)
 		rows.push_back(row);
 	}
 
-	ss << std::left << std::setw(40) << "Context" << std::left << std::setw(40) << "Name" << std::left << std::setw(40) << "Type" << std::endl;
+	ss << std::left << std::setw(60) << "Context" << std::left << std::setw(40) << "Name" << std::left << std::setw(40) << "Type" << std::endl;
 	for (auto& row : rows)
 	{
-		ss << std::left << std::setw(40) << row.context << std::left << std::setw(40) << row.name << std::left << std::setw(40) << row.type << std::endl;
+		ss << std::left << std::setw(60) << row.context << std::left << std::setw(40) << row.name << std::left << std::setw(40) << row.type << std::endl;
+	}
+
+	ss << std::endl << "Function table:" << std::endl;
+	ss << std::left << std::setw(30) << "Return Type" << std::left << std::setw(30) << "Name" << std::left << std::setw(30) << "Class" << std::left << std::setw(30) << "Params" << std::endl;
+	for (auto& f : parse_state.functions)
+	{
+		std::string type;
+		switch (f->return_type)
+		{
+		case TYPE_INT:
+			type = "int";
+			break;
+		case TYPE_FLOAT:
+			type = "float";
+			break;
+		case TYPE_CHAR:
+			type = "char";
+			break;
+		case TYPE_STRING:
+			type = "string";
+			break;
+		case TYPE_BOOL:
+			type = "bool";
+			break;
+		case TYPE_OBJECT:
+			type = "object";
+			type += " " + f->value.object_val->name;
+			break;
+		case TYPE_INT_VECTOR:
+			type = "int vector";
+			break;
+		case TYPE_FLOAT_VECTOR:
+			type = "float vector";
+			break;
+		case TYPE_CHAR_VECTOR:
+			type = "char vector";
+			break;
+		case TYPE_STRING_VECTOR:
+			type = "string vector";
+			break;
+		case TYPE_BOOL_VECTOR:
+			type = "bool vector";
+			break;
+		case TYPE_OBJECT_VECTOR:
+			type = "object vector";
+			type += " " + f->value.object_val->name;
+			break;
+		case NONE:
+			type = "void";
+		default:
+			break;
+		}
+
+		std::string params;
+		for (auto& p : f->params)
+		{
+			switch (f->return_type)
+			{
+			case TYPE_INT:
+				params += "int";
+				break;
+			case TYPE_FLOAT:
+				params += "float";
+				break;
+			case TYPE_CHAR:
+				params += "char";
+				break;
+			case TYPE_STRING:
+				params += "string";
+				break;
+			case TYPE_BOOL:
+				params += "bool";
+				break;
+			case TYPE_OBJECT:
+				params += "object";
+				type += " " + f->value.object_val->name;
+				break;
+			case TYPE_INT_VECTOR:
+				params += "int vector";
+				break;
+			case TYPE_FLOAT_VECTOR:
+				params += "float vector";
+				break;
+			case TYPE_CHAR_VECTOR:
+				params += "char vector";
+				break;
+			case TYPE_STRING_VECTOR:
+				params += "string vector";
+				break;
+			case TYPE_BOOL_VECTOR:
+				params += "bool vector";
+				break;
+			case TYPE_OBJECT_VECTOR:
+				params += "object vector";
+				params += " " + f->value.object_val->name;
+				break;
+			case NONE:
+				params += "void";
+			default:
+				break;
+			}
+			params += ",";
+		}
+
+		ss << std::left << std::setw(30) << type << std::left << std::setw(30) << f->name << std::left << std::setw(30) << f->class_name << std::left << std::setw(30) << params << std::endl;
 	}
 
 	out << ss.str();

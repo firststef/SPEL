@@ -199,7 +199,7 @@ class_def
 		delete $2;
 
 		parse_state->classes.push_back(std::shared_ptr<ClassDefinition>($$));
-		POP_STACK_CONTEXT("class->" + $$->name);
+		POP_STACK_CONTEXT("class@@" + $$->name);
 	}
   ;
 
@@ -212,6 +212,7 @@ class_body
 		$$ = new ClassDefinition();
 
 		DeclarationHolder dh;
+		dh.type = FUNC_DEC;
 
 		for (auto& f : parse_state->functions) {
 			if (f.get() == $1)
@@ -227,6 +228,7 @@ class_body
   | class_f class_body {
 		$$ = $2;
 		DeclarationHolder dh;
+		dh.type = FUNC_DEC;
 		dh.func_dec = std::shared_ptr<FunctionDeclaration>($1);
 		$$->decl_holders.push_back(dh);
 	}
@@ -927,6 +929,7 @@ class_f
 		$$->name = $3->value;
 		$$->return_type = $1->type;
 		$$->function_body = *$7;
+		$$->value = $1->value;
 
 		std::ostringstream stream1;
 		stream1 << "Function " << $$->name << " already exists with this signature";
@@ -947,7 +950,7 @@ class_f
 		delete $7;
 		
 		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($$));
-		POP_STACK_CONTEXT("function->" + $$->name);
+		POP_STACK_CONTEXT("function@@" + $$->name);
 	}
   | VOID BGNF ID SACRF f_declaration_parameters ':' no_return_function_body ENDF {
 		$$ = $5;
@@ -974,7 +977,7 @@ class_f
 		delete $7;
 
 		parse_state->functions.push_back(std::shared_ptr<FunctionDeclaration>($$));
-		POP_STACK_CONTEXT("function->" + $$->name);
+		POP_STACK_CONTEXT("function@@" + $$->name);
 	}
   ;
 
