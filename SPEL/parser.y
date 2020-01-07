@@ -4,8 +4,8 @@
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
-std::shared_ptr<VariableDeclaration> search_variable(std::string name, ParseState* parse_state);
-std::shared_ptr<VariableDeclaration> search_variable_in_class(std::string name, std::string class_object, ParseState* parse_state);
+std::shared_ptr<VariableDeclaration>& search_variable(std::string name, ParseState* parse_state);
+std::shared_ptr<VariableDeclaration>& search_variable_in_class(std::string name, std::string class_object, ParseState* parse_state);
 std::shared_ptr<ClassDefinition> search_class(std::string name, ParseState* parse_state);
 std::shared_ptr<FunctionDeclaration> search_function(std::string name, std::vector<VariableDeclaration> params, ParseState* parse_state);
 bool is_return_type_correct(Type ret_type, TypeValue value, Expression statement);
@@ -229,7 +229,12 @@ class_body
 		$$ = $2;
 		DeclarationHolder dh;
 		dh.type = FUNC_DEC;
-		dh.func_dec = std::shared_ptr<FunctionDeclaration>($1);
+
+		for(auto& f : parse_state->functions) {
+			if (f.get() == $1)
+				dh.func_dec = f;
+		}
+
 		$$->decl_holders.push_back(dh);
 	}
   ;
@@ -239,9 +244,19 @@ class_var
 		$$=new DeclarationHolder();
 		$$->type=VAR_DEC;
 
-		$3->type = $2->type;
+		if ($3->type != NONE && $3->type != VECTOR_NONE && $3->type != $2->type) {
+			std::ostringstream stream;
+			stream << "Variable " << $2->name << " is not initialized correctly";
+			auto string = stream.str();
 
-		if ($2->type == TYPE_OBJECT || $2->type == TYPE_OBJECT_VECTOR) {
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($3->type == VECTOR_NONE || $3->values.size()) {
+			$3->type = Type($2->type + 6); //promote to vector
+		}
+
+		if ($2->type == TYPE_OBJECT || $3->type == TYPE_OBJECT_VECTOR) {
 			bool found = false;
 			for (auto& class_dec : parse_state->classes) {
 				if ($2->value.object_val->name == class_dec->name)
@@ -258,12 +273,10 @@ class_var
 
 			$3->class_name = $2->value.object_val->name;
 		}
-
 		
 		$$->var_dec = std::shared_ptr<VariableDeclaration>($3);
 		delete $2;
 
-		//validare daca exista
 		parse_state->stack.back().push_back($$->var_dec);
 	}
   | CRAFT CONST type const_class_id '.' {
@@ -271,9 +284,19 @@ class_var
 		$$ = new DeclarationHolder();
 		$$->type = VAR_DEC;
 
-		$4->type = $3->type;
+		if ($4->type != $3->type) {
+			std::ostringstream stream;
+			stream << "Variable " << $3->name << " is not initialized correctly";
+			auto string = stream.str();
 
-		if ($3->type == TYPE_OBJECT || $3->type == TYPE_OBJECT_VECTOR) {
+			THROW_ERROR(string.c_str());
+		}
+
+		if ($4->values.size()) {
+			$4->type = Type($3->type + 6);
+		}
+
+		if ($3->type == TYPE_OBJECT || $4->type == TYPE_OBJECT_VECTOR) {
 			bool found = false;
 			for (auto& class_dec : parse_state->classes) {
 				if ($3->value.object_val->name == class_dec->name)
@@ -354,6 +377,7 @@ class_id
 
 		$$ = new VariableDeclaration();
 		$$->name = $1->value;
+		$$->type = NONE;
 		delete $1;
 	}
   | ID BSTOW class_id_initialization {
@@ -414,6 +438,7 @@ class_id
 
 		$$=new VariableDeclaration();
 		$$->name= $1->value;
+		$$->type = VECTOR_NONE;
 		delete $1;
 
 		$$->size_of_vector = $3->value;
@@ -441,6 +466,15 @@ class_id
 			THROW_ERROR(string.c_str());
 		}
 
+		if ($3->value == 0) {
+			std::ostringstream stream;
+			stream << "Const vector with name " << $1->value << " cannot be initialized with size 0 ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		$$->type = (*$6)[0]->type;
 		$$->size_of_vector=$3->value;
 		$$->values.resize($3->value);
 
@@ -591,7 +625,7 @@ class_id_initialization
 		}
 
 		//we could get the type, but the value cannot be computed
-		$$->e_type = UNKNOWN;
+		$$->type = func->return_type;
 
 		delete $2;
 
@@ -851,6 +885,15 @@ const_class_id
 			THROW_ERROR(string.c_str());
 		}
 
+		if ($3->value == 0) {
+			std::ostringstream stream;
+			stream << "Const vector with name " << $1->value << " cannot be initialized with size 0 ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
+
+		$$->type = (*$6)[0]->type;
 		$$->size_of_vector = $3->value;
 		$$->values.resize($3->value);
 
@@ -1712,19 +1755,6 @@ var
 		if ($$ == nullptr)
 			THROW_ERROR(string.c_str());
 
-		if (!$$->value.int_val &&
-			!$$->value.float_val &&
-			!$$->value.char_val &&
-			!$$->value.string_val &&
-			!$$->value.bool_val) {
-
-			std::ostringstream stream;
-			stream << "Variable with name " << $$->name << " is used but not initialized ";
-			auto string = stream.str();
-
-			THROW_ERROR(string.c_str());
-		}
-
 		delete $1;
 	}
   | ID '[' vector_position ']' {
@@ -1774,7 +1804,8 @@ var
   | ID '[' vector_position ']' OF ID '[' vector_position ']' {  }
   ;
 
-expr: '(' expr ')' {
+expr
+  : '(' expr ')' {
 		$$ = $2;
 	}
   | expr '+' expr {
@@ -1945,8 +1976,19 @@ expr: '(' expr ')' {
 
 		$$->type=$1->type;
 		$$->value=$1->value;
-		
-		delete $1;
+
+		if (!$$->value.int_val &&
+			!$$->value.float_val &&
+			!$$->value.char_val &&
+			!$$->value.string_val &&
+			!$$->value.bool_val) {
+
+			std::ostringstream stream;
+			stream << "Variable with name " << $$->name << " is used but not initialized ";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
 	}
   | CHNT ID SACRF call_parameters ':' {
 		$$ = new Expression();
@@ -1974,7 +2016,7 @@ expr: '(' expr ')' {
 		$$->e_type = CALL;
 
 		//we could get the type, but the value cannot be computed
-		$$->e_type = UNKNOWN;
+		$$->type = func->return_type;
 
 		delete $2;
 	}
@@ -2242,7 +2284,7 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 	parse_state->errorToken = locp->last_token;
 }
 
-std::shared_ptr<VariableDeclaration> search_variable
+std::shared_ptr<VariableDeclaration>& search_variable
 (std::string name, ParseState* parse_state)
 {
 	for (auto& level : parse_state->stack) {
@@ -2252,13 +2294,13 @@ std::shared_ptr<VariableDeclaration> search_variable
 		}
 	}
 
-	return nullptr;
+	return parse_state->null_ptr;
 }
 
-std::shared_ptr<VariableDeclaration> search_variable_in_class
+std::shared_ptr<VariableDeclaration>& search_variable_in_class
 (std::string name, std::string class_object, ParseState* parse_state)
 {
-	return nullptr;
+	return parse_state->null_ptr;
 }
 
 std::shared_ptr<ClassDefinition> search_class(std::string name, ParseState* parse_state)

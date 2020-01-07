@@ -46,11 +46,9 @@ craft absolute bolean.
 [TEST] Variable init:
 The tale begins.
 craft points a bestow 1.
-craft precise c.
-craft precise b bestow c.
 craft precise d bestow 1.0.
 craft rune v bestow 'a'.
-craft string str bestow "a".
+craft tome str bestow "a".
 craft absolute bolean bestow true.
 [END]
 
@@ -58,13 +56,18 @@ craft absolute bolean bestow true.
 The tale begins.
 craft artifact points kst1 bestow 1.
 craft artifact precise kst2 bestow 1.1.
-craft artifact rune kst3 bestow 5.
+craft artifact rune kst3 bestow 'a'.
 craft artifact tome kst4 bestow "kst4".
 craft artifact points vkst[3] bestow [1, 3, 1].
 [END]
 
 [TEST] Vector declarations:
 The tale begins.
+
+I summon thy name clasa1
+	craft points a.
+and thy brethren.
+
 craft points a1[].
 craft precise b1[].
 craft rune v1[].
@@ -94,12 +97,13 @@ craft points b bestow a.
 The tale begins.
 
 points spell man sacrifice points a, points b:
-	cast a + b * 3.
+	//cast a + b * 3. parametrii nu pot fi folositi pentru ca nu au fost initializati
+	cast 4.
 terminus
 
 points spell functie sacrifice time :
-	enchant b with 55*3/2.
-	enchant str with "string1"+"string2".
+	craft precise b bestow 55.0*3.0/2.0.
+	craft tome str bestow "string1"+"string2".
 	cast 0.
 terminus
 
@@ -190,15 +194,12 @@ points spell functie sacrifice points p :
 terminus
 
 points spell man sacrifice points life :
-	cast life.
+	cast 4.
 terminus
 
-chant functie sacrifice chant man sacrifice 1+3 :: .
 chant functie sacrifice 45 :.
-chant functie sacrifice 3+4, "7":.
-chant functie sacrifice kst1 :.
-chant functie sacrifice a:.
-chant functie sacrifice a + a of obj:.
+chant functie sacrifice 3+4:.
+chant functie sacrifice chant man sacrifice 1+3 :: .
 [END]
 
 [TEST][SHOULD FAIL] Functions must be defined before use:
@@ -243,27 +244,33 @@ The tale begins.
 
 I summon thy name clasa2
 	void spell functie2 sacrifice time :
-		craft rune sir[4] bestow ['1', 'a', 2, '\4'].
-		craft points a bestow health of hero.
+		craft rune sir[4] bestow ['1', 'a', 'c', '4'].
+		craft points a bestow 100.
 	terminus
+
 	void spell functie_void_cu_return sacrifice time :
 		craft precise c bestow 1.1.
 	terminus
-	//in declaratii la functii const nu trebuie sa fie initializat
+
 	tome spell functie_cu_return sacrifice tome a, artifact rune b[]:
-		cast b[3].
-		craft artifact precise vec[5] bestow [1,4.5].
+		craft artifact precise vec[5] bestow [1.0,4.0,5.0,2.0,3.0].
+		cast "done".
 	terminus
 and thy brethren.
+
 I summon thy name clasa3
-	void spell functie2 sacrifice time:
-		craft rune sir[] bestow ['1', 'a', 2, '\4'].
+	void spell functie4 sacrifice time:
+		craft rune sir[4] bestow ['1', 'a', '2', '4'].
+		craft points a.
 	terminus
+
 	craft points x.
-	void spell functie_void_cu_return sacrifice time :
+
+	void spell functie_void_cu_return2 sacrifice time :
 		craft precise c bestow 1.1.
 	terminus
-	craft absolute variabila[] bestow [true, false].
+
+	craft absolute variabila[2] bestow [true, false].
 and thy brethren.
 [END]
 
@@ -291,6 +298,13 @@ and thy brethren.
 
 [TEST] Conditionals & Arithmetic:
 The tale begins.
+craft absolute a bestow true.
+craft points b bestow 1.
+
+void spell functie sacrifice points n :
+	craft precise c bestow 1.1.
+terminus
+
 if (a && (b != 0))
 	chant functie sacrifice 1:.
 endif
@@ -301,9 +315,15 @@ endelse
 
 [TEST] While Loops:
 The tale begins.
-while (c >= 0 && (b!=0))
-	craft points a bestow health of hero.
-	craft tome str1[1] bestow [3].
+craft precise c bestow 1.1.
+craft points b bestow 1.
+void spell functie sacrifice points n :
+	craft precise d bestow 1.1.
+terminus
+
+while (c >= 0.0 && (b!=0))
+	craft points a bestow 0.
+	craft tome str1[1] bestow ["wow"].
 	chant functie sacrifice 45:.
 endwhile
 [END]
@@ -315,20 +335,11 @@ for (x in 1:30) //for (points x=1. x<=30. x++)
 	craft points b.
 endfor
 
-craft points x bestow chant functie sacrifice 3 : .
-
-for (x in str1) //for (auto:x in str1) -
-	craft points a bestow health[3] of hero.
-	craft points a bestow health of hero[4].
-	craft rune f bestow 4.
-	chant functie sacrifice 4 : .
-	enchant b with 3/(health of hero[3]).
-endfor
-
 [END]
 
 [TEST] Array element assign:
 The tale begins.
+craft points v[10].
 enchant v[5] with 4.
 [END]
 
@@ -344,11 +355,10 @@ craft tome str bestow "string1"+"string2","asas".
 
 [TEST][SHOULD FAIL] Arithmetic operations vs boolean operations:
 The tale begins.
-if (2 + 3)
+if ((2 + 3) == (2 < 3))
 	craft artifact points ii bestow 0.
 endif
 [END]
-
 
 
 [TEST][SHOULD FAIL] Const variables cannot be assigned to:

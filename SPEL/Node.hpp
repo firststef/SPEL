@@ -84,6 +84,7 @@ struct BoolVal
 enum Type
 {
 	NONE,
+	VECTOR_NONE,
 	TYPE_INT,
 	TYPE_FLOAT,
 	TYPE_CHAR,

@@ -48,6 +48,8 @@ struct ParseState
 	
 	std::vector<std::shared_ptr<ClassDefinition>> classes;
 	std::vector<std::shared_ptr<FunctionDeclaration>> functions;
+
+	std::shared_ptr< VariableDeclaration> null_ptr = nullptr;
 	
 	int hasError = 0;
 	int errorLine;
