@@ -239,29 +239,15 @@ inline int get_unique_id()
 	return id++;
 }
 
-//std::shared_ptr<VariableDeclaration> search_for_var()
-//{
-//	
-//}
-//
-//
-
-
 //if there is time, delete vector_position to expression
 
 //something with ->name 
 
-//de scos class_ids
-
 //ComposedStatement -> CompoundStatement
-
-//propun sa scoatem eval -> declaram ca functie cand incepem
 
 //no_return_function_body -> comp_stmt change type
 
 //function_instruction remove -> function_body -> to statement
-
-//if beginif ar trebui scos
 
 //expresiile din vector ar trebui calculate la init (scapat de ele)
 //si pus valoare default daca nu se pot calcula -> values

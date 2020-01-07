@@ -356,13 +356,6 @@ type
   ;
 
 
-  /* To be removed */
-class_ids
-  : class_id {  }
-  | class_id ',' class_ids {  }
-  ;
-
-
 
 class_id
   : ID {
@@ -810,12 +803,6 @@ vector_position
   ;
 
 
-  /* to be removed */
-const_class_ids : const_class_id {  }
-				| const_class_id ',' const_class_ids {  }
-				;
-
-
 const_class_id
   : ID BSTOW class_id_initialization {
 		auto val = search_variable($1->value, parse_state).get();
@@ -1245,10 +1232,16 @@ function_body
 		Statement st;
 		st.st_type = EVAL_STMT;
 		$$->push_back(st);
-		if ($3->value.int_val)
+		if ($3->type == TYPE_INT)
 			printf("EVAL: %d\n", $3->value.int_val->value);
 		else
-			printf("Expression could not be calculated\n");
+		{
+			std::ostringstream stream;
+			stream << "Eval parameter was not int";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
 	}
   | EVAL '(' NR ')' '.' {
 		$$ = new ComposedStatement();
@@ -2236,10 +2229,16 @@ statement
   | EVAL '(' expr ')' '.' {
 		$$=new Statement();
 		$$->st_type = EVAL_STMT;
-		if ($3->value.int_val)
+		if ($3->type == TYPE_INT )
 			printf("EVAL: %d\n", $3->value.int_val->value);
 		else
-			printf("Expression could not be calculated\n");
+		{
+			std::ostringstream stream;
+			stream << "Eval parameter was not int";
+			auto string = stream.str();
+
+			THROW_ERROR(string.c_str());
+		}
 	}
   | EVAL '(' ID ')' '.' {
 		$$=new Statement();

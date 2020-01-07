@@ -6,8 +6,6 @@ points spell functie2 sacrifice time :
 	cast 4.
 terminus
 
-EVAL(1+2).
-
 I summon thy name Link
 	craft points life_points bestow 5.
 	craft precise mana_points.
@@ -377,9 +375,10 @@ EVAL().
 craft points a bestow 3 * 2.
 EVAL(a).
 EVAL(3).
-craft points b[2] bestow [1,2].
-craft points aux bestow b[0].
-EVAL(aux).
+[END]
+[TEST] Eval expressions:
+The tale begins.
+EVAL(1 + 2).
 [END]
 [TEST][SHOULD FAIL] Non-int eval function float:
 The tale begins.
@@ -397,3 +396,6 @@ EVAL(1, 2).
 The tale begins.
 EVAL(enchant 1 with 2).
 [END]
+
+//craft points b[2] bestow [1,2].
+//craft points aux bestow b[0].

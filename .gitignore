@@ -357,3 +357,4 @@ SPEL/Tester\ -\ Debug/
 SPEL/Tester\ -\ Releases
 SPEL/parser.cpp
 SPEL/lexer.cpp
+SPEL/symbol_table.txt
