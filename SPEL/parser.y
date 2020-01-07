@@ -1239,6 +1239,17 @@ function_body
 		$$->push_back(st);
 		printf("EVAL: empty statement\n");
 	}
+  | EVAL '(' expr ')' '.' {
+		$$ = new ComposedStatement();
+
+		Statement st;
+		st.st_type = EVAL_STMT;
+		$$->push_back(st);
+		if ($3->value.int_val)
+			printf("EVAL: %d\n", $3->value.int_val->value);
+		else
+			printf("Expression could not be calculated\n");
+	}
   | EVAL '(' NR ')' '.' {
 		$$ = new ComposedStatement();
 
@@ -2221,6 +2232,14 @@ statement
 		$$=new Statement();
 		$$->st_type = EVAL_STMT;
 		printf("EVAL: %d\n", $3->value);
+	}
+  | EVAL '(' expr ')' '.' {
+		$$=new Statement();
+		$$->st_type = EVAL_STMT;
+		if ($3->value.int_val)
+			printf("EVAL: %d\n", $3->value.int_val->value);
+		else
+			printf("Expression could not be calculated\n");
 	}
   | EVAL '(' ID ')' '.' {
 		$$=new Statement();

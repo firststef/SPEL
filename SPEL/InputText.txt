@@ -6,6 +6,8 @@ points spell functie2 sacrifice time :
 	cast 4.
 terminus
 
+EVAL(1+2).
+
 I summon thy name Link
 	craft points life_points bestow 5.
 	craft precise mana_points.
