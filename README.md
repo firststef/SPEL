@@ -36,7 +36,7 @@ Running the debug mode will print the grammar rules and non-terminals in the ord
 Note: If you notice one non-terminal starts with [!warning] that means that the name of the non-terminal is probably incorect, due to a parser error. Refer to the printed rule for determining the correct non-terminal (look for the nt parent of the rule).
 
 ### Example program:
-
+```
 The tale begins.
 
 I summon thy name Link 
@@ -67,3 +67,4 @@ craft Link clone.
 enchant life_points of clone with 100.
 
 craft artifact points basic_attack bestow 3.
+```
