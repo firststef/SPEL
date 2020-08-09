@@ -529,7 +529,7 @@ int main(int argc, char** argv){
 #endif
 		fclose(f);
 
-		return overall_result;
+		return !overall_result;
 	}
 	else { //Single run on file
 
