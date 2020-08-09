@@ -521,7 +521,7 @@ int main(int argc, char** argv){
 
 			output_result(parse_state, test_description, entry_line, should_fail);
 
-			overall_result &= (parse_state.hasError == 0);
+			overall_result &= (should_fail != bool(parse_state.hasError == 0));
 		}
 
 #if defined(_WIN32) and defined(_DEBUG)
