@@ -21,7 +21,6 @@ jobs:
       
     - name: Build SPEL
       run: |
-        echo "::add-path::./WinFlexBison"
         msbuild SPEL.sln /property:Configuration=Release
         
     - name: Run Unittester
