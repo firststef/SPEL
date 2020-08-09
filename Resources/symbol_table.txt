@@ -1,0 +1,5 @@
+Variable table:
+Context                                                     Name                                    Type                                    
+
+Function table:
+Return Type                   Name                          Class                         Params                        

@@ -364,10 +364,11 @@ int main(int argc, char** argv){
 	if (argc < 2)
 	{
 		std::cout << "Arguments not provided" << std::endl;
-		std::cout << "--test or /test for running on a test file" << std::endl;
-		std::cout << "-s or /s \"string\" for parsing a string" << std::endl;
-		std::cout << "-v or /v for enabling debug info" << std::endl;
-#ifdef _WIN32
+		std::cout << "SPEL.exe <file> compile a program" << std::endl;
+		std::cout << "SPEL.exe <test_file> --test or /test for running on a test file" << std::endl;
+		std::cout << "SPEL.exe -s or /s <string> for parsing a string" << std::endl;
+		std::cout << "... -v or /v for enabling debug info" << std::endl;
+#if defined(_WIN32) and defined(_DEBUG)
 		system("pause");
 #endif
 		return 0;
@@ -391,7 +392,7 @@ int main(int argc, char** argv){
 			if (i == argc - 1)
 			{
 				std::cout << "String from input not found" << std::endl;
-#ifdef _WIN32
+#if defined(_WIN32) and defined(_DEBUG)
 				system("pause");
 #endif
 				return -1;
@@ -425,7 +426,8 @@ int main(int argc, char** argv){
 #ifdef _WIN32
 		system("pause");
 #endif
-		return 0;
+
+		return parse_state.hasError;
 	}
 
 	//Or scan from file
@@ -434,7 +436,7 @@ int main(int argc, char** argv){
 	if (f == nullptr)
 	{
 		std::cout << "File not found" << std::endl;
-#ifdef _WIN32
+#if defined(_WIN32) and defined(_DEBUG)
 		system("pause");
 #endif
 		return -1;
@@ -442,6 +444,8 @@ int main(int argc, char** argv){
 
 	if (enable_testing) //TESTING
 	{
+		bool overall_result = true;
+		
 		//Reading entire test file in memory
 		fseek(f, 0, SEEK_END);
 		long fsize = ftell(f);
@@ -516,7 +520,16 @@ int main(int argc, char** argv){
 			delete[] scan_buff;
 
 			output_result(parse_state, test_description, entry_line, should_fail);
+
+			overall_result &= (parse_state.hasError == 0);
 		}
+
+#if defined(_WIN32) and defined(_DEBUG)
+		system("pause");
+#endif
+		fclose(f);
+
+		return overall_result;
 	}
 	else { //Single run on file
 
@@ -530,12 +543,14 @@ int main(int argc, char** argv){
 		}
 
 		output_result(parse_state);
-	}
 
-#ifdef _WIN32
-	system("pause");
+#if defined(_WIN32) and defined(_DEBUG)
+		system("pause");
 #endif
-	fclose(f);
+		fclose(f);
+
+		return parse_state.hasError;
+	}
 	
-	return 1;
+	return 0;
 }
