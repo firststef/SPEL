@@ -1,4 +1,5 @@
 # SPEL
+![Tester](https://github.com/firststef/ECSlib/workflows/UnitTester/badge.svg)
 
 Spel is a programming language submitted as an evaluation project for the 2019-20 Formal Language and Compilers course at the UAIC University.
 
