@@ -392,7 +392,7 @@ EVAL("str").
 The tale begins.
 EVAL(1, 2).
 [END]
-[TEST] Non-int eval function expression:
+[TEST][SHOULD FAIL] Non-int eval function expression:
 The tale begins.
 EVAL(enchant 1 with 2).
 [END]
